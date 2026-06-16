@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#3b82f6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="쉐도잉 챌린지">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <title>후기 모아보기 - 쉐도잉 챌린지</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <style>
+    body { font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen pb-10">
+
+  <header class="bg-white border-b px-4 py-3 sticky top-0 z-20 shadow-sm">
+    <div class="max-w-2xl mx-auto flex items-center justify-between">
+      <a href="admin-students.html" class="text-sm text-gray-400 hover:text-gray-600">← 학생 관리</a>
+      <div class="text-center">
+        <h1 class="text-base font-bold text-gray-900">후기 모아보기</h1>
+        <p class="text-xs text-gray-400" id="monthLabel">로딩 중...</p>
+      </div>
+      <div class="w-16"></div>
+    </div>
+  </header>
+
+  <main class="max-w-2xl mx-auto px-3 py-5 space-y-4">
+
+    <!-- 요약 -->
+    <div class="bg-white rounded-2xl shadow-sm px-5 py-4 flex items-center justify-between">
+      <div>
+        <p class="text-xs text-gray-400 mb-0.5">후기 작성 현황</p>
+        <p class="text-xl font-bold text-gray-800">
+          <span id="writtenCount" class="text-blue-600">-</span>
+          <span class="text-sm font-normal text-gray-400"> / <span id="totalCount">-</span>명</span>
+        </p>
+      </div>
+      <div class="text-4xl">📝</div>
+    </div>
+
+    <!-- 후기 목록 -->
+    <div id="writtenList" class="space-y-3">
+      <div class="bg-white rounded-2xl shadow-sm p-8 text-center text-gray-400 text-sm">로딩 중...</div>
+    </div>
+
+    <!-- 미작성 학생 -->
+    <div id="notWrittenBlock" class="hidden bg-white rounded-2xl shadow-sm p-4">
+      <h2 class="text-xs font-bold text-gray-400 mb-2">아직 후기를 남기지 않은 학생</h2>
+      <p id="notWrittenNames" class="text-sm text-gray-500 leading-relaxed"></p>
+    </div>
+
+  </main>
+
+  <script>
+    async function init() {
+      const [students, resultsSnap] = await Promise.all([
+        loadStudentList(),
+        db.collection('results').where('challengeMonth', '==', CHALLENGE_MONTH).get()
+      ]);
+
+      const [, cm] = CHALLENGE_MONTH.split('-');
+      document.getElementById('monthLabel').textContent = `${parseInt(cm)}월 챌린지`;
+      document.getElementById('totalCount').textContent = students.length;
+
+      const resultsMap = {};
+      resultsSnap.docs.forEach(d => {
+        const data = d.data();
+        resultsMap[data.studentName] = data;
+      });
+
+      const written    = students.filter(n => resultsMap[n]?.reflection);
+      const notWritten = students.filter(n => !resultsMap[n]?.reflection);
+
+      document.getElementById('writtenCount').textContent = written.length;
+
+      const list = document.getElementById('writtenList');
+      if (written.length === 0) {
+        list.innerHTML = `<div class="bg-white rounded-2xl shadow-sm p-8 text-center text-gray-400 text-sm">아직 후기를 남긴 학생이 없어요.</div>`;
+      } else {
+        list.innerHTML = '';
+        written.forEach(name => {
+          const r = resultsMap[name];
+          const badge = r.continueNextMonth === true
+            ? `<span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">🔄 이월</span>`
+            : r.continueNextMonth === false
+            ? `<span class="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-semibold">💰 환급</span>`
+            : `<span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">미응답</span>`;
+
+          const card = document.createElement('div');
+          card.className = 'bg-white rounded-2xl shadow-sm p-4 space-y-2.5';
+          card.innerHTML = `
+            <div class="flex items-center justify-between">
+              <p class="font-bold text-gray-800">${name}</p>
+              ${badge}
+            </div>
+            <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap bg-gray-50 rounded-xl px-3 py-2.5">${r.reflection}</p>
+          `;
+          list.appendChild(card);
+        });
+      }
+
+      if (notWritten.length > 0) {
+        document.getElementById('notWrittenBlock').classList.remove('hidden');
+        document.getElementById('notWrittenNames').textContent = notWritten.join(' · ');
+      }
+    }
+
+    init();
+  </script>
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  <script>
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function(OneSignal) {
+      await OneSignal.init({
+        appId: "c7ec5930-ba5f-4eec-9613-d2dc1a499751",
+        serviceWorkerParam: { scope: "/" },
+        serviceWorkerPath: "sw.js",
+        notifyButton: { enable: false },
+      });
+    });
+  </script>
+</body>
+</html>

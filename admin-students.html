@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#3b82f6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="쉐도잉 챌린지">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <title>학생 관리 - 쉐도잉 챌린지</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <style>
+    body { font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen pb-10">
+
+  <header class="bg-white border-b px-4 py-3 sticky top-0 z-20 shadow-sm">
+    <div class="max-w-2xl mx-auto flex items-center justify-between">
+      <a href="index.html" class="text-sm text-gray-400 hover:text-gray-600">← 대시보드</a>
+      <div class="text-center">
+        <h1 class="text-base font-bold text-gray-900">학생 관리</h1>
+        <p class="text-xs text-gray-400" id="currentMonthLabel">로딩 중...</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <a href="admin-reflections.html"
+          class="text-xs bg-amber-100 text-amber-700 px-3 py-1.5 rounded-full font-semibold hover:bg-amber-200 transition-colors">
+          📝 후기
+        </a>
+        <button onclick="openNewChallengeModal()"
+          class="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-full font-semibold hover:bg-blue-700 transition-colors">
+          + 새 챌린지
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-2xl mx-auto px-3 py-5 space-y-5">
+
+    <!-- 현재 챌린지 정보 -->
+    <div class="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 flex items-center justify-between">
+      <div>
+        <p class="text-sm font-semibold text-blue-800" id="challengeTitle">로딩 중...</p>
+        <p class="text-xs text-blue-600 mt-0.5" id="challengeDates">-</p>
+      </div>
+      <span class="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded-full font-bold" id="studentCountBadge">-명</span>
+    </div>
+
+    <!-- 학생 추가 -->
+    <div class="bg-white rounded-2xl shadow-sm p-4 space-y-3">
+      <h2 class="font-bold text-gray-800 text-sm">학생 추가</h2>
+      <div class="flex gap-2">
+        <input type="text" id="newStudentInput"
+          placeholder="학생 이름 입력"
+          maxlength="10"
+          class="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+          onkeydown="if(event.key==='Enter') addStudent()"
+        />
+        <button onclick="addStudent()"
+          class="bg-blue-600 text-white text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-blue-700 transition-colors flex-shrink-0">
+          추가
+        </button>
+      </div>
+    </div>
+
+    <!-- 학생 목록 -->
+    <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div class="px-5 py-3.5 border-b flex items-center justify-between">
+        <h2 class="font-bold text-gray-800 text-sm">참여 학생 목록</h2>
+        <div class="flex items-center gap-2">
+          <input type="text" id="searchStudent"
+            placeholder="이름 검색"
+            oninput="renderStudents()"
+            class="text-xs border border-gray-200 rounded-lg px-2 py-1.5 w-24 focus:outline-none focus:ring-2 focus:ring-blue-300"
+          />
+          <span class="text-xs text-gray-400" id="countLabel">-명</span>
+        </div>
+      </div>
+      <div id="studentList" class="divide-y divide-gray-50">
+        <div class="px-5 py-8 text-center text-gray-400 text-sm">로딩 중...</div>
+      </div>
+    </div>
+
+    <!-- 환급 정산 -->
+    <div id="refundSummaryBlock" class="hidden bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div class="px-5 py-3.5 border-b flex items-center justify-between">
+        <h2 class="font-bold text-gray-800 text-sm">💰 환급 대상</h2>
+        <span class="text-xs text-gray-400" id="refundCountLabel">-명</span>
+      </div>
+      <div id="refundSummaryList"></div>
+    </div>
+
+    <p class="text-xs text-center text-gray-400">
+      학생을 삭제하면 해당 학생의 인증 기록도 함께 삭제됩니다.
+    </p>
+
+  </main>
+
+  <!-- 새 챌린지 시작 모달 -->
+  <div id="newChallengeModal" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-5 space-y-4">
+      <div>
+        <h3 class="font-bold text-gray-800">새 챌린지 시작</h3>
+        <p class="text-xs text-gray-400 mt-0.5">매달 초 새 챌린지를 시작할 때 사용하세요</p>
+      </div>
+      <div>
+        <label class="text-sm font-medium text-gray-700 block mb-1.5">챌린지 월</label>
+        <select id="newMonthSelect"
+          class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white">
+        </select>
+      </div>
+      <div class="bg-gray-50 rounded-xl p-3 space-y-2">
+        <p class="text-sm font-medium text-gray-700">이전 학생 인계</p>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="radio" name="carryOver" value="all" checked class="accent-blue-600" />
+          <span class="text-sm text-gray-600">이전 달 학생 전원 유지</span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="radio" name="carryOver" value="none" class="accent-blue-600" />
+          <span class="text-sm text-gray-600">새로 시작 (학생 목록 초기화)</span>
+        </label>
+      </div>
+      <div>
+        <label class="text-sm font-medium text-gray-700 block mb-1.5">챌린지 시작일 (첫 번째 월요일)</label>
+        <input type="date" id="startDateInput"
+          class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+        />
+      </div>
+      <div class="flex gap-2 pt-1">
+        <button onclick="closeNewChallengeModal()"
+          class="flex-1 text-sm text-gray-600 py-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors">
+          취소
+        </button>
+        <button onclick="startNewChallenge()"
+          class="flex-1 text-sm bg-blue-600 text-white py-2.5 rounded-xl hover:bg-blue-700 transition-colors font-semibold">
+          챌린지 시작
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 삭제 확인 모달 -->
+  <div id="deleteModal" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-xs p-5 text-center space-y-4">
+      <p class="text-3xl">⚠️</p>
+      <p class="font-bold text-gray-800"><span id="deleteTargetName"></span>님을 삭제할까요?</p>
+      <p class="text-sm text-gray-500">인증 기록이 모두 삭제됩니다.</p>
+      <div class="flex gap-2">
+        <button onclick="closeDeleteModal()"
+          class="flex-1 py-2.5 rounded-xl border border-gray-200 text-sm text-gray-600 hover:bg-gray-50">
+          취소
+        </button>
+        <button onclick="confirmDelete()"
+          class="flex-1 py-2.5 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600">
+          삭제
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 결과 상세 모달 -->
+  <div id="resultModal" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-5 space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="font-bold text-gray-800"><span id="resultModalName"></span>님 결과</h3>
+        <button onclick="closeResultModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
+      </div>
+      <div id="resultModalContent" class="space-y-3"></div>
+    </div>
+  </div>
+
+  <!-- 토스트 -->
+  <div id="toast" class="hidden fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-gray-800 text-white text-sm font-medium px-5 py-3 rounded-full shadow-lg"></div>
+
+  <script>
+    // 기본 학생 20명 (처음 Firebase 설정 시 초기 데이터)
+    const DEFAULT_STUDENTS = [
+      '송종호','라지용','권승희','윤예주','이혁구',
+      '장혜진','최원정','한지윤','양우람','한서아',
+      '이병호','홍신정','도금미','이수민','최윤정',
+      '박소연','정진주','정지희','김재창','정지수',
+    ];
+
+    let students = [];
+    let deleteTarget = null;
+    let resultsMap = {};
+    let allSubs = {};
+
+    async function loadResults() {
+      try {
+        const snap = await db.collection('results')
+          .where('challengeMonth', '==', CHALLENGE_MONTH).get();
+        snap.docs.forEach(d => {
+          const data = d.data();
+          resultsMap[data.studentName] = data;
+        });
+      } catch(e) { console.error(e); }
+    }
+
+    function openResultModal(name) {
+      const r = resultsMap[name];
+      document.getElementById('resultModalName').textContent = name;
+      const cont = document.getElementById('resultModalContent');
+      if (!r) {
+        cont.innerHTML = `<p class="text-sm text-gray-400 text-center py-4">아직 작성된 내용이 없어요.</p>`;
+      } else {
+        const statusBadge = r.continueNextMonth === true
+          ? `<span class="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-xs font-bold">🔄 다음 달 이월</span>`
+          : r.continueNextMonth === false
+          ? `<span class="bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full text-xs font-bold">💰 환급 신청</span>`
+          : `<span class="bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full text-xs">⏳ 미응답</span>`;
+
+        const reflectionHtml = r.reflection
+          ? `<div class="bg-gray-50 rounded-xl p-3">
+               <p class="text-xs font-semibold text-gray-500 mb-1">📝 이번 달 변화 기록</p>
+               <p class="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">${r.reflection}</p>
+             </div>`
+          : `<p class="text-xs text-gray-400">후기를 아직 작성하지 않았어요.</p>`;
+
+        const accountHtml = r.continueNextMonth === false && r.refundBank
+          ? `<div class="bg-orange-50 rounded-xl p-3 space-y-1">
+               <p class="text-xs font-semibold text-orange-700 mb-1">💰 환급 계좌</p>
+               <p class="text-sm text-gray-700">${r.refundBank}</p>
+               <p class="text-sm font-mono text-gray-800">${r.refundAccountNum || '-'}</p>
+               <p class="text-sm text-gray-600">예금주: ${r.refundHolder || '-'}</p>
+             </div>`
+          : '';
+
+        cont.innerHTML = `
+          <div class="flex items-center gap-2">${statusBadge}</div>
+          ${reflectionHtml}
+          ${accountHtml}
+        `;
+      }
+      document.getElementById('resultModal').classList.remove('hidden');
+    }
+
+    function closeResultModal() {
+      document.getElementById('resultModal').classList.add('hidden');
+    }
+
+    function monthLabel(ym) {
+      const [y, m] = ym.split('-');
+      return `${y}년 ${parseInt(m)}월`;
+    }
+
+    function updateHeader() {
+      const label = monthLabel(CHALLENGE_MONTH);
+      document.getElementById('currentMonthLabel').textContent = `${label} 챌린지`;
+      document.getElementById('challengeTitle').textContent = `${label} 챌린지 진행 중`;
+      const dates = getWeekDates(1);
+      const [,sm, sd] = CHALLENGE_START.split('-');
+      document.getElementById('challengeDates').textContent =
+        `${parseInt(sm)}/${parseInt(sd)}(월) ~ · 4주 챌린지`;
+    }
+
+    function renderRefundSummary() {
+      const refundStudents = students.filter(n => resultsMap[n]?.continueNextMonth === false);
+      const block = document.getElementById('refundSummaryBlock');
+      const list  = document.getElementById('refundSummaryList');
+      document.getElementById('refundCountLabel').textContent = `${refundStudents.length}명`;
+
+      if (refundStudents.length === 0) { block.classList.add('hidden'); return; }
+      block.classList.remove('hidden');
+      list.innerHTML = '';
+
+      let total = 0;
+      refundStudents.forEach(name => {
+        const r = resultsMap[name] || {};
+        const subs = allSubs[name] || [];
+        const successCount = [1,2,3,4].filter(w => subs.filter(s => s.week === w).length >= 5).length;
+        const amount = successCount * 10000;
+        total += amount;
+        const amountStr = amount.toLocaleString() + '원';
+        const row = document.createElement('div');
+        row.className = 'px-5 py-3 border-b last:border-b-0';
+        row.innerHTML = `
+          <div class="flex items-center justify-between">
+            <p class="text-sm font-semibold text-gray-800">${name}</p>
+            <p class="text-sm font-bold text-orange-600">${amountStr}</p>
+          </div>
+          <div class="flex items-center gap-2 mt-0.5 flex-wrap">
+            <span class="text-xs text-gray-500">${r.refundBank || '은행 미입력'}</span>
+            <span class="text-xs font-mono text-gray-700">${r.refundAccountNum || '-'}</span>
+            <span class="text-xs text-gray-400">${r.refundHolder ? '(' + r.refundHolder + ')' : ''}</span>
+          </div>
+        `;
+        list.appendChild(row);
+      });
+
+      const totalRow = document.createElement('div');
+      totalRow.className = 'px-5 py-3 bg-orange-50 flex items-center justify-between';
+      totalRow.innerHTML = `
+        <p class="text-sm font-bold text-orange-700">총 환급액</p>
+        <p class="text-sm font-bold text-orange-700">${total.toLocaleString()}원</p>
+      `;
+      list.appendChild(totalRow);
+    }
+
+    function renderStudents() {
+      const q = document.getElementById('searchStudent').value.trim();
+      const filtered = q ? students.filter(n => n.includes(q)) : students;
+      const list = document.getElementById('studentList');
+      document.getElementById('countLabel').textContent = `${students.length}명`;
+      document.getElementById('studentCountBadge').textContent = `${students.length}명`;
+
+      renderRefundSummary();
+
+      if (filtered.length === 0) {
+        list.innerHTML = `<div class="px-5 py-8 text-center text-gray-400 text-sm">학생이 없어요</div>`;
+        return;
+      }
+
+      list.innerHTML = '';
+      filtered.forEach(name => {
+        const realIdx = students.indexOf(name);
+        const r = resultsMap[name];
+        const badge = r?.continueNextMonth === true
+          ? `<span class="text-xs bg-green-100 text-green-700 px-1.5 py-0.5 rounded-full font-semibold">🔄이월</span>`
+          : r?.continueNextMonth === false
+          ? `<span class="text-xs bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-full font-semibold">💰환급</span>`
+          : r?.reflection
+          ? `<span class="text-xs bg-blue-50 text-blue-400 px-1.5 py-0.5 rounded-full">📝</span>`
+          : '';
+        const row = document.createElement('div');
+        row.className = 'flex items-center px-5 py-3 hover:bg-gray-50 transition-colors';
+        row.innerHTML = `
+          <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold flex-shrink-0 mr-3">
+            ${realIdx + 1}
+          </div>
+          <p class="flex-1 text-sm font-medium text-gray-800 flex items-center gap-1.5">${name} ${badge}</p>
+          <button onclick="openResultModal('${name}')"
+            class="text-xs text-purple-500 px-2 py-1 rounded-lg hover:bg-purple-50 mr-1 transition-colors">
+            결과 보기
+          </button>
+          <a href="student.html?name=${encodeURIComponent(name)}"
+             class="text-xs text-blue-500 px-2 py-1 rounded-lg hover:bg-blue-50 mr-1 transition-colors">
+            기록 보기
+          </a>
+          <button onclick="openDeleteModal('${name}')"
+            class="text-xs text-red-400 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors">
+            삭제
+          </button>
+        `;
+        list.appendChild(row);
+      });
+    }
+
+    async function addStudent() {
+      const input = document.getElementById('newStudentInput');
+      const name = input.value.trim();
+      if (!name) { showToast('이름을 입력해주세요'); return; }
+      if (students.includes(name)) { showToast(`${name}님은 이미 등록되어 있어요`); return; }
+
+      students.push(name);
+      await saveStudentList(students);
+      renderStudents();
+      input.value = '';
+      showToast(`✓ ${name}님이 추가됐어요`);
+    }
+
+    function openDeleteModal(name) {
+      deleteTarget = name;
+      document.getElementById('deleteTargetName').textContent = name;
+      document.getElementById('deleteModal').classList.remove('hidden');
+    }
+
+    function closeDeleteModal() {
+      document.getElementById('deleteModal').classList.add('hidden');
+      deleteTarget = null;
+    }
+
+    async function confirmDelete() {
+      if (!deleteTarget) return;
+      students = students.filter(n => n !== deleteTarget);
+      await saveStudentList(students);
+
+      // 해당 학생의 인증 기록도 삭제
+      try {
+        const snap = await db.collection('submissions')
+          .where('challengeMonth', '==', CHALLENGE_MONTH)
+          .where('studentName', '==', deleteTarget).get();
+        const batch = db.batch();
+        snap.docs.forEach(d => batch.delete(d.ref));
+        await batch.commit();
+      } catch(e) { console.error(e); }
+
+      renderStudents();
+      showToast(`${deleteTarget}님이 삭제됐어요`);
+      closeDeleteModal();
+    }
+
+    // 새 챌린지 모달
+    function openNewChallengeModal() {
+      const select = document.getElementById('newMonthSelect');
+      select.innerHTML = '';
+      const now = new Date();
+      for (let i = 0; i <= 6; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+        const val = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+        const label = `${d.getFullYear()}년 ${d.getMonth()+1}월`;
+        const opt = document.createElement('option');
+        opt.value = val; opt.textContent = label;
+        if (i === 1) opt.selected = true;
+        select.appendChild(opt);
+      }
+
+      const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      const dow = nextMonth.getDay();
+      const daysToMon = dow === 0 ? 1 : dow === 1 ? 0 : 8 - dow;
+      nextMonth.setDate(nextMonth.getDate() + daysToMon);
+      document.getElementById('startDateInput').value = nextMonth.toISOString().slice(0, 10);
+      document.getElementById('newChallengeModal').classList.remove('hidden');
+    }
+
+    function closeNewChallengeModal() {
+      document.getElementById('newChallengeModal').classList.add('hidden');
+    }
+
+    async function startNewChallenge() {
+      const newMonth = document.getElementById('newMonthSelect').value;
+      const startDate = document.getElementById('startDateInput').value;
+      const carryOver = document.querySelector('input[name="carryOver"]:checked').value;
+      const newStudents = carryOver === 'none' ? [] : [...students];
+
+      await db.collection('challenges').doc(newMonth).set({
+        month: newMonth,
+        startDate: startDate,
+        students: newStudents,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      closeNewChallengeModal();
+      const label = monthLabel(newMonth);
+      showToast(`🎉 ${label} 챌린지가 시작됐어요! firebase-config.js에서 CHALLENGE_MONTH를 '${newMonth}'로 바꿔주세요.`);
+    }
+
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.remove('hidden');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => el.classList.add('hidden'), 3000);
+    }
+
+    document.getElementById('newChallengeModal').addEventListener('click', function(e) {
+      if (e.target === this) closeNewChallengeModal();
+    });
+    document.getElementById('deleteModal').addEventListener('click', function(e) {
+      if (e.target === this) closeDeleteModal();
+    });
+    document.getElementById('resultModal').addEventListener('click', function(e) {
+      if (e.target === this) closeResultModal();
+    });
+
+    async function init() {
+      updateHeader();
+      await loadResults();
+      [students] = await Promise.all([
+        loadStudentList(),
+        db.collection('submissions').where('challengeMonth', '==', CHALLENGE_MONTH).get()
+          .then(snap => {
+            snap.docs.forEach(d => {
+              const data = d.data();
+              if (!allSubs[data.studentName]) allSubs[data.studentName] = [];
+              allSubs[data.studentName].push(data);
+            });
+          }).catch(() => {})
+      ]);
+
+      // 처음 Firebase 연결 시 데이터가 없으면 기본 학생 25명 자동 저장
+      if (students.length === 0) {
+        const confirmInit = confirm(
+          '학생 데이터가 없어요.\n기본 학생 20명을 Firebase에 저장할까요?\n\n' +
+          '(이미 데이터가 있거나 직접 추가하실 경우 "취소"를 누르세요)'
+        );
+        if (confirmInit) {
+          students = [...DEFAULT_STUDENTS];
+          await saveStudentList(students);
+          showToast('✓ 기본 학생 20명이 Firebase에 저장됐어요!');
+        }
+      }
+
+      renderStudents();
+    }
+
+    init();
+  </script>
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  <script>
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function(OneSignal) {
+      await OneSignal.init({
+        appId: "c7ec5930-ba5f-4eec-9613-d2dc1a499751",
+        serviceWorkerParam: { scope: "/" },
+        serviceWorkerPath: "sw.js",
+        notifyButton: { enable: false },
+      });
+    });
+  </script>
+</body>
+</html>

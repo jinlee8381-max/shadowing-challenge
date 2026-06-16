@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#3b82f6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="쉐도잉 챌린지">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <title>쉐도잉 챌린지 - 관리자 대시보드</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <style>
+    body { font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; }
+    .dot-done   { background:#22c55e; color:#fff; }
+    .dot-miss   { background:#e5e7eb; color:#9ca3af; }
+    .dot-today  { background:#3b82f6; color:#fff; }
+    .dot-future { background:#f9fafb; color:#d1d5db; border: 1px dashed #d1d5db; }
+    .badge-ok   { background:#dcfce7; color:#16a34a; }
+    .badge-fail { background:#fee2e2; color:#dc2626; }
+    .badge-none { background:#f3f4f6; color:#9ca3af; }
+    tr.student-row:hover td { background:#f0f9ff; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-white border-b px-4 py-3 sticky top-0 z-20 shadow-sm">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">🎙️</span>
+        <div>
+          <h1 class="text-base font-bold text-gray-900 leading-tight">쉐도잉 챌린지</h1>
+          <p class="text-xs text-gray-400" id="dashMonthLabel">관리자 대시보드</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <a href="admin-students.html"
+           class="text-xs bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full font-medium hover:bg-gray-200 transition-colors">
+          👥 학생 관리
+        </a>
+        <a href="admin-tasks.html"
+           class="text-xs bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full font-medium hover:bg-gray-200 transition-colors">
+          📋 과제 관리
+        </a>
+        <a href="admin-feedback.html"
+           class="text-xs bg-orange-500 text-white px-3 py-1.5 rounded-full font-medium hover:bg-orange-600 transition-colors">
+          💬 오늘 피드백
+        </a>
+        <a href="my-page.html"
+           class="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-full font-medium hover:bg-blue-700 transition-colors">
+          학생 페이지 →
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-3 py-5 space-y-5">
+
+    <!-- 진행 상태 배너 -->
+    <div class="bg-blue-50 border border-blue-200 rounded-xl px-4 py-2.5 flex items-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse flex-shrink-0"></span>
+      <p class="text-sm text-blue-700 font-medium" id="statusBanner">로딩 중...</p>
+    </div>
+
+    <!-- 통계 카드 -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div class="bg-white rounded-2xl p-4 shadow-sm text-center">
+        <p class="text-xs text-gray-400 mb-1">총 참여자</p>
+        <p class="text-2xl font-bold text-gray-800" id="stat-total">-</p>
+        <p class="text-xs text-gray-400 mt-0.5">명</p>
+      </div>
+      <div class="bg-white rounded-2xl p-4 shadow-sm text-center">
+        <p class="text-xs text-gray-400 mb-1">이번 주 평균 인증</p>
+        <p class="text-2xl font-bold text-blue-600" id="stat-avg">-</p>
+        <p class="text-xs text-gray-400 mt-0.5">/ 5일 기준</p>
+      </div>
+      <div class="bg-white rounded-2xl p-4 shadow-sm text-center">
+        <p class="text-xs text-gray-400 mb-1">이번 주 완주 예상</p>
+        <p class="text-2xl font-bold text-green-600" id="stat-done">-</p>
+        <p class="text-xs text-gray-400 mt-0.5">명 (4일 이상)</p>
+      </div>
+      <div class="bg-white rounded-2xl p-4 shadow-sm text-center">
+        <p class="text-xs text-gray-400 mb-1">성공 주차 환급 예정</p>
+        <p class="text-2xl font-bold text-purple-600" id="stat-refund">-</p>
+        <p class="text-xs text-gray-400 mt-0.5">만원</p>
+      </div>
+    </div>
+
+    <!-- 오늘 미인증 학생 알림 -->
+    <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div class="px-5 py-3.5 border-b flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-red-400 animate-pulse"></span>
+          <h2 class="font-bold text-gray-800 text-sm">오늘 미인증 학생</h2>
+          <span class="text-xs bg-red-100 text-red-600 px-2 py-0.5 rounded-full font-semibold" id="unverifiedCount">-명</span>
+        </div>
+        <span class="text-xs text-gray-400" id="todayLabel">-</span>
+      </div>
+      <div id="unverifiedList" class="px-5 py-3 flex flex-wrap gap-2"></div>
+    </div>
+
+    <!-- 학생 테이블 -->
+    <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div class="px-5 py-3.5 border-b flex items-center justify-between flex-wrap gap-2">
+        <h2 class="font-bold text-gray-800">학생별 현황</h2>
+        <div class="flex items-center gap-3">
+          <span class="text-xs text-gray-400">● 인증 &nbsp; ○ 미인증 &nbsp; ▶ 오늘 &nbsp; · 미시작</span>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="이름 검색..."
+            oninput="filterTable()"
+            class="text-sm border border-gray-200 rounded-lg px-3 py-1.5 w-28 focus:outline-none focus:ring-2 focus:ring-blue-300"
+          />
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 text-gray-500 text-xs">
+            <tr>
+              <th class="text-left px-5 py-3 font-medium sticky left-0 bg-gray-50 z-10 min-w-[80px]">이름</th>
+              <th class="text-center px-4 py-3 font-medium" id="th-w1">1주</th>
+              <th class="text-center px-4 py-3 font-medium" id="th-w2">2주</th>
+              <th class="text-center px-2 py-3 font-medium text-blue-700" colspan="7" id="th-w3">← 이번 주 진행 중 →</th>
+              <th class="text-center px-4 py-3 font-medium" id="th-w4">4주</th>
+              <th class="text-center px-4 py-3 font-medium">환급액</th>
+            </tr>
+            <tr class="bg-gray-50 text-gray-400 text-xs border-t border-gray-100" id="dateSubHeader"></tr>
+          </thead>
+          <tbody id="studentTable" class="divide-y divide-gray-100">
+            <tr>
+              <td colspan="12" class="text-center py-12 text-gray-400">
+                <div class="text-3xl mb-3">⏳</div>
+                <p class="text-sm">데이터를 불러오는 중...</p>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <p class="text-xs text-center text-gray-400">
+      ※ 학생 이름을 클릭하면 개인 상세 기록을 볼 수 있습니다.
+    </p>
+  </main>
+
+  <script>
+    const DOW_LABELS = ['월','화','수','목','금','토','일'];
+    const weekInfo = getWeekInfo();
+    const currentWeek = weekInfo.week;
+    const currentWeekDates = getWeekDates(currentWeek);
+    const today = todayStr();
+
+    // 요일 레이블 표시용 M/D
+    function dateMD(yyyymmdd) {
+      const [, m, d] = yyyymmdd.split('-');
+      return `${parseInt(m)}/${parseInt(d)}`;
+    }
+
+    // 헤더 날짜 서브행 렌더
+    function renderDateSubHeader() {
+      const tr = document.getElementById('dateSubHeader');
+      tr.innerHTML = `<th class="px-5 py-1 sticky left-0 bg-gray-50 z-10"></th>
+        <th class="px-4 py-1"></th><th class="px-4 py-1"></th>`;
+      currentWeekDates.forEach((dateStr, i) => {
+        const isToday = dateStr === today;
+        tr.innerHTML += `<th class="text-center px-2 py-1 ${isToday ? 'text-blue-500 font-bold' : ''}">
+          ${DOW_LABELS[i]}<br>${dateMD(dateStr)}
+        </th>`;
+      });
+      tr.innerHTML += `<th class="px-4 py-1"></th><th class="px-4 py-1"></th>`;
+
+      // 주차 헤더도 업데이트
+      const w1Dates = getWeekDates(1);
+      const w2Dates = getWeekDates(2);
+      const w4Dates = getWeekDates(4);
+      document.getElementById('th-w1').innerHTML = `1주<br><span class="font-normal text-gray-400">${dateMD(w1Dates[0])}–${dateMD(w1Dates[6])}</span>`;
+      document.getElementById('th-w2').innerHTML = `2주<br><span class="font-normal text-gray-400">${dateMD(w2Dates[0])}–${dateMD(w2Dates[6])}</span>`;
+      document.getElementById('th-w3').textContent = `← ${currentWeek}주차 진행 중 (${dateMD(currentWeekDates[0])}–${dateMD(currentWeekDates[6])}, 7일 중 5일 인증) →`;
+      document.getElementById('th-w4').innerHTML = `4주<br><span class="font-normal text-gray-400">${dateMD(w4Dates[0])}–${dateMD(w4Dates[6])}</span>`;
+    }
+
+    // 전체 제출 기록으로 학생별 주간 상태 계산
+    function buildStudentStatus(names, allSubs) {
+      return names.map(name => {
+        const mine = allSubs.filter(s => s.studentName === name);
+
+        // W1/W2: 해당 주 제출 5개 이상이면 성공
+        const w1 = mine.filter(s => s.week === 1).length >= 5;
+        const w2 = mine.filter(s => s.week === 2).length >= 5;
+
+        // 이번 주: 각 요일(월~일)에 제출했는지 확인
+        const w3 = currentWeekDates.map(dateStr => {
+          if (dateStr > today) return 'future';
+          const submitted = mine.some(s => tsToDateKey(s.submittedAt) === dateStr);
+          return dateStr === today ? (submitted ? true : 'today') : submitted;
+        });
+
+        return { name, w1, w2, w3 };
+      });
+    }
+
+    let allStudents = [];
+
+    function weekBadge(success) {
+      if (success === true)  return `<span class="badge-ok  inline-block px-2 py-0.5 rounded-full text-xs font-bold">O</span>`;
+      if (success === false) return `<span class="badge-fail inline-block px-2 py-0.5 rounded-full text-xs font-bold">X</span>`;
+      return `<span class="badge-none inline-block px-2 py-0.5 rounded-full text-xs">-</span>`;
+    }
+
+    function dayDot(val) {
+      let cls, sym;
+      if      (val === true)     { cls = 'dot-done';   sym = '●'; }
+      else if (val === 'today')  { cls = 'dot-today';  sym = '▶'; }
+      else if (val === 'future') { cls = 'dot-future'; sym = '·'; }
+      else                       { cls = 'dot-miss';   sym = '○'; }
+      return `<td class="text-center px-1 py-3">
+        <span class="${cls} inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold">${sym}</span>
+      </td>`;
+    }
+
+    function refundAmount(s) {
+      return ((s.w1?1:0) + (s.w2?1:0)) * 10000;
+    }
+
+    function renderTable(list) {
+      const tbody = document.getElementById('studentTable');
+      if (list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="12" class="text-center py-10 text-gray-400">
+          학생이 없거나 Firebase가 아직 연결되지 않았어요.<br>
+          <a href="admin-students.html" class="text-blue-500 underline mt-1 inline-block">학생 관리</a>에서 학생을 추가해주세요.
+        </td></tr>`;
+        return;
+      }
+      tbody.innerHTML = '';
+      list.forEach(s => {
+        const tr = document.createElement('tr');
+        tr.className = 'student-row cursor-pointer transition-colors';
+        tr.onclick = () => location.href = `student.html?name=${encodeURIComponent(s.name)}`;
+        const refund = refundAmount(s);
+        const refundClass = refund === 0 ? 'text-gray-400' : refund >= 40000 ? 'text-blue-600 font-bold' : 'text-green-600 font-semibold';
+        tr.innerHTML = `
+          <td class="px-5 py-3 font-semibold text-blue-600 sticky left-0 bg-white z-10 hover:underline">${s.name}</td>
+          <td class="text-center px-4 py-3">${weekBadge(s.w1)}</td>
+          <td class="text-center px-4 py-3">${weekBadge(s.w2)}</td>
+          ${s.w3.map(dayDot).join('')}
+          <td class="text-center px-4 py-3">${weekBadge(null)}</td>
+          <td class="text-center px-4 py-3 text-sm ${refundClass}">${refund > 0 ? refund.toLocaleString()+'원' : '0원'}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function filterTable() {
+      const q = document.getElementById('searchInput').value.trim();
+      renderTable(q ? allStudents.filter(s => s.name.includes(q)) : allStudents);
+    }
+
+    function updateStats(students) {
+      document.getElementById('stat-total').textContent = students.length;
+      const weekDones = students.map(s => s.w3.filter(d => d === true).length);
+      const avg = students.length ? (weekDones.reduce((a,b)=>a+b,0)/students.length).toFixed(1) : 0;
+      document.getElementById('stat-avg').textContent = avg;
+      const likely = students.filter(s => s.w3.filter(d => d === true).length >= 4).length;
+      document.getElementById('stat-done').textContent = likely;
+      const totalRefund = students.reduce((acc,s) => acc + refundAmount(s), 0);
+      document.getElementById('stat-refund').textContent = (totalRefund/10000).toFixed(0);
+    }
+
+    function renderUnverified(students) {
+      const unverified = students.filter(s => s.w3[weekInfo.dayOfWeek] === 'today');
+      document.getElementById('unverifiedCount').textContent = `${unverified.length}명`;
+      const el = document.getElementById('unverifiedList');
+      if (unverified.length === 0) {
+        el.innerHTML = `<p class="text-sm text-green-600 font-medium py-1">🎉 오늘 모든 학생이 인증 완료!</p>`;
+      } else {
+        el.innerHTML = unverified.map(s => `
+          <a href="student.html?name=${encodeURIComponent(s.name)}"
+             class="text-xs bg-red-50 text-red-600 border border-red-200 px-3 py-1.5 rounded-full font-medium hover:bg-red-100 transition-colors">
+            ${s.name}
+          </a>`).join('');
+      }
+    }
+
+    function updateBannerLabel() {
+      const dayNames = ['월요일','화요일','수요일','목요일','금요일','토요일','일요일'];
+      const [,m,d] = today.split('-');
+      document.getElementById('statusBanner').innerHTML =
+        `${currentWeek}주차 진행 중 &nbsp;·&nbsp; 오늘 <strong>${dayNames[weekInfo.dayOfWeek]} ${parseInt(m)}/${parseInt(d)}</strong>`;
+      document.getElementById('todayLabel').textContent = `${dayNames[weekInfo.dayOfWeek]} ${parseInt(m)}/${parseInt(d)} 기준`;
+
+      const [,ym, yd] = CHALLENGE_START.split('-');
+      document.getElementById('dashMonthLabel').textContent =
+        `${parseInt(ym)}월 챌린지 · 관리자 대시보드`;
+    }
+
+    async function init() {
+      renderDateSubHeader();
+      updateBannerLabel();
+
+      const [names, allSubs] = await Promise.all([loadStudentList(), loadAllSubmissions()]);
+      allStudents = buildStudentStatus(names, allSubs);
+      updateStats(allStudents);
+      renderUnverified(allStudents);
+      renderTable(allStudents);
+    }
+
+    init();
+  </script>
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  <script>
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function(OneSignal) {
+      await OneSignal.init({
+        appId: "c7ec5930-ba5f-4eec-9613-d2dc1a499751",
+        serviceWorkerParam: { scope: "/" },
+        serviceWorkerPath: "sw.js",
+        notifyButton: { enable: false },
+      });
+    });
+  </script>
+</body>
+</html>

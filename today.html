@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#3b82f6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="쉐도잉 챌린지">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <title>오늘의 과제 - 쉐도잉 챌린지</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <style>
+    body { font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen pb-24">
+
+  <header class="bg-white border-b px-4 py-3 sticky top-0 z-20 shadow-sm">
+    <div class="max-w-lg mx-auto flex items-center gap-3">
+      <a href="my-page.html" class="text-sm text-gray-400 hover:text-gray-600">← 내 현황</a>
+      <div class="flex-1 text-center">
+        <h1 class="text-base font-bold text-gray-900" id="pageTitle">오늘의 과제</h1>
+        <p class="text-xs text-gray-400" id="todayLabel">-</p>
+      </div>
+      <div class="w-16"></div>
+    </div>
+    <!-- 과제 네비게이션 -->
+    <div class="max-w-lg mx-auto flex items-center justify-between mt-2 px-1">
+      <button id="btnPrev" onclick="goLesson(-1)"
+        class="text-xs text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full hover:bg-gray-200 transition-colors disabled:opacity-30">
+        ← 이전 과제
+      </button>
+      <button id="btnToday" onclick="goToday()"
+        class="hidden text-xs text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full hover:bg-blue-100 transition-colors font-semibold">
+        오늘 과제로 →
+      </button>
+      <button id="btnNext" onclick="goLesson(1)"
+        class="text-xs text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full hover:bg-gray-200 transition-colors disabled:opacity-30">
+        다음 과제 →
+      </button>
+    </div>
+  </header>
+
+  <!-- 알림 설정 배너 -->
+  <div id="notifBanner" class="bg-blue-50 border-b border-blue-100 px-4 py-3 flex items-center justify-between gap-3">
+    <p class="text-sm text-blue-700 leading-snug">🔔 과제·리마인더 알림을 받아보세요!</p>
+    <div class="flex items-center gap-2 flex-shrink-0">
+      <button onclick="subscribeNotif()"
+        class="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-full font-semibold whitespace-nowrap">
+        알림 받기
+      </button>
+      <button onclick="dismissNotifBanner()" class="text-gray-300 hover:text-gray-500 text-lg leading-none">×</button>
+    </div>
+  </div>
+
+  <main class="max-w-lg mx-auto px-3 py-5 space-y-4">
+
+    <!-- 오늘의 과제 카드 -->
+    <div class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-5 text-white">
+      <div class="flex items-start justify-between">
+        <div class="flex-1">
+          <span class="text-xs font-semibold bg-white/25 px-2 py-0.5 rounded-full" id="lessonBadge">-</span>
+          <h2 class="text-xl font-bold mt-2 leading-snug" id="lessonTitle">로딩 중...</h2>
+          <p class="text-sm text-blue-100 mt-1">오늘의 쉐도잉 미션</p>
+        </div>
+        <span class="text-4xl ml-3">🎬</span>
+      </div>
+      <a id="notionBtn" href="#" target="_blank"
+         class="flex items-center justify-center gap-2 bg-white text-blue-600 font-bold text-sm py-3 rounded-xl hover:bg-blue-50 transition-colors mt-4">
+        <span>📄</span> 쉐도잉 노트에서 과제 보기
+      </a>
+      <p id="notionWarning" class="hidden text-xs text-blue-200 text-center mt-2">
+        ※ 선생님이 아직 링크를 입력하지 않았어요
+      </p>
+    </div>
+
+    <!-- 공부 방법 -->
+    <div class="bg-white rounded-2xl shadow-sm p-4 space-y-3">
+      <h3 class="font-bold text-gray-800 text-sm">오늘 공부 방법</h3>
+      <div class="space-y-2.5">
+        <div class="flex items-start gap-3">
+          <span class="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
+          <p class="text-sm text-gray-600">위 버튼을 눌러 노션에서 오늘의 미션 확인</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
+          <p class="text-sm text-gray-600">음성을 반복해서 듣고 소리·리듬·억양을 따라 쉐도잉</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
+          <p class="text-sm text-gray-600">내 목소리를 녹음하거나 공부 사진 찍어서 아래에 인증 제출</p>
+        </div>
+        <div class="flex items-start gap-3">
+          <span class="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">4</span>
+          <p class="text-sm text-gray-600">오늘 느낀 점이나 어려웠던 부분도 간단히 적어주면 선생님이 피드백 드려요</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 선생님 최근 피드백 -->
+    <div id="feedbackSection" class="bg-orange-50 border border-orange-100 rounded-2xl p-4 space-y-2 hidden">
+      <div class="flex items-center gap-2">
+        <span class="text-sm">💬</span>
+        <p class="text-xs font-semibold text-orange-600" id="feedbackLabel">선생님 피드백</p>
+      </div>
+      <p class="text-sm text-gray-700 leading-relaxed" id="lastFeedback"></p>
+    </div>
+
+    <!-- 인증 제출 폼 -->
+    <div class="bg-white rounded-2xl shadow-sm p-4 space-y-4" id="submitSection">
+      <div class="flex items-center justify-between">
+        <h3 class="font-bold text-gray-800 text-sm">오늘 인증하기</h3>
+        <span id="submitStatus" class="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">미완료</span>
+      </div>
+
+      <!-- 이미 제출한 경우 -->
+      <div id="alreadyDone" class="hidden bg-green-50 rounded-xl p-4 text-center">
+        <p class="text-2xl mb-1">✅</p>
+        <p class="text-sm font-semibold text-green-700">오늘 인증 완료!</p>
+        <p class="text-xs text-green-600 mt-1">오늘의 과제를 제출했어요. 내일도 화이팅!</p>
+      </div>
+
+      <!-- 브라우저 내 녹음 -->
+      <div id="recordIdle">
+        <button type="button" onclick="startRecording()"
+          class="w-full flex items-center justify-center gap-2 bg-red-500 text-white font-bold py-3.5 rounded-xl hover:bg-red-600 active:bg-red-700 transition-colors text-sm">
+          🎙️ 여기서 바로 녹음하기
+        </button>
+        <p class="text-xs text-gray-400 text-center mt-1.5">버튼 누르고 → 쉐도잉 녹음 → 완료 버튼</p>
+      </div>
+      <div id="recordActive" class="hidden space-y-2">
+        <div class="flex items-center justify-center gap-3 bg-red-50 border border-red-200 rounded-xl p-4">
+          <span class="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse"></span>
+          <span class="text-sm font-semibold text-red-600">녹음 중</span>
+          <span id="recordTimer" class="text-sm font-mono font-bold text-red-500">0:00</span>
+        </div>
+        <button type="button" onclick="stopRecording()"
+          class="w-full bg-gray-800 text-white font-bold py-3 rounded-xl hover:bg-gray-900 transition-colors text-sm">
+          ⏹ 녹음 완료
+        </button>
+      </div>
+
+      <!-- 녹음 미리듣기 (고정 요소 — iOS에서 안정적으로 작동) -->
+      <div id="recordPreview" class="hidden bg-green-50 border border-green-200 rounded-xl p-3 space-y-2">
+        <p class="text-xs font-semibold text-green-700">✓ 녹음 완료 — 미리 들어보세요</p>
+        <audio id="previewAudio" controls playsinline preload="auto" class="w-full"></audio>
+        <button type="button" onclick="discardRecording()"
+          class="text-xs text-red-400 hover:text-red-600 underline w-full text-center">
+          다시 녹음하기
+        </button>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <div class="flex-1 h-px bg-gray-200"></div>
+        <span class="text-xs text-gray-400">또는 파일 직접 첨부</span>
+        <div class="flex-1 h-px bg-gray-200"></div>
+      </div>
+
+      <!-- 파일 업로드 -->
+      <label id="uploadArea"
+        class="block border-2 border-dashed border-gray-200 rounded-xl p-5 text-center cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-colors">
+        <input type="file" id="fileInput" accept="audio/mp4,audio/x-m4a,audio/mpeg,audio/wav,audio/aac,audio/ogg,audio/*,image/*,.m4a,.mp3,.wav,.aac,.ogg" class="hidden" onchange="handleFile(event)" multiple />
+        <div id="uploadPlaceholder">
+          <span class="text-3xl block mb-1">📎</span>
+          <p class="text-sm text-gray-600 font-medium">기존 파일 또는 사진 첨부</p>
+          <p class="text-xs text-gray-400 mt-1">mp3 · m4a · wav · jpg · png</p>
+        </div>
+      </label>
+      <!-- 업로드된 파일 목록 (label 밖에 위치해야 오디오 재생 가능) -->
+      <div id="uploadedFiles" class="space-y-2 hidden"></div>
+
+      <!-- 느낀점 -->
+      <div>
+        <label class="text-sm font-medium text-gray-700 block mb-1.5">
+          오늘의 포인트 / 느낀점
+          <span class="font-normal text-gray-400 text-xs ml-1">(선택사항)</span>
+        </label>
+        <textarea id="feelingInput" rows="3"
+          placeholder="예) 리듬이 점점 익숙해지고 있어요! have to 발음이 아직 어렵네요..."
+          class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none leading-relaxed"
+        ></textarea>
+      </div>
+
+      <button onclick="submitVerification()" id="submitBtn"
+        class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl hover:bg-blue-700 transition-colors text-sm">
+        ✓ 인증 제출하기
+      </button>
+    </div>
+
+    <!-- 이번 주 진행 상황 -->
+    <div class="bg-white rounded-2xl shadow-sm p-4">
+      <div class="flex items-center justify-between mb-3">
+        <p class="text-sm font-bold text-gray-800" id="weekProgressTitle">이번 주 진행상황</p>
+        <p class="text-xs text-gray-400" id="weekProgressCount">-</p>
+      </div>
+      <div class="flex gap-1.5" id="weekDots"></div>
+      <p class="text-xs text-center text-gray-400 mt-3" id="weekMsg">-</p>
+    </div>
+
+  </main>
+
+  <!-- 하단 탭바 -->
+  <nav class="fixed bottom-0 inset-x-0 bg-white border-t border-gray-100 shadow-lg z-30">
+    <div class="max-w-lg mx-auto grid grid-cols-4">
+      <a href="my-page.html" id="nav-home" class="flex flex-col items-center py-2.5 gap-0.5 text-gray-400 hover:text-gray-600 transition-colors">
+        <span class="text-xl leading-none">🏠</span>
+        <span class="text-xs font-medium">내 현황</span>
+      </a>
+      <a href="today.html" class="flex flex-col items-center py-2.5 gap-0.5 text-blue-600">
+        <span class="text-xl leading-none">📚</span>
+        <span class="text-xs font-semibold">오늘 과제</span>
+      </a>
+      <a href="#" id="nav-record" class="flex flex-col items-center py-2.5 gap-0.5 text-gray-400 hover:text-gray-600 transition-colors">
+        <span class="text-xl leading-none">📖</span>
+        <span class="text-xs font-medium">학습 기록</span>
+      </a>
+      <a href="#" id="nav-result" class="flex flex-col items-center py-2.5 gap-0.5 text-gray-400 hover:text-gray-600 transition-colors">
+        <span class="text-xl leading-none">🏆</span>
+        <span class="text-xs font-medium">결과</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- 완료 토스트 -->
+  <div id="toast"
+    class="hidden fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-green-600 text-white text-sm font-semibold px-5 py-3 rounded-full shadow-lg">
+    🎉 오늘 인증이 완료되었어요!
+  </div>
+
+  <script>
+    const weekInfo    = getWeekInfo();
+    const TODAY_WEEK  = weekInfo.week;
+    const TODAY_DAY   = weekInfo.lessonDay;
+    const today       = todayStr();
+    const DOW_LABELS  = ['월','화','수','목','금','토','일'];
+
+    const params      = new URLSearchParams(location.search);
+    const studentName = params.get('name') || localStorage.getItem('shadowing_my_name') || '';
+
+    // URL 파라미터로 과거 과제 조회 가능
+    let VIEW_WEEK = parseInt(params.get('week')) || TODAY_WEEK;
+    let VIEW_DAY  = parseInt(params.get('day'))  || TODAY_DAY;
+    const isViewingPast = !(VIEW_WEEK === TODAY_WEEK && VIEW_DAY === TODAY_DAY);
+
+    // 탭바 링크 설정
+    const enc = encodeURIComponent(studentName);
+    document.getElementById('nav-record').href = `student.html?name=${enc}&mode=student`;
+    document.getElementById('nav-result').href = `result.html?name=${enc}`;
+
+    // 헤더
+    const [,m, d] = today.split('-');
+    const dayName = ['일','월','화','수','목','금','토'][new Date().getDay()];
+    document.getElementById('todayLabel').textContent =
+      isViewingPast ? `W${VIEW_WEEK} / D${VIEW_DAY} 과제 보기` : `${dayName} ${parseInt(m)}/${parseInt(d)} · ${TODAY_WEEK}주차 D${TODAY_DAY}`;
+    document.getElementById('lessonBadge').textContent = `W${VIEW_WEEK} / D${VIEW_DAY}`;
+    if (isViewingPast) {
+      document.getElementById('pageTitle').textContent = '이전 과제 보기';
+      document.getElementById('btnToday').classList.remove('hidden');
+      document.getElementById('submitSection').classList.add('hidden');
+    }
+
+    // 네비게이션
+    const ALL_LESSONS = [];
+    for (let w = 1; w <= 4; w++) for (let d2 = 1; d2 <= 5; d2++) ALL_LESSONS.push({week:w, day:d2});
+
+    function goLesson(dir) {
+      const idx = ALL_LESSONS.findIndex(l => l.week === VIEW_WEEK && l.day === VIEW_DAY);
+      const next = ALL_LESSONS[idx + dir];
+      if (!next) return;
+      const url = new URL(location.href);
+      url.searchParams.set('week', next.week);
+      url.searchParams.set('day', next.day);
+      if (studentName) url.searchParams.set('name', studentName);
+      location.href = url.toString();
+    }
+
+    function goToday() {
+      const url = new URL(location.href);
+      url.searchParams.delete('week');
+      url.searchParams.delete('day');
+      location.href = url.toString();
+    }
+
+    // 이전/다음 버튼 비활성화
+    const curIdx = ALL_LESSONS.findIndex(l => l.week === VIEW_WEEK && l.day === VIEW_DAY);
+    if (curIdx <= 0) document.getElementById('btnPrev').disabled = true;
+    if (curIdx >= ALL_LESSONS.length - 1) document.getElementById('btnNext').disabled = true;
+
+    let uploadedFiles = [];
+    let submissionsData = [];
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let recordTimerInterval = null;
+    let recordSeconds = 0;
+
+    function renderUploadedFiles() {
+      const listEl = document.getElementById('uploadedFiles');
+      listEl.innerHTML = '';
+      uploadedFiles.forEach((f, idx) => {
+        const isAudio = f.type.startsWith('audio') || /\.(m4a|mp3|wav|aac|ogg)$/i.test(f.name) || f.name.startsWith('녹음_');
+        const icon = isAudio ? '🎙️' : '📷';
+
+        const outer = document.createElement('div');
+        outer.className = 'bg-blue-50 rounded-xl px-3 py-2.5 space-y-2';
+
+        const row = document.createElement('div');
+        row.className = 'flex items-center gap-2';
+        row.innerHTML = `
+          <span class="text-sm">${icon}</span>
+          <span class="text-xs text-blue-700 flex-1 truncate font-medium">${f.name}</span>
+          <span class="text-xs text-gray-400">${(f.size/1024).toFixed(0)}KB</span>
+          <button onclick="removeFile(${idx})" class="text-gray-400 hover:text-red-500 text-base font-bold ml-1 px-1">✕</button>
+        `;
+        outer.appendChild(row);
+
+        if (isAudio) {
+          const audio = document.createElement('audio');
+          audio.controls = true;
+          audio.setAttribute('playsinline', '');
+          audio.setAttribute('preload', 'metadata');
+          audio.style.width = '100%';
+          audio.src = URL.createObjectURL(f);
+          outer.appendChild(audio);
+        }
+
+        listEl.appendChild(outer);
+      });
+
+      if (uploadedFiles.length > 0) {
+        listEl.classList.remove('hidden');
+        document.getElementById('uploadArea').classList.add('hidden');
+      } else {
+        listEl.classList.add('hidden');
+        document.getElementById('uploadArea').classList.remove('hidden');
+      }
+    }
+
+    function removeFile(idx) {
+      uploadedFiles.splice(idx, 1);
+      renderUploadedFiles();
+    }
+
+    function handleFile(e) {
+      uploadedFiles = [...uploadedFiles, ...Array.from(e.target.files)];
+      renderUploadedFiles();
+    }
+
+    async function startRecording() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const mimeType = MediaRecorder.isTypeSupported('audio/mp4') ? 'audio/mp4'
+                       : MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : '';
+        mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : {});
+        recordedChunks = [];
+
+        mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+        mediaRecorder.onstop = () => {
+          const ext = (mimeType || '').includes('mp4') ? 'm4a' : 'webm';
+          const blob = new Blob(recordedChunks, { type: mimeType || 'audio/mp4' });
+          const file = new File([blob], `녹음_${Date.now()}.${ext}`, { type: blob.type });
+          uploadedFiles.push(file);
+
+          // 미리듣기 — source 태그 방식 (iOS Safari 호환)
+          const previewAudio = document.getElementById('previewAudio');
+          previewAudio.innerHTML = '';
+          const source = document.createElement('source');
+          source.src = URL.createObjectURL(blob);
+          source.type = blob.type || 'audio/mp4';
+          previewAudio.appendChild(source);
+          previewAudio.load();
+          document.getElementById('recordPreview').classList.remove('hidden');
+
+          renderUploadedFiles();
+          stream.getTracks().forEach(t => t.stop());
+        };
+
+        mediaRecorder.start();
+        document.getElementById('recordIdle').classList.add('hidden');
+        document.getElementById('recordActive').classList.remove('hidden');
+        recordSeconds = 0;
+        recordTimerInterval = setInterval(() => {
+          recordSeconds++;
+          const m = Math.floor(recordSeconds / 60);
+          const s = recordSeconds % 60;
+          document.getElementById('recordTimer').textContent = `${m}:${String(s).padStart(2,'0')}`;
+        }, 1000);
+      } catch(e) {
+        alert('마이크 접근 권한이 필요해요.\n브라우저 설정에서 마이크를 허용해주세요.');
+      }
+    }
+
+    function discardRecording() {
+      uploadedFiles = uploadedFiles.filter(f => !f.name.startsWith('녹음_'));
+      document.getElementById('recordPreview').classList.add('hidden');
+      document.getElementById('previewAudio').src = '';
+      renderUploadedFiles();
+    }
+
+    function stopRecording() {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+        clearInterval(recordTimerInterval);
+        document.getElementById('recordIdle').classList.remove('hidden');
+        document.getElementById('recordActive').classList.add('hidden');
+        document.getElementById('recordTimer').textContent = '0:00';
+      }
+    }
+
+    async function submitVerification() {
+      if (uploadedFiles.length === 0) {
+        alert('음성 파일이나 사진을 먼저 첨부해 주세요!');
+        return;
+      }
+      if (!studentName) {
+        alert('이름을 먼저 선택해주세요. 내 현황 탭에서 이름을 선택하세요.');
+        return;
+      }
+      // 하루 1회 제한 — 제출 직전 재확인
+      if (submissionsData.some(s => tsToDateKey(s.submittedAt) === today)) {
+        alert('오늘은 이미 인증했어요! 내일 또 와주세요 😊');
+        markAsDone();
+        return;
+      }
+
+      const btn = document.getElementById('submitBtn');
+      btn.textContent = '⏳ 업로드 중...';
+      btn.disabled = true;
+      btn.className = btn.className.replace('bg-blue-600 hover:bg-blue-700', 'bg-gray-400 cursor-not-allowed');
+
+      try {
+        // Firebase Storage에 파일 업로드
+        const fileUrls = await uploadFiles(uploadedFiles, studentName);
+        const feeling  = document.getElementById('feelingInput').value.trim();
+
+        // Firestore에 인증 기록 저장
+        await saveSubmission(studentName, VIEW_WEEK, VIEW_DAY, fileUrls, feeling);
+
+        // UI 업데이트
+        markAsDone();
+        showToast('🎉 오늘 인증이 완료되었어요!');
+      } catch(e) {
+        console.error('제출 오류:', e);
+        alert('제출 중 오류가 발생했어요. 다시 시도해주세요.\n' + e.message);
+        btn.textContent = '✓ 인증 제출하기';
+        btn.disabled = false;
+        btn.className = btn.className.replace('bg-gray-400 cursor-not-allowed', 'bg-blue-600 hover:bg-blue-700');
+      }
+    }
+
+    function markAsDone() {
+      document.getElementById('submitBtn').textContent = '✓ 인증 완료!';
+      document.getElementById('submitBtn').className =
+        'w-full bg-green-500 text-white font-bold py-3.5 rounded-xl text-sm cursor-default';
+      document.getElementById('submitBtn').onclick = null;
+      document.getElementById('submitStatus').textContent = '✓ 완료';
+      document.getElementById('submitStatus').className =
+        'text-xs text-green-600 font-semibold bg-green-50 px-2 py-0.5 rounded-full';
+      document.getElementById('uploadArea').classList.add('pointer-events-none', 'opacity-60');
+      document.getElementById('feelingInput').disabled = true;
+      document.getElementById('alreadyDone').classList.remove('hidden');
+    }
+
+    function renderWeekDots(subs) {
+      const container = document.getElementById('weekDots');
+      container.innerHTML = '';
+      const weekDates = getWeekDates(TODAY_WEEK);
+      const done = weekDates.filter(dateStr => subs.some(s => tsToDateKey(s.submittedAt) === dateStr)).length;
+
+      weekDates.forEach((dateStr, i) => {
+        const submitted = subs.some(s => tsToDateKey(s.submittedAt) === dateStr);
+        let cls, sym;
+        if (dateStr > today)        { cls = 'bg-gray-100 text-gray-300 border border-dashed border-gray-200'; sym = '·'; }
+        else if (dateStr === today) { cls = 'bg-blue-500 text-white ring-2 ring-blue-300'; sym = '▶'; }
+        else                        { cls = submitted ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-400'; sym = submitted ? '●' : '○'; }
+        const [,dm,dd] = dateStr.split('-');
+        container.innerHTML += `
+          <div class="flex-1 text-center">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full ${cls} text-xs font-bold">${sym}</span>
+            <p class="text-xs text-gray-400 mt-1 leading-tight">${DOW_LABELS[i]}<br>${parseInt(dm)}/${parseInt(dd)}</p>
+          </div>`;
+      });
+
+      document.getElementById('weekProgressCount').textContent = `${done}/7일`;
+      const weekDates2 = getWeekDates(TODAY_WEEK);
+      const [,wm,wd1] = weekDates2[0].split('-');
+      const [,,wd7]   = weekDates2[6].split('-');
+      document.getElementById('weekProgressTitle').textContent =
+        `이번 주 (${TODAY_WEEK}주차) ${parseInt(wm)}/${parseInt(wd1)}–${parseInt(wd7)} 진행상황`;
+
+      const remaining = 5 - done;
+      document.getElementById('weekMsg').textContent =
+        remaining <= 0 ? '이번 주 목표 달성! 🎉' : `목표 5일까지 ${remaining}일 더 필요해요`;
+    }
+
+    async function init() {
+      // 과제 로드 (오늘 또는 선택한 날짜)
+      const curriculum = await loadCurriculum();
+      const lesson = curriculum.find(l => l.week === VIEW_WEEK && l.day === VIEW_DAY);
+
+      if (lesson) {
+        document.getElementById('lessonTitle').textContent = lesson.title;
+        if (lesson.notionUrl && lesson.notionUrl.trim()) {
+          document.getElementById('notionBtn').href = lesson.notionUrl;
+        } else {
+          document.getElementById('notionBtn').classList.add('opacity-60', 'cursor-not-allowed');
+          document.getElementById('notionBtn').removeAttribute('href');
+          document.getElementById('notionBtn').onclick = (e) => {
+            e.preventDefault();
+            document.getElementById('notionWarning').classList.remove('hidden');
+          };
+        }
+      } else {
+        document.getElementById('lessonTitle').textContent = `W${TODAY_WEEK} D${TODAY_DAY} · 오늘의 과제`;
+      }
+
+      // 학생 인증 기록 로드
+      if (studentName) {
+        submissionsData = await loadSubmissions(studentName);
+
+        // 이미 오늘 제출했는지 확인 (날짜 기준 하루 1회만 허용)
+        const alreadySubmitted = submissionsData.some(
+          s => tsToDateKey(s.submittedAt) === today
+        );
+        if (alreadySubmitted) {
+          markAsDone();
+          document.getElementById('alreadyDone').classList.remove('hidden');
+        }
+
+        // 최근 피드백 표시 (어제 것)
+        const yesterday = submissionsData.filter(s =>
+          s.teacherFeedback && s.teacherFeedback.trim() &&
+          !(s.week === TODAY_WEEK && s.day === TODAY_DAY)
+        ).slice(-1)[0];
+        if (yesterday) {
+          document.getElementById('feedbackSection').classList.remove('hidden');
+          document.getElementById('feedbackLabel').textContent =
+            `선생님 피드백 (W${yesterday.week}/D${yesterday.day} · ${tsToMD(yesterday.submittedAt)})`;
+          document.getElementById('lastFeedback').textContent = yesterday.teacherFeedback;
+        }
+
+        renderWeekDots(submissionsData);
+      } else {
+        renderWeekDots([]);
+      }
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 3500);
+    }
+
+    init();
+
+    function dismissNotifBanner() {
+      document.getElementById('notifBanner').classList.add('hidden');
+    }
+
+    async function subscribeNotif() {
+      try {
+        if (window.OneSignal) {
+          await window.OneSignal.Notifications.requestPermission();
+        } else {
+          window.OneSignalDeferred = window.OneSignalDeferred || [];
+          await new Promise(resolve => {
+            OneSignalDeferred.push(async function(OneSignal) {
+              await OneSignal.Notifications.requestPermission();
+              resolve();
+            });
+          });
+        }
+      } catch(e) {
+        alert('알림 설정에 실패했어요.\n아이폰은 iOS 16.4 이상, 홈 화면에 설치된 앱에서만 가능해요.');
+      }
+      document.getElementById('notifBanner').classList.add('hidden');
+    }
+  </script>
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  <script>
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function(OneSignal) {
+      await OneSignal.init({
+        appId: "c7ec5930-ba5f-4eec-9613-d2dc1a499751",
+        serviceWorkerParam: { scope: "/" },
+        serviceWorkerPath: "sw.js",
+        notifyButton: { enable: false },
+      });
+      const optedIn = OneSignal.User.PushSubscription.optedIn;
+      if (optedIn) {
+        document.getElementById('notifBanner').classList.add('hidden');
+      }
+    });
+  </script>
+</body>
+</html>

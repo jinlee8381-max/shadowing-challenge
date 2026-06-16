@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#3b82f6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="쉐도잉 챌린지">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <title>내 챌린지 - 쉐도잉 챌린지</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <style>
+    body { font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; }
+    .dot-done   { background:#22c55e; color:#fff; }
+    .dot-miss   { background:#e5e7eb; color:#9ca3af; }
+    .dot-today  { background:#3b82f6; color:#fff; }
+    .dot-future { background:#f9fafb; color:#d1d5db; border: 1px dashed #d1d5db; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <!-- 이름 선택 화면 -->
+  <div id="selectScreen" class="min-h-screen flex flex-col items-center justify-center px-4 py-10">
+    <div class="w-full max-w-xs space-y-6 text-center">
+      <div>
+        <span class="text-4xl">🎙️</span>
+        <h1 class="text-xl font-bold text-gray-900 mt-2">쉐도잉 챌린지</h1>
+        <p class="text-sm text-gray-400 mt-1">처음 한 번만 이름을 선택하면<br>다음부터 바로 들어와요</p>
+      </div>
+      <div class="bg-white rounded-2xl shadow-sm p-4 space-y-2 text-left max-h-96 overflow-y-auto">
+        <input
+          type="text"
+          id="nameFilter"
+          placeholder="이름 검색..."
+          oninput="filterNames()"
+          class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 mb-2"
+        />
+        <div id="nameList" class="space-y-1">
+          <p class="text-xs text-gray-400 text-center py-4">이름 목록을 불러오는 중...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 학생 메인 화면 -->
+  <div id="mainScreen" class="hidden min-h-screen">
+
+    <!-- Header -->
+    <header class="bg-white border-b px-4 py-3 sticky top-0 z-20 shadow-sm">
+      <div class="max-w-lg mx-auto flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🎙️</span>
+          <div>
+            <h1 class="text-base font-bold text-gray-900" id="myName">-</h1>
+            <p class="text-xs text-gray-400" id="myMonthLabel">쉐도잉 챌린지</p>
+          </div>
+        </div>
+        <button onclick="logout()"
+          class="text-xs text-gray-400 hover:text-gray-600 px-2 py-1 rounded-lg hover:bg-gray-100 transition-colors">
+          이름 변경
+        </button>
+      </div>
+    </header>
+
+    <!-- 알림 설정 배너 -->
+    <div id="notifBanner" class="bg-blue-50 border-b border-blue-100 px-4 py-3 flex items-center justify-between gap-3">
+      <p class="text-sm text-blue-700 leading-snug">🔔 과제·리마인더 알림을 받아보세요!</p>
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <button onclick="subscribeNotif()"
+          class="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-full font-semibold whitespace-nowrap">
+          알림 받기
+        </button>
+        <button onclick="dismissNotifBanner()" class="text-gray-300 hover:text-gray-500 text-lg leading-none">×</button>
+      </div>
+    </div>
+
+    <main class="max-w-lg mx-auto px-3 py-5 pb-24 space-y-4">
+
+      <!-- 오늘의 과제 배너 -->
+      <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-4 text-white">
+        <div class="flex items-start justify-between">
+          <div>
+            <p class="text-xs font-medium opacity-80 mb-1" id="todayDateLabel">오늘의 과제</p>
+            <p class="text-base font-bold" id="todayLessonTitle">로딩 중...</p>
+            <p class="text-xs opacity-75 mt-1">음성 또는 사진으로 인증해 주세요</p>
+          </div>
+          <span class="text-3xl">🎬</span>
+        </div>
+        <a id="todayBtn" href="today.html"
+          class="mt-3 w-full bg-white text-blue-600 font-bold text-sm py-2 rounded-xl hover:bg-blue-50 transition-colors block text-center">
+          오늘의 과제 보기 &amp; 인증하기 →
+        </a>
+      </div>
+
+      <!-- 주차별 현황 -->
+      <div class="bg-white rounded-2xl shadow-sm p-4 space-y-3">
+        <h2 class="font-bold text-gray-800 text-sm">내 챌린지 현황</h2>
+        <div class="grid grid-cols-4 gap-2" id="myWeekSummary"></div>
+
+        <!-- 이번 주 상세 -->
+        <div class="pt-2 border-t border-gray-100">
+          <p class="text-xs text-gray-400 mb-2" id="weekDetailLabel">이번 주 · 7일 중 5일 인증</p>
+          <div class="flex gap-1" id="myWeek3Days"></div>
+        </div>
+      </div>
+
+      <!-- 환급 현황 -->
+      <div class="bg-white rounded-2xl shadow-sm p-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm font-semibold text-gray-700">환급 예정액</p>
+            <p class="text-xs text-gray-400 mt-0.5" id="myRefundDetail">-</p>
+          </div>
+          <div class="text-right">
+            <p class="text-2xl font-bold" id="myRefundAmount">-</p>
+            <p class="text-xs text-gray-400">/ 40,000원</p>
+          </div>
+        </div>
+        <div class="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
+          <div id="refundBar" class="h-full bg-green-500 rounded-full transition-all duration-500" style="width:0%"></div>
+        </div>
+      </div>
+
+      <!-- 연속 인증 streak -->
+      <div class="bg-white rounded-2xl shadow-sm p-4">
+        <div class="flex items-center gap-3">
+          <div class="flex-shrink-0 w-12 h-12 bg-orange-100 rounded-2xl flex items-center justify-center text-2xl">🔥</div>
+          <div class="flex-1">
+            <p class="font-bold text-gray-800"><span id="streakCount">0</span>일 연속 인증 중!</p>
+            <p class="text-xs text-gray-400 mt-0.5">최고 기록: <span id="bestStreak">0</span>일 &nbsp;·&nbsp; 계속 유지해요 💪</p>
+          </div>
+          <div class="text-right flex-shrink-0">
+            <p class="text-xs text-gray-400 mb-0.5">총 인증</p>
+            <p class="text-2xl font-bold text-blue-600" id="totalCount">0</p>
+            <p class="text-xs text-gray-400">회</p>
+          </div>
+        </div>
+        <div class="mt-3 flex gap-1" id="streakMiniBar"></div>
+      </div>
+
+      <!-- 획득한 뱃지 -->
+      <div class="bg-white rounded-2xl shadow-sm p-4">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="font-bold text-gray-800 text-sm">획득한 뱃지</h2>
+          <a id="resultBtn" href="result.html"
+             class="text-xs text-blue-500 hover:underline">결과 페이지 →</a>
+        </div>
+        <div class="flex gap-3 overflow-x-auto pb-1" id="myBadges"></div>
+        <p class="text-xs text-gray-400 mt-2" id="badgeMsg"></p>
+      </div>
+
+      <!-- 최근 피드백 -->
+      <div class="bg-white rounded-2xl shadow-sm p-4 space-y-3">
+        <h2 class="font-bold text-gray-800 text-sm">최근 선생님 피드백</h2>
+        <div id="recentFeedback" class="space-y-2">
+          <p class="text-sm text-gray-400 text-center py-3">로딩 중...</p>
+        </div>
+      </div>
+
+      <!-- 내 학습 기록 전체 보기 -->
+      <a id="fullRecordBtn" href="#"
+         class="block text-center bg-gray-100 text-gray-600 rounded-xl py-3 text-sm font-medium hover:bg-gray-200 transition-colors">
+        내 전체 기록 보기 →
+      </a>
+
+    </main>
+
+    <!-- 하단 탭바 -->
+    <nav class="fixed bottom-0 inset-x-0 bg-white border-t border-gray-100 shadow-lg z-30">
+      <div class="max-w-lg mx-auto grid grid-cols-4">
+        <a href="my-page.html" class="flex flex-col items-center py-2.5 gap-0.5 text-blue-600">
+          <span class="text-xl leading-none">🏠</span>
+          <span class="text-xs font-semibold">내 현황</span>
+        </a>
+        <a href="today.html" id="nav-today" class="flex flex-col items-center py-2.5 gap-0.5 text-gray-400 hover:text-gray-600 transition-colors">
+          <span class="text-xl leading-none">📚</span>
+          <span class="text-xs font-medium">오늘 과제</span>
+        </a>
+        <a href="#" id="nav-record" class="flex flex-col items-center py-2.5 gap-0.5 text-gray-400 hover:text-gray-600 transition-colors">
+          <span class="text-xl leading-none">📖</span>
+          <span class="text-xs font-medium">학습 기록</span>
+        </a>
+        <a href="#" id="nav-result" class="flex flex-col items-center py-2.5 gap-0.5 text-gray-400 hover:text-gray-600 transition-colors">
+          <span class="text-xl leading-none">🏆</span>
+          <span class="text-xs font-medium">결과</span>
+        </a>
+      </div>
+    </nav>
+  </div>
+
+  <!-- 완료 토스트 -->
+  <div id="toast" class="hidden fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-green-600 text-white text-sm font-medium px-5 py-3 rounded-full shadow-lg">
+    ✓ 오늘 인증이 완료되었어요!
+  </div>
+
+  <script>
+    const DOW_LABELS  = ['월','화','수','목','금','토','일'];
+    const weekInfo    = getWeekInfo();
+    const currentWeek = weekInfo.week;
+    let allStudentNames = [];
+    let currentName = null;
+
+    // 이름 선택 여부 확인: URL 파라미터 → localStorage
+    const urlParams = new URLSearchParams(location.search);
+    const urlName   = urlParams.get('name');
+    const savedName = localStorage.getItem('shadowing_my_name');
+
+    // 페이지 로드 시 학생 목록 가져오기 (이름 선택 화면용)
+    async function loadAndRenderNameList() {
+      allStudentNames = await loadStudentList();
+      renderNameList(allStudentNames);
+    }
+
+    function renderNameList(list) {
+      const el = document.getElementById('nameList');
+      if (list.length === 0) {
+        el.innerHTML = `<p class="text-xs text-gray-400 text-center py-4">등록된 학생이 없어요</p>`;
+        return;
+      }
+      el.innerHTML = '';
+      list.forEach(name => {
+        const btn = document.createElement('button');
+        btn.className = 'w-full text-left px-3 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors';
+        btn.textContent = name;
+        btn.onclick = () => selectStudent(name);
+        el.appendChild(btn);
+      });
+    }
+
+    function filterNames() {
+      const q = document.getElementById('nameFilter').value.trim();
+      renderNameList(q ? allStudentNames.filter(n => n.includes(q)) : allStudentNames);
+    }
+
+    function updateNavLinks(name) {
+      const enc = encodeURIComponent(name);
+      document.getElementById('nav-record').href = `student.html?name=${enc}&mode=student`;
+      document.getElementById('nav-result').href = `result.html?name=${enc}`;
+    }
+
+    async function selectStudent(name) {
+      currentName = name;
+      localStorage.setItem('shadowing_my_name', name);
+      updateNavLinks(name);
+      document.getElementById('selectScreen').classList.add('hidden');
+      document.getElementById('mainScreen').classList.remove('hidden');
+      document.getElementById('myName').textContent = name;
+      document.getElementById('fullRecordBtn').href = `student.html?name=${encodeURIComponent(name)}&mode=student`;
+      document.getElementById('todayBtn').href = `today.html?name=${encodeURIComponent(name)}`;
+      document.getElementById('resultBtn').href = `result.html?name=${encodeURIComponent(name)}`;
+
+      const [,ym] = CHALLENGE_START.split('-');
+      document.getElementById('myMonthLabel').textContent = `쉐도잉 챌린지 · ${parseInt(ym)}월`;
+
+      await renderMainScreen(name);
+    }
+
+    function logout() {
+      currentName = null;
+      localStorage.removeItem('shadowing_my_name');
+      document.getElementById('mainScreen').classList.add('hidden');
+      document.getElementById('selectScreen').classList.remove('hidden');
+      document.getElementById('nameFilter').value = '';
+      renderNameList(allStudentNames);
+      history.replaceState(null, '', 'my-page.html');
+    }
+
+    async function renderMainScreen(name) {
+      // 오늘 날짜 표시
+      const [,m, d] = todayStr().split('-');
+      const dayName = ['일','월','화','수','목','금','토'][new Date().getDay()];
+      document.getElementById('todayDateLabel').textContent = `오늘의 과제 · ${dayName} ${parseInt(m)}/${parseInt(d)}`;
+
+      // 학생 인증 기록 + 커리큘럼 + 결과 동시 로드
+      const [subs, curriculum, resultSnap] = await Promise.all([
+        loadSubmissions(name),
+        loadCurriculum(),
+        db.collection('results').doc(`${CHALLENGE_MONTH}_${name}`).get().catch(() => null)
+      ]);
+      const hasReflection = !!resultSnap?.data()?.reflection;
+
+      // 오늘 과제 제목 설정
+      const todayLesson = curriculum.find(l => l.week === currentWeek && l.day === weekInfo.lessonDay);
+      if (todayLesson) {
+        document.getElementById('todayLessonTitle').textContent = todayLesson.title;
+      } else {
+        document.getElementById('todayLessonTitle').textContent = `W${currentWeek} D${weekInfo.lessonDay} 오늘의 과제`;
+      }
+
+      // 주차 요약
+      renderWeekSummary(subs);
+
+      // 이번 주 요일 도트
+      renderWeekDots(subs);
+
+      // 환급액
+      renderRefund(subs);
+
+      // Streak 계산
+      renderStreak(subs);
+
+      // 뱃지
+      renderBadges(subs, hasReflection);
+
+      // 최근 피드백
+      renderFeedback(subs);
+
+      // 이번 주 상세 레이블
+      const weekDates = getWeekDates(currentWeek);
+      const [,wm, wd1] = weekDates[0].split('-');
+      const [,, wd7]   = weekDates[6].split('-');
+      document.getElementById('weekDetailLabel').textContent =
+        `이번 주 (${currentWeek}주차) ${parseInt(wm)}/${parseInt(wd1)}–${parseInt(wd7)} · 7일 중 5일 인증`;
+    }
+
+    function renderWeekSummary(subs) {
+      const el = document.getElementById('myWeekSummary');
+      el.innerHTML = '';
+      [1,2,3,4].forEach(w => {
+        const count = subs.filter(s => s.week === w).length;
+        const isCurrent = w === currentWeek;
+        const isFuture  = w > currentWeek;
+        const success   = count >= 5;
+        let color, text;
+        if (isFuture) {
+          color = 'bg-gray-50 border border-gray-200';
+          text  = `<span class="text-gray-400 text-sm">-</span>`;
+        } else if (isCurrent) {
+          color = 'bg-blue-50 border border-blue-200';
+          text  = `<span class="text-blue-600 font-bold text-base">${count}/5</span>`;
+        } else if (success) {
+          color = 'bg-green-50 border border-green-200';
+          text  = `<span class="text-green-600 font-bold text-xl">O</span>`;
+        } else {
+          color = 'bg-red-50 border border-red-200';
+          text  = `<span class="text-red-500 font-bold text-xl">X</span>`;
+        }
+        el.innerHTML += `
+          <div class="${color} rounded-xl p-2 text-center">
+            <p class="text-xs text-gray-500 font-medium mb-1">${w}주</p>
+            <div class="flex justify-center items-center h-7">${text}</div>
+          </div>
+        `;
+      });
+    }
+
+    function renderWeekDots(subs) {
+      const daysEl  = document.getElementById('myWeek3Days');
+      const today   = todayStr();
+      const weekDates = getWeekDates(currentWeek);
+      daysEl.innerHTML = '';
+      weekDates.forEach((dateStr, i) => {
+        const submitted = subs.some(s => tsToDateKey(s.submittedAt) === dateStr);
+        let cls, sym;
+        if (dateStr > today)        { cls = 'dot-future'; sym = '·'; }
+        else if (dateStr === today) { cls = submitted ? 'dot-done' : 'dot-today'; sym = submitted ? '●' : '▶'; }
+        else                        { cls = submitted ? 'dot-done' : 'dot-miss';  sym = submitted ? '●' : '○'; }
+        const [,dm,dd] = dateStr.split('-');
+        daysEl.innerHTML += `
+          <div class="flex-1 text-center">
+            <p class="text-xs text-gray-400 mb-1">${DOW_LABELS[i]}</p>
+            <span class="${cls} inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold mx-auto block">${sym}</span>
+            <p class="text-xs text-gray-400 mt-1">${parseInt(dm)}/${parseInt(dd)}</p>
+          </div>
+        `;
+      });
+    }
+
+    function renderRefund(subs) {
+      const successCount = [1,2,3,4].filter(w => w < currentWeek && subs.filter(s=>s.week===w).length >= 5).length;
+      const refund = successCount * 10000;
+      const el = document.getElementById('myRefundAmount');
+      el.textContent = refund.toLocaleString() + '원';
+      el.className = `text-2xl font-bold ${refund === 0 ? 'text-gray-400' : 'text-green-600'}`;
+      document.getElementById('myRefundDetail').textContent =
+        `성공 ${successCount}주 × 10,000원 = ${refund.toLocaleString()}원 환급 예정`;
+      document.getElementById('refundBar').style.width = `${(refund/40000)*100}%`;
+    }
+
+    function calcStreak(subs) {
+      // 제출 날짜를 정렬하여 연속 일수 계산
+      const dates = [...new Set(subs.map(s => tsToDateKey(s.submittedAt)).filter(Boolean))].sort();
+      if (dates.length === 0) return { streak: 0, best: 0 };
+
+      let streak = 1, best = 1, cur = 1;
+      for (let i = 1; i < dates.length; i++) {
+        const prev = new Date(dates[i-1]);
+        const curr = new Date(dates[i]);
+        const diff = Math.round((curr - prev) / 86400000);
+        if (diff === 1) { cur++; best = Math.max(best, cur); }
+        else { cur = 1; }
+      }
+      // 현재 연속: 마지막 날짜가 오늘 또는 어제인 경우만 유효
+      const lastDate = new Date(dates[dates.length - 1]);
+      const today2   = new Date(); today2.setHours(0,0,0,0);
+      const diffFromToday = Math.round((today2 - lastDate) / 86400000);
+      if (diffFromToday <= 1) streak = cur;
+      else streak = 0;
+
+      return { streak, best };
+    }
+
+    function renderStreak(subs) {
+      const { streak, best } = calcStreak(subs);
+      document.getElementById('streakCount').textContent = streak;
+      document.getElementById('bestStreak').textContent  = best;
+      document.getElementById('totalCount').textContent  = subs.length;
+
+      // 미니 바 (최근 14일)
+      const bar   = document.getElementById('streakMiniBar');
+      const today = todayStr();
+      bar.innerHTML = '';
+      for (let i = 13; i >= 0; i--) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        const key  = d.toISOString().slice(0,10);
+        const done = subs.some(s => tsToDateKey(s.submittedAt) === key);
+        const isToday = key === today;
+        const color = isToday ? 'bg-blue-400' : done ? 'bg-orange-400' : 'bg-gray-100';
+        bar.innerHTML += `<div class="flex-1 h-1.5 rounded-full ${color}"></div>`;
+      }
+    }
+
+    function renderBadges(subs, hasReflection = false) {
+      const { streak, best } = calcStreak(subs);
+      const weekSuccesses = [1,2,3,4].map(w => subs.filter(s=>s.week===w).length >= 5);
+      const allBadges = [
+        { emoji:'🌱', name:'시작의 씨앗',    earned: subs.length >= 1 },
+        { emoji:'⭐', name:'1주 완주',       earned: weekSuccesses[0] },
+        { emoji:'🌟', name:'2주 완주',       earned: weekSuccesses[1] },
+        { emoji:'💫', name:'3주 완주',       earned: weekSuccesses[2] },
+        { emoji:'🏆', name:'챌린지 완주',    earned: weekSuccesses.every(Boolean) },
+        { emoji:'🔥', name:'5일 연속',       earned: best >= 5 },
+        { emoji:'💪', name:'10일 연속',      earned: best >= 10 },
+        { emoji:'🎯', name:'완벽한 달',      earned: subs.length >= 20 },
+        { emoji:'📝', name:'변화 기록 완료', earned: hasReflection },
+      ];
+      const earned = allBadges.filter(b => b.earned);
+      const locked = allBadges.filter(b => !b.earned);
+      const el = document.getElementById('myBadges');
+      el.innerHTML = '';
+      earned.forEach(b => {
+        el.innerHTML += `
+          <div class="flex-shrink-0 text-center w-16">
+            <div class="w-12 h-12 mx-auto bg-yellow-100 rounded-2xl flex items-center justify-center text-2xl shadow-sm">${b.emoji}</div>
+            <p class="text-xs font-medium text-gray-700 mt-1 leading-tight">${b.name}</p>
+          </div>`;
+      });
+      locked.slice(0,2).forEach(b => {
+        el.innerHTML += `
+          <div class="flex-shrink-0 text-center w-16 opacity-35">
+            <div class="w-12 h-12 mx-auto bg-gray-100 rounded-2xl flex items-center justify-center text-2xl grayscale">🔒</div>
+            <p class="text-xs font-medium text-gray-400 mt-1 leading-tight">${b.name}</p>
+          </div>`;
+      });
+      document.getElementById('badgeMsg').textContent = `${earned.length}개 획득 · ${locked.length}개 도전 중`;
+    }
+
+    function renderFeedback(subs) {
+      const fbEl = document.getElementById('recentFeedback');
+      // 피드백이 있는 최근 3개만 표시
+      const withFb = subs.filter(s => s.teacherFeedback && s.teacherFeedback.trim()).slice(-3).reverse();
+      if (withFb.length === 0) {
+        fbEl.innerHTML = `<p class="text-sm text-gray-400 text-center py-3">아직 피드백이 없어요</p>`;
+        return;
+      }
+      fbEl.innerHTML = '';
+      withFb.forEach(s => {
+        fbEl.innerHTML += `
+          <div class="bg-orange-50 border border-orange-100 rounded-xl p-3">
+            <p class="text-xs text-orange-500 font-medium mb-1">${tsToMD(s.submittedAt)} · W${s.week} D${s.day}</p>
+            <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">${s.teacherFeedback}</p>
+          </div>`;
+      });
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.remove('hidden');
+      setTimeout(() => t.classList.add('hidden'), 3000);
+    }
+
+    // 진입 시 로직
+    async function init() {
+      // 이름 선택 화면을 위해 학생 목록 미리 로드
+      loadAndRenderNameList();
+
+      let nameToUse = null;
+      if (urlName) nameToUse = urlName;
+      else if (savedName) nameToUse = savedName;
+
+      if (nameToUse) {
+        // 이름이 있으면 바로 메인 화면으로
+        document.getElementById('selectScreen').classList.add('hidden');
+        document.getElementById('mainScreen').classList.remove('hidden');
+        await selectStudent(nameToUse);
+      }
+      // 없으면 이름 선택 화면 그대로 유지
+    }
+
+    init();
+
+    // 알림 배너
+    function dismissNotifBanner() {
+      document.getElementById('notifBanner').classList.add('hidden');
+    }
+
+    async function subscribeNotif() {
+      try {
+        if (window.OneSignal) {
+          await window.OneSignal.Notifications.requestPermission();
+        } else {
+          window.OneSignalDeferred = window.OneSignalDeferred || [];
+          await new Promise(resolve => {
+            OneSignalDeferred.push(async function(OneSignal) {
+              await OneSignal.Notifications.requestPermission();
+              resolve();
+            });
+          });
+        }
+      } catch(e) {
+        alert('알림 설정에 실패했어요.\n아이폰은 iOS 16.4 이상, 홈 화면에 설치된 앱에서만 가능해요.');
+      }
+      document.getElementById('notifBanner').classList.add('hidden');
+    }
+  </script>
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  <script>
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function(OneSignal) {
+      await OneSignal.init({
+        appId: "c7ec5930-ba5f-4eec-9613-d2dc1a499751",
+        serviceWorkerParam: { scope: "/" },
+        serviceWorkerPath: "sw.js",
+        notifyButton: { enable: false },
+      });
+      // 이미 알림 구독 중이면 배너 숨김
+      const optedIn = OneSignal.User.PushSubscription.optedIn;
+      if (optedIn) {
+        document.getElementById('notifBanner').classList.add('hidden');
+      }
+    });
+  </script>
+</body>
+</html>

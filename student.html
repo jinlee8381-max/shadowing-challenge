@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#3b82f6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="쉐도잉 챌린지">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <title>학생 상세 - 쉐도잉 챌린지</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <style>
+    body { font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; }
+    .feedback-box { white-space: pre-wrap; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen pb-24">
+
+  <!-- Header -->
+  <header class="bg-white border-b px-4 py-3 sticky top-0 z-20 shadow-sm">
+    <div class="max-w-4xl mx-auto flex items-center gap-3">
+      <a id="backBtn" href="index.html" class="text-gray-400 hover:text-gray-600 text-sm font-medium">← 대시보드</a>
+      <div class="flex-1">
+        <h1 class="text-base font-bold text-gray-900" id="pageTitle">학생 상세</h1>
+        <p class="text-xs text-gray-400">개인 학습 기록 · <span id="monthLabel">-</span></p>
+      </div>
+      <a id="studentPageBtn" href="#"
+         class="text-xs bg-green-600 text-white px-3 py-1.5 rounded-full font-medium hover:bg-green-700 transition-colors admin-only">
+        학생 화면 보기
+      </a>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-3 py-5 space-y-5">
+
+    <!-- 주차별 요약 -->
+    <div class="grid grid-cols-4 gap-3" id="weekSummary"></div>
+
+    <!-- 환급 현황 -->
+    <div class="bg-white rounded-2xl shadow-sm p-4 flex items-center justify-between">
+      <div>
+        <p class="text-sm text-gray-500">현재까지 성공 주차</p>
+        <p class="text-xs text-gray-400 mt-0.5" id="successDetail">-</p>
+      </div>
+      <div class="text-right">
+        <p class="text-xs text-gray-400 mb-0.5">환급 예정액</p>
+        <p class="text-2xl font-bold" id="refundAmount">-</p>
+        <p class="text-xs text-gray-400">/ 40,000원</p>
+      </div>
+    </div>
+
+    <!-- 학습 기록 테이블 -->
+    <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div class="px-5 py-3.5 border-b flex items-center justify-between">
+        <h2 class="font-bold text-gray-800">학습 기록</h2>
+        <span class="text-xs text-gray-400" id="entryCount">-</span>
+      </div>
+      <div id="loadingState" class="text-center py-10 text-gray-400">
+        <div class="text-3xl mb-2">⏳</div>
+        <p class="text-sm">기록을 불러오는 중...</p>
+      </div>
+      <div id="tableWrap" class="hidden overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-gray-50 text-gray-500 text-xs">
+            <tr>
+              <th class="text-center px-3 py-3 font-medium w-10">#</th>
+              <th class="text-center px-3 py-3 font-medium w-16">날짜</th>
+              <th class="text-center px-3 py-3 font-medium w-16">진도</th>
+              <th class="text-left px-4 py-3 font-medium">오늘의 포인트 · 느낀점</th>
+              <th class="text-left px-4 py-3 font-medium">피드백</th>
+              <th class="text-center px-3 py-3 font-medium w-16 admin-only">수정</th>
+            </tr>
+          </thead>
+          <tbody id="entriesTable" class="divide-y divide-gray-100"></tbody>
+        </table>
+      </div>
+      <div id="emptyState" class="hidden text-center py-10 text-gray-400">
+        <p class="text-sm">아직 인증 기록이 없어요 📭</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- 피드백 편집 모달 (관리자 전용) -->
+  <div id="feedbackModal" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 admin-only">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-5 space-y-4">
+      <h3 class="font-bold text-gray-800">피드백 작성</h3>
+      <p class="text-sm text-gray-500" id="modalEntryInfo">-</p>
+      <textarea
+        id="feedbackInput"
+        rows="5"
+        placeholder="학생에게 전달할 피드백을 입력하세요..."
+        class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none"
+      ></textarea>
+      <div class="flex gap-2 justify-end">
+        <button onclick="closeModal()"
+          class="text-sm text-gray-500 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors">
+          취소
+        </button>
+        <button onclick="saveFeedbackModal()"
+          class="text-sm bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+          저장
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 하단 탭바 (학생 모드에서만 표시) -->
+  <nav id="studentNav" class="hidden fixed bottom-0 inset-x-0 bg-white border-t border-gray-100 shadow-lg z-30">
+    <div class="max-w-lg mx-auto grid grid-cols-4">
+      <a href="my-page.html" class="flex flex-col items-center py-2.5 gap-0.5 text-gray-400 hover:text-gray-600 transition-colors">
+        <span class="text-xl leading-none">🏠</span>
+        <span class="text-xs font-medium">내 현황</span>
+      </a>
+      <a href="today.html" class="flex flex-col items-center py-2.5 gap-0.5 text-gray-400 hover:text-gray-600 transition-colors">
+        <span class="text-xl leading-none">📚</span>
+        <span class="text-xs font-medium">오늘 과제</span>
+      </a>
+      <a href="#" class="flex flex-col items-center py-2.5 gap-0.5 text-blue-600">
+        <span class="text-xl leading-none">📖</span>
+        <span class="text-xs font-semibold">학습 기록</span>
+      </a>
+      <a id="nav-result" href="result.html" class="flex flex-col items-center py-2.5 gap-0.5 text-gray-400 hover:text-gray-600 transition-colors">
+        <span class="text-xl leading-none">🏆</span>
+        <span class="text-xs font-medium">결과</span>
+      </a>
+    </div>
+  </nav>
+
+  <script>
+    const params      = new URLSearchParams(location.search);
+    const studentName = params.get('name') || '';
+    const isStudent   = params.get('mode') === 'student';
+
+    // 학생 모드에서는 관리자 전용 요소 숨기기
+    if (isStudent) {
+      document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+      document.getElementById('studentNav').classList.remove('hidden');
+      document.getElementById('backBtn').href = 'my-page.html';
+      document.getElementById('backBtn').textContent = '← 내 현황';
+      document.body.classList.add('pb-24');
+    }
+
+    document.getElementById('pageTitle').textContent = studentName || '학생 상세';
+    document.title = `${studentName} - 쉐도잉 챌린지`;
+    document.getElementById('studentPageBtn').href = `my-page.html?name=${encodeURIComponent(studentName)}`;
+    document.getElementById('nav-result').href = `result.html?name=${encodeURIComponent(studentName)}`;
+
+    const [,ym] = CHALLENGE_START.split('-');
+    document.getElementById('monthLabel').textContent = `${parseInt(ym)}월 챌린지`;
+
+    let submissions = [];
+    let editingSubId = null;
+
+    // 주차 성공 여부 (해당 주 제출 5개 이상)
+    function weekSuccess(weekNum) {
+      return submissions.filter(s => s.week === weekNum).length >= 5;
+    }
+
+    function renderWeekSummary() {
+      const weekInfo = getWeekInfo();
+      const el = document.getElementById('weekSummary');
+      el.innerHTML = '';
+      [1,2,3,4].forEach(w => {
+        const count = submissions.filter(s => s.week === w).length;
+        const isCurrent = w === weekInfo.week;
+        const isFuture  = w > weekInfo.week;
+        let color, badge;
+        if (isFuture)       { color='border-gray-200 bg-gray-50';   badge=`<span class="text-gray-400 text-sm">-</span>`; }
+        else if (isCurrent) { color='border-blue-200 bg-blue-50';   badge=`<span class="text-xl font-bold text-blue-600">${count}/5</span>`; }
+        else if (weekSuccess(w)) { color='border-green-200 bg-green-50'; badge=`<span class="text-2xl font-bold text-green-600">O</span>`; }
+        else                { color='border-red-200 bg-red-50';     badge=`<span class="text-2xl font-bold text-red-500">X</span>`; }
+
+        const weekDates = getWeekDates(w);
+        const [,wm, wd1] = weekDates[0].split('-');
+        const [,, wd7] = weekDates[6].split('-');
+        el.innerHTML += `
+          <div class="border ${color} rounded-xl p-3 text-center">
+            <p class="text-xs font-semibold text-gray-500">${w}주</p>
+            <p class="text-xs text-gray-400 mb-2">${parseInt(wm)}/${parseInt(wd1)}–${parseInt(wd7)}</p>
+            <div class="flex items-baseline justify-center gap-0.5">${badge}</div>
+          </div>
+        `;
+      });
+    }
+
+    function renderRefund() {
+      const weekInfo = getWeekInfo();
+      const successWeeks = [1,2,3,4].filter(w => w < weekInfo.week && weekSuccess(w)).length;
+      const amount = successWeeks * 10000;
+      const el = document.getElementById('refundAmount');
+      el.textContent = amount.toLocaleString() + '원';
+      el.className = `text-2xl font-bold ${amount === 0 ? 'text-gray-400' : amount >= 40000 ? 'text-blue-600' : 'text-green-600'}`;
+
+      const weekInfo2 = getWeekInfo();
+      const parts = [1,2,3,4].map(w => {
+        if (w > weekInfo2.week) return `${w}주 미시작`;
+        if (w === weekInfo2.week) return `${w}주 진행중`;
+        return `${w}주 ${weekSuccess(w)?'성공':'실패'}`;
+      });
+      document.getElementById('successDetail').textContent = parts.join(' · ');
+    }
+
+    function renderEntries() {
+      document.getElementById('loadingState').classList.add('hidden');
+      const tbody = document.getElementById('entriesTable');
+
+      if (submissions.length === 0) {
+        document.getElementById('emptyState').classList.remove('hidden');
+        document.getElementById('entryCount').textContent = '기록 없음';
+        return;
+      }
+
+      document.getElementById('tableWrap').classList.remove('hidden');
+      document.getElementById('entryCount').textContent = `총 ${submissions.length}회 기록`;
+
+      tbody.innerHTML = '';
+      submissions.forEach((sub, i) => {
+        const fb    = sub.teacherFeedback || '';
+        const hasFb = fb.trim().length > 0;
+        const date  = tsToMD(sub.submittedAt) || '-';
+        const prog  = `W${sub.week} D${sub.day}`;
+
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-gray-50 transition-colors';
+        tr.id = `row-${sub.id}`;
+        tr.innerHTML = `
+          <td class="text-center px-3 py-3 text-gray-400 text-xs">${i+1}</td>
+          <td class="text-center px-3 py-3 text-gray-600 text-xs font-mono">${date}</td>
+          <td class="text-center px-3 py-3">
+            <span class="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-mono font-semibold">${prog}</span>
+          </td>
+          <td class="px-4 py-3 text-xs text-gray-700 max-w-[200px]">
+            <p class="leading-relaxed">${sub.feeling || '<span class="text-gray-300">-</span>'}</p>
+            ${sub.fileUrls && sub.fileUrls.length > 0
+              ? `<div class="mt-1 flex flex-wrap gap-1">${sub.fileUrls.map((u,j)=>`<a href="${u}" target="_blank" class="text-blue-400 hover:underline text-xs">📎 파일${j+1}</a>`).join('')}</div>`
+              : ''
+            }
+          </td>
+          <td class="px-4 py-3 text-xs max-w-[220px]">
+            <p id="fb-${sub.id}" class="feedback-box leading-relaxed ${hasFb ? 'text-orange-700 bg-orange-50 rounded-lg px-2 py-1' : 'text-gray-300'}">${hasFb ? fb : '미작성'}</p>
+          </td>
+          <td class="text-center px-3 py-3 admin-only" ${isStudent ? 'style="display:none"' : ''}>
+            <button onclick="openModal('${sub.id}','${date}','${prog}')"
+              class="text-xs text-blue-600 hover:bg-blue-50 px-2 py-1 rounded-lg transition-colors border border-blue-200">
+              ${hasFb ? '수정' : '작성'}
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openModal(subId, date, prog) {
+      editingSubId = subId;
+      const sub = submissions.find(s => s.id === subId);
+      document.getElementById('modalEntryInfo').textContent = `${date} · ${prog} 피드백`;
+      document.getElementById('feedbackInput').value = sub?.teacherFeedback || '';
+      document.getElementById('feedbackModal').classList.remove('hidden');
+      document.getElementById('feedbackInput').focus();
+    }
+
+    function closeModal() {
+      document.getElementById('feedbackModal').classList.add('hidden');
+      editingSubId = null;
+    }
+
+    async function saveFeedbackModal() {
+      if (!editingSubId) return;
+      const val = document.getElementById('feedbackInput').value.trim();
+
+      await saveFeedback(editingSubId, val);
+
+      // 로컬 데이터도 업데이트
+      const sub = submissions.find(s => s.id === editingSubId);
+      if (sub) sub.teacherFeedback = val;
+
+      const fbEl = document.getElementById(`fb-${editingSubId}`);
+      if (fbEl) {
+        fbEl.textContent = val || '미작성';
+        fbEl.className = `feedback-box leading-relaxed ${val ? 'text-orange-700 bg-orange-50 rounded-lg px-2 py-1' : 'text-gray-300'}`;
+      }
+      const row = document.getElementById(`row-${editingSubId}`);
+      if (row) {
+        const btn = row.querySelector('button');
+        if (btn) btn.textContent = val ? '수정' : '작성';
+      }
+      closeModal();
+    }
+
+    document.getElementById('feedbackModal').addEventListener('click', function(e) {
+      if (e.target === this) closeModal();
+    });
+
+    async function init() {
+      if (!studentName) {
+        document.getElementById('loadingState').innerHTML = `
+          <p class="text-sm text-red-400 py-6">학생 이름이 없어요. 대시보드에서 다시 접근해주세요.</p>`;
+        return;
+      }
+
+      submissions = await loadSubmissions(studentName);
+      renderWeekSummary();
+      renderRefund();
+      renderEntries();
+    }
+
+    init();
+  </script>
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  <script>
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function(OneSignal) {
+      await OneSignal.init({
+        appId: "c7ec5930-ba5f-4eec-9613-d2dc1a499751",
+        serviceWorkerParam: { scope: "/" },
+        serviceWorkerPath: "sw.js",
+        notifyButton: { enable: false },
+      });
+    });
+  </script>
+</body>
+</html>
