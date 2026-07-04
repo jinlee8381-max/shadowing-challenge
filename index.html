@@ -40,15 +40,15 @@
         </div>
       </div>
       <div class="flex items-center gap-2">
-        <a href="admin-students.html"
+        <a href="admin-학생관리.html"
            class="text-xs bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full font-medium hover:bg-gray-200 transition-colors">
           👥 학생 관리
         </a>
-        <a href="admin-tasks.html"
+        <a href="admin-과제.html"
            class="text-xs bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full font-medium hover:bg-gray-200 transition-colors">
           📋 과제 관리
         </a>
-        <a href="admin-feedback.html"
+        <a href="admin-피드백.html"
            class="text-xs bg-orange-500 text-white px-3 py-1.5 rounded-full font-medium hover:bg-orange-600 transition-colors">
           💬 오늘 피드백
         </a>
@@ -66,6 +66,19 @@
     <div class="bg-blue-50 border border-blue-200 rounded-xl px-4 py-2.5 flex items-center gap-2">
       <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse flex-shrink-0"></span>
       <p class="text-sm text-blue-700 font-medium" id="statusBanner">로딩 중...</p>
+    </div>
+
+    <!-- 월 전환 -->
+    <div class="flex items-center justify-center gap-2 bg-white rounded-xl px-4 py-2 shadow-sm">
+      <button id="prevMonthBtn" onclick="switchMonth(-1)"
+        class="text-sm text-gray-500 hover:text-gray-800 px-3 py-1 rounded-lg hover:bg-gray-100 transition-colors">
+        ◀ 이전 달
+      </button>
+      <span class="text-sm font-bold text-gray-700 w-28 text-center" id="monthSwitchLabel">-</span>
+      <button id="nextMonthBtn" onclick="switchMonth(1)"
+        class="text-sm text-gray-500 hover:text-gray-800 px-3 py-1 rounded-lg hover:bg-gray-100 transition-colors">
+        다음 달 ▶
+      </button>
     </div>
 
     <!-- 통계 카드 -->
@@ -128,6 +141,7 @@
               <th class="text-left px-5 py-3 font-medium sticky left-0 bg-gray-50 z-10 min-w-[80px]">이름</th>
               <th class="text-center px-4 py-3 font-medium" id="th-w1">1주</th>
               <th class="text-center px-4 py-3 font-medium" id="th-w2">2주</th>
+              <th class="text-center px-4 py-3 font-medium" id="th-w3prev" style="display:none">3주</th>
               <th class="text-center px-2 py-3 font-medium text-blue-700" colspan="7" id="th-w3">← 이번 주 진행 중 →</th>
               <th class="text-center px-4 py-3 font-medium" id="th-w4">4주</th>
               <th class="text-center px-4 py-3 font-medium">환급액</th>
@@ -153,10 +167,16 @@
 
   <script>
     const DOW_LABELS = ['월','화','수','목','금','토','일'];
-    const weekInfo = getWeekInfo();
-    const currentWeek = weekInfo.week;
-    const currentWeekDates = getWeekDates(currentWeek);
-    const today = todayStr();
+    const CHALLENGE_MONTH_MAX = CHALLENGE_MONTH;
+    let weekInfo, currentWeek, currentWeekDates, today;
+
+    function recomputeTimeVars() {
+      weekInfo = getWeekInfo();
+      currentWeek = weekInfo.week;
+      currentWeekDates = getWeekDates(currentWeek);
+      today = todayStr();
+    }
+    recomputeTimeVars();
 
     // 요일 레이블 표시용 M/D
     function dateMD(yyyymmdd) {
@@ -167,15 +187,17 @@
     // 헤더 날짜 서브행 렌더
     function renderDateSubHeader() {
       const tr = document.getElementById('dateSubHeader');
-      tr.innerHTML = `<th class="px-5 py-1 sticky left-0 bg-gray-50 z-10"></th>
+      let html = `<th class="px-5 py-1 sticky left-0 bg-gray-50 z-10"></th>
         <th class="px-4 py-1"></th><th class="px-4 py-1"></th>`;
+      if (currentWeek >= 4) html += `<th class="px-4 py-1"></th>`;
       currentWeekDates.forEach((dateStr, i) => {
         const isToday = dateStr === today;
-        tr.innerHTML += `<th class="text-center px-2 py-1 ${isToday ? 'text-blue-500 font-bold' : ''}">
+        html += `<th class="text-center px-2 py-1 ${isToday ? 'text-blue-500 font-bold' : ''}">
           ${DOW_LABELS[i]}<br>${dateMD(dateStr)}
         </th>`;
       });
-      tr.innerHTML += `<th class="px-4 py-1"></th><th class="px-4 py-1"></th>`;
+      html += `<th class="px-4 py-1"></th><th class="px-4 py-1"></th>`;
+      tr.innerHTML = html;
 
       // 주차 헤더도 업데이트
       const w1Dates = getWeekDates(1);
@@ -183,6 +205,12 @@
       const w4Dates = getWeekDates(4);
       document.getElementById('th-w1').innerHTML = `1주<br><span class="font-normal text-gray-400">${dateMD(w1Dates[0])}–${dateMD(w1Dates[6])}</span>`;
       document.getElementById('th-w2').innerHTML = `2주<br><span class="font-normal text-gray-400">${dateMD(w2Dates[0])}–${dateMD(w2Dates[6])}</span>`;
+      if (currentWeek >= 4) {
+        const w3Dates = getWeekDates(3);
+        const el = document.getElementById('th-w3prev');
+        el.style.display = '';
+        el.innerHTML = `3주<br><span class="font-normal text-gray-400">${dateMD(w3Dates[0])}–${dateMD(w3Dates[6])}</span>`;
+      }
       document.getElementById('th-w3').textContent = `← ${currentWeek}주차 진행 중 (${dateMD(currentWeekDates[0])}–${dateMD(currentWeekDates[6])}, 7일 중 5일 인증) →`;
       document.getElementById('th-w4').innerHTML = `4주<br><span class="font-normal text-gray-400">${dateMD(w4Dates[0])}–${dateMD(w4Dates[6])}</span>`;
     }
@@ -195,6 +223,7 @@
         // W1/W2: 해당 주 제출 5개 이상이면 성공
         const w1 = mine.filter(s => s.week === 1).length >= 5;
         const w2 = mine.filter(s => s.week === 2).length >= 5;
+        const w3prev = currentWeek >= 4 ? mine.filter(s => s.week === 3).length >= 5 : null;
 
         // 이번 주: 각 요일(월~일)에 제출했는지 확인
         const w3 = currentWeekDates.map(dateStr => {
@@ -203,7 +232,10 @@
           return dateStr === today ? (submitted ? true : 'today') : submitted;
         });
 
-        return { name, w1, w2, w3 };
+        // 4주차 성공 여부: 현재 주가 4주차일 때 확인된 제출 5일 이상
+        const w4 = currentWeek >= 4 ? (w3.filter(d => d === true).length >= 5) : null;
+
+        return { name, w1, w2, w3prev, w3, w4 };
       });
     }
 
@@ -227,7 +259,7 @@
     }
 
     function refundAmount(s) {
-      return ((s.w1?1:0) + (s.w2?1:0)) * 10000;
+      return ((s.w1?1:0) + (s.w2?1:0) + (s.w3prev?1:0) + (s.w4?1:0)) * 10000;
     }
 
     function renderTable(list) {
@@ -250,8 +282,9 @@
           <td class="px-5 py-3 font-semibold text-blue-600 sticky left-0 bg-white z-10 hover:underline">${s.name}</td>
           <td class="text-center px-4 py-3">${weekBadge(s.w1)}</td>
           <td class="text-center px-4 py-3">${weekBadge(s.w2)}</td>
+          ${currentWeek >= 4 ? `<td class="text-center px-4 py-3">${weekBadge(s.w3prev)}</td>` : ''}
           ${s.w3.map(dayDot).join('')}
-          <td class="text-center px-4 py-3">${weekBadge(null)}</td>
+          <td class="text-center px-4 py-3">${weekBadge(currentWeek >= 4 ? s.w4 : null)}</td>
           <td class="text-center px-4 py-3 text-sm ${refundClass}">${refund > 0 ? refund.toLocaleString()+'원' : '0원'}</td>
         `;
         tbody.appendChild(tr);
@@ -290,20 +323,69 @@
     }
 
     function updateBannerLabel() {
-      const dayNames = ['월요일','화요일','수요일','목요일','금요일','토요일','일요일'];
-      const [,m,d] = today.split('-');
-      document.getElementById('statusBanner').innerHTML =
-        `${currentWeek}주차 진행 중 &nbsp;·&nbsp; 오늘 <strong>${dayNames[weekInfo.dayOfWeek]} ${parseInt(m)}/${parseInt(d)}</strong>`;
-      document.getElementById('todayLabel').textContent = `${dayNames[weekInfo.dayOfWeek]} ${parseInt(m)}/${parseInt(d)} 기준`;
-
-      const [,ym, yd] = CHALLENGE_START.split('-');
+      const [, ym] = CHALLENGE_START.split('-');
       document.getElementById('dashMonthLabel').textContent =
         `${parseInt(ym)}월 챌린지 · 관리자 대시보드`;
+
+      const isPast = CHALLENGE_MONTH < CHALLENGE_MONTH_MAX;
+      if (isPast) {
+        const [y, mo] = CHALLENGE_MONTH.split('-').map(Number);
+        document.getElementById('statusBanner').innerHTML =
+          `📅 ${y}년 ${mo}월 챌린지 기록 &nbsp;·&nbsp; 4주 완료`;
+        document.getElementById('todayLabel').textContent = `${mo}월 기록`;
+      } else {
+        const dayNames = ['월요일','화요일','수요일','목요일','금요일','토요일','일요일'];
+        const [,m,d] = today.split('-');
+        document.getElementById('statusBanner').innerHTML =
+          `${currentWeek}주차 진행 중 &nbsp;·&nbsp; 오늘 <strong>${dayNames[weekInfo.dayOfWeek]} ${parseInt(m)}/${parseInt(d)}</strong>`;
+        document.getElementById('todayLabel').textContent = `${dayNames[weekInfo.dayOfWeek]} ${parseInt(m)}/${parseInt(d)} 기준`;
+      }
+    }
+
+    function updateMonthSwitcher() {
+      const [y, m] = CHALLENGE_MONTH.split('-').map(Number);
+      document.getElementById('monthSwitchLabel').textContent = `${y}년 ${m}월`;
+      const atMax = CHALLENGE_MONTH >= CHALLENGE_MONTH_MAX;
+      const nextBtn = document.getElementById('nextMonthBtn');
+      nextBtn.disabled = atMax;
+      nextBtn.classList.toggle('opacity-30', atMax);
+      nextBtn.classList.toggle('cursor-not-allowed', atMax);
+    }
+
+    async function switchMonth(delta) {
+      const [y, m] = CHALLENGE_MONTH.split('-').map(Number);
+      const d = new Date(y, m - 1 + delta, 1);
+      const newMonth = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+
+      if (newMonth > CHALLENGE_MONTH_MAX) return;
+
+      const doc = await db.collection('challenges').doc(newMonth).get();
+      if (!doc.exists) {
+        alert(`${newMonth} 챌린지 데이터가 없어요.`);
+        return;
+      }
+
+      CHALLENGE_MONTH = newMonth;
+      CHALLENGE_START = doc.data().startDate;
+      recomputeTimeVars();
+      updateMonthSwitcher();
+      renderDateSubHeader();
+      updateBannerLabel();
+
+      const isPast = CHALLENGE_MONTH < CHALLENGE_MONTH_MAX;
+      document.getElementById('unverifiedList').closest('.bg-white').style.display = isPast ? 'none' : '';
+
+      const [names, allSubs] = await Promise.all([loadStudentList(), loadAllSubmissions()]);
+      allStudents = buildStudentStatus(names, allSubs);
+      updateStats(allStudents);
+      if (!isPast) renderUnverified(allStudents);
+      renderTable(allStudents);
     }
 
     async function init() {
       renderDateSubHeader();
       updateBannerLabel();
+      updateMonthSwitcher();
 
       const [names, allSubs] = await Promise.all([loadStudentList(), loadAllSubmissions()]);
       allStudents = buildStudentStatus(names, allSubs);

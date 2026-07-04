@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#3b82f6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="쉐도잉 챌린지">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <title>과제 관리 - 쉐도잉 챌린지</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <style>
+    body { font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <header class="bg-white border-b px-4 py-3 sticky top-0 z-20 shadow-sm">
+    <div class="max-w-2xl mx-auto flex items-center justify-between">
+      <a href="index.html" class="text-sm text-gray-400 hover:text-gray-600">← 대시보드</a>
+      <div class="text-center">
+        <h1 class="text-base font-bold text-gray-900">과제 관리</h1>
+        <p class="text-xs text-gray-400" id="taskMonthLabel">노션 링크 설정</p>
+      </div>
+      <div class="w-16"></div>
+    </div>
+  </header>
+
+  <main class="max-w-2xl mx-auto px-3 py-5 space-y-5">
+
+    <!-- 안내 배너 -->
+    <div class="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 flex gap-3 items-start">
+      <span class="text-lg flex-shrink-0">💡</span>
+      <div>
+        <p class="text-sm font-semibold text-blue-800">노션 링크를 입력해주세요</p>
+        <p class="text-xs text-blue-600 mt-0.5">각 과제 카드의 <strong>링크 입력</strong> 버튼을 눌러 해당 날의 노션 페이지 주소를 붙여넣으세요.<br>입력된 링크는 학생 앱에 바로 반영됩니다.</p>
+      </div>
+    </div>
+
+    <!-- 월 이동 네비게이션 -->
+    <div class="bg-white rounded-2xl shadow-sm p-3 flex items-center justify-between gap-2">
+      <button onclick="changeMonth(-1)"
+        class="text-sm text-gray-600 px-3 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors font-medium flex-shrink-0">
+        ‹ 지난달
+      </button>
+      <div class="text-center min-w-0">
+        <p id="viewMonthLabel" class="text-base font-bold text-gray-900 truncate">—</p>
+        <p id="viewMonthBadge" class="text-xs text-blue-500 mt-0.5"></p>
+      </div>
+      <button onclick="changeMonth(1)"
+        class="text-sm text-gray-600 px-3 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors font-medium flex-shrink-0">
+        다음달 ›
+      </button>
+    </div>
+
+    <!-- 진행 상태 요약 -->
+    <div class="bg-white rounded-2xl shadow-sm p-4">
+      <p class="text-xs text-gray-400 mb-2">링크 입력 현황</p>
+      <div class="flex items-center gap-3">
+        <div class="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+          <div id="progressBar" class="h-full bg-blue-500 rounded-full transition-all"></div>
+        </div>
+        <span id="progressText" class="text-sm font-bold text-gray-700">0 / 20</span>
+      </div>
+    </div>
+
+    <!-- 주차별 과제 목록 -->
+    <div id="weekContainer" class="space-y-4">
+      <div class="text-center py-10 text-gray-400 text-sm">
+        <div class="text-3xl mb-2">⏳</div>
+        과제 데이터를 불러오는 중...
+      </div>
+    </div>
+
+  </main>
+
+  <!-- 링크 편집 모달 -->
+  <div id="editModal" class="hidden fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-5 space-y-4">
+      <div>
+        <h3 class="font-bold text-gray-800" id="modalTitle">과제 편집</h3>
+        <p class="text-xs text-gray-400 mt-0.5" id="modalSubtitle"></p>
+      </div>
+      <div>
+        <label class="text-sm font-medium text-gray-700 block mb-1.5">과제 제목</label>
+        <input type="text" id="lessonTitleInput"
+          class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+        />
+      </div>
+      <div>
+        <label class="text-sm font-medium text-gray-700 block mb-1.5">노션 페이지 링크</label>
+        <input type="url" id="notionUrlInput"
+          placeholder="https://notion.so/..."
+          class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+        />
+        <p class="text-xs text-gray-400 mt-1">노션 페이지에서 "공유 → 링크 복사" 후 붙여넣기</p>
+      </div>
+      <div class="flex gap-2 pt-1">
+        <button onclick="closeModal()"
+          class="flex-1 text-sm text-gray-600 py-2.5 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors">
+          취소
+        </button>
+        <button onclick="saveLessonModal()"
+          class="flex-1 text-sm bg-blue-600 text-white py-2.5 rounded-xl hover:bg-blue-700 transition-colors font-semibold">
+          저장
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 저장 토스트 -->
+  <div id="toast" class="hidden fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-gray-800 text-white text-sm font-medium px-5 py-3 rounded-full shadow-lg">
+    저장됐어요!
+  </div>
+
+  <script>
+    const weekInfo = getWeekInfo();
+    const TODAY_WEEK = weekInfo.week;
+    const TODAY_DAY  = weekInfo.lessonDay;
+
+    // 아래 defaultCurriculum(제목/링크)이 적용되는 챌린지 월.
+    // 이 월에서만 자동 시드/동기화가 실행되어 다른 달 데이터를 덮어쓰지 않음.
+    // ※ 매달 firebase-config.js의 CHALLENGE_MONTH와 함께 이 값도 갱신하세요.
+    const DEFAULT_CURRICULUM_MONTH = '2026-07';
+
+    let viewMonth = CHALLENGE_MONTH;                  // 현재 화면에 표시 중인 월 ('YYYY-MM')
+    let isCurrentView = (viewMonth === CHALLENGE_MONTH); // 진행 중인 챌린지 월인지 (오늘/진행중 강조용)
+
+    const WEEK_THEMES = {
+      1: { label:'1주차', theme:'유튜브- 나에게 소중한 것',          color:'purple' },
+      2: { label:'2주차', theme:'유튜브- 나에게 소중한 것 복습',     color:'green'  },
+      3: { label:'3주차', theme:'애니메이션 인사이드아웃(2)',        color:'blue'   },
+      4: { label:'4주차', theme:'애니메이션 인사이드아웃(2) 복습',   color:'orange' },
+    };
+
+    const defaultCurriculum = [
+      { week:1, day:1, title:'W1/ D1 미션 유튜브- 나에게 소중한 것',              notionUrl:'https://app.notion.com/p/W1-D1-36e6a9fdb6dd80c799a7fa946fe26492?source=copy_link' },
+      { week:1, day:2, title:'W1/ D2 미션 유튜브- 나에게 소중한 것',              notionUrl:'https://app.notion.com/p/W1-D2-36e6a9fdb6dd806992e9c42228071d2b?source=copy_link' },
+      { week:1, day:3, title:'W1/ D3 미션 유튜브- 나에게 소중한 것',              notionUrl:'https://app.notion.com/p/W1-D3-36e6a9fdb6dd80e78815d17fdac1bbab?source=copy_link' },
+      { week:1, day:4, title:'W1/ D4 미션 유튜브- 나에게 소중한 것',              notionUrl:'https://app.notion.com/p/W1-D4-36e6a9fdb6dd80639dc5d277a57c4871?source=copy_link' },
+      { week:1, day:5, title:'W1/ D5 미션 유튜브- 나에게 소중한 것',              notionUrl:'https://app.notion.com/p/W1-D5-36e6a9fdb6dd801896dae700a8850e5c?source=copy_link' },
+      { week:2, day:1, title:'W2/ D1 미션 유튜브- 나에게 소중한 것 (복습)',       notionUrl:'https://app.notion.com/p/W2-D1-36e6a9fdb6dd80d4811cc0c6498136c6?source=copy_link' },
+      { week:2, day:2, title:'W2/ D2 미션 유튜브- 나에게 소중한 것 (복습)',       notionUrl:'https://app.notion.com/p/W2-D2-36e6a9fdb6dd8018bceeccae7a5d150a?source=copy_link' },
+      { week:2, day:3, title:'W2/ D3 미션 유튜브- 나에게 소중한 것 (복습)',       notionUrl:'https://app.notion.com/p/W2-D3-36e6a9fdb6dd80ec8d3fdfeaffb4997e?source=copy_link' },
+      { week:2, day:4, title:'W2/ D4 미션 유튜브- 나에게 소중한 것 (전체복습)',   notionUrl:'https://app.notion.com/p/W2-D4-36e6a9fdb6dd809999f3d9af4da134d8?source=copy_link' },
+      { week:2, day:5, title:'W2/ D5 미션 유튜브- 나에게 소중한 것 (전체복습)',   notionUrl:'https://app.notion.com/p/W2-D5-36e6a9fdb6dd809f84e5e12142952a70?source=copy_link' },
+      { week:3, day:1, title:'W3/ D1 미션 -애니메이션 인사이드아웃(2)',           notionUrl:'https://app.notion.com/p/W3-D1-2-36e6a9fdb6dd80cab585f9907a448598?source=copy_link' },
+      { week:3, day:2, title:'W3/ D2 미션 -애니메이션 인사이드아웃(2)',           notionUrl:'https://app.notion.com/p/W3-D2-2-36e6a9fdb6dd8033b4a9d5fa2c6b180d?source=copy_link' },
+      { week:3, day:3, title:'W3/ D3 미션 -애니메이션 인사이드아웃(2)',           notionUrl:'https://app.notion.com/p/W3-D3-2-36e6a9fdb6dd8071a0cbe19e4b27206c?source=copy_link' },
+      { week:3, day:4, title:'W3/ D4 미션 -애니메이션 인사이드아웃(2) (복습)',    notionUrl:'https://app.notion.com/p/W3-D4-2-36e6a9fdb6dd8058ae89d00fe093ce64?source=copy_link' },
+      { week:3, day:5, title:'W3/ D5 미션 -애니메이션 인사이드아웃(2) (복습)',    notionUrl:'https://app.notion.com/p/W3-D5-2-36e6a9fdb6dd80ada39ce9f235745c4f?source=copy_link' },
+      { week:4, day:1, title:'W4/ D1 미션 -애니메이션 인사이드아웃(2) (복습)',    notionUrl:'https://app.notion.com/p/W4-D1-2-3836a9fdb6dd80b896c6fd50525a08a0?source=copy_link' },
+      { week:4, day:2, title:'W4/ D2 미션 -애니메이션 인사이드아웃(2) (복습)',    notionUrl:'https://app.notion.com/p/W4-D2-2-3836a9fdb6dd80309130fa9939566211?source=copy_link' },
+      { week:4, day:3, title:'W4/ D3 미션 -애니메이션 인사이드아웃(2) (전체복습)',notionUrl:'https://app.notion.com/p/W4-D3-2-3836a9fdb6dd80529228f4c74864b1f1?source=copy_link' },
+      { week:4, day:4, title:'W4/ D4 미션 -애니메이션 인사이드아웃(2) (전체복습)',notionUrl:'https://app.notion.com/p/W4-D4-2-3836a9fdb6dd80898315ccadbf231b6e?source=copy_link' },
+      { week:4, day:5, title:'W4/ D5 미션 -애니메이션 인사이드아웃(2) (전체복습)',notionUrl:'https://app.notion.com/p/W4-D5-2-3836a9fdb6dd80a995e7cd97497bed88?source=copy_link' },
+    ];
+
+    const colorMap = {
+      purple: { header:'bg-purple-50 border-purple-100', badge:'bg-purple-100 text-purple-700', dot:'bg-purple-400', ring:'' },
+      green:  { header:'bg-green-50 border-green-100',   badge:'bg-green-100 text-green-700',   dot:'bg-green-400',  ring:'' },
+      blue:   { header:'bg-blue-50 border-blue-100',     badge:'bg-blue-100 text-blue-700',     dot:'bg-blue-400',   ring:'ring-2 ring-blue-300' },
+      orange: { header:'bg-orange-50 border-orange-100', badge:'bg-orange-100 text-orange-700', dot:'bg-orange-400', ring:'' },
+    };
+
+    let curriculum = [];
+    let editingKey = null; // 'w1d1' 형식
+
+    const LOADING_HTML = `
+      <div class="text-center py-10 text-gray-400 text-sm">
+        <div class="text-3xl mb-2">⏳</div>
+        과제 데이터를 불러오는 중...
+      </div>`;
+
+    // 'YYYY-MM'에서 delta개월 이동
+    function shiftMonth(ym, delta) {
+      let [y, m] = ym.split('-').map(Number);
+      m += delta;
+      while (m < 1)  { m += 12; y--; }
+      while (m > 12) { m -= 12; y++; }
+      return `${y}-${String(m).padStart(2,'0')}`;
+    }
+
+    // 특정 월의 커리큘럼 불러오기
+    async function loadCurriculumFor(month) {
+      try {
+        const snap = await db.collection('curriculum')
+          .where('challengeMonth', '==', month).get();
+        return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+          .sort((a,b) => a.week !== b.week ? a.week - b.week : a.day - b.day);
+      } catch(e) { console.error('loadCurriculumFor:', e); return []; }
+    }
+
+    // 특정 월의 과제 한 개 저장
+    async function saveLessonFor(month, week, day, title, notionUrl) {
+      await db.collection('curriculum').doc(`${month}_w${week}d${day}`).set({
+        challengeMonth: month, week, day, title,
+        notionUrl: notionUrl || '',
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
+    function getCurriculumItem(week, day) {
+      return curriculum.find(l => l.week === week && l.day === day);
+    }
+
+    function updateProgress() {
+      const filled = curriculum.filter(l => l.notionUrl && l.notionUrl.trim()).length;
+      document.getElementById('progressText').textContent = `${filled} / 20`;
+      document.getElementById('progressBar').style.width = `${(filled/20)*100}%`;
+    }
+
+    function renderAll() {
+      isCurrentView = (viewMonth === CHALLENGE_MONTH);
+      const container = document.getElementById('weekContainer');
+      container.innerHTML = '';
+      for (let w = 1; w <= 4; w++) {
+        const info = WEEK_THEMES[w];
+        const colors = colorMap[info.color];
+        const isCurrentWeek = isCurrentView && (w === TODAY_WEEK);
+        // 1~5일 슬롯을 항상 표시 (데이터 없는 달도 입력 가능)
+        const lessons = [1,2,3,4,5].map(day =>
+          getCurriculumItem(w, day) || { week:w, day, title:`W${w}/ D${day} 미션`, notionUrl:'' });
+        const filled = lessons.filter(l => l.notionUrl && l.notionUrl.trim()).length;
+
+        const weekEl = document.createElement('div');
+        weekEl.className = `bg-white rounded-2xl shadow-sm overflow-hidden ${isCurrentWeek ? colors.ring : ''}`;
+        weekEl.innerHTML = `
+          <div class="px-5 py-3 border-b ${colors.header} flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full ${colors.dot} ${isCurrentWeek?'animate-pulse':''}"></span>
+              <span class="font-bold text-gray-800 text-sm">${info.label}</span>
+              ${isCurrentView ? `<span class="text-xs ${colors.badge} px-2 py-0.5 rounded-full">${info.theme}</span>` : ''}
+              ${isCurrentWeek ? '<span class="text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full font-bold">진행중</span>' : ''}
+            </div>
+            <span class="text-xs text-gray-400 font-medium">${filled}/5 입력됨</span>
+          </div>
+          <div class="divide-y divide-gray-50">${lessons.map(l => renderRow(l)).join('')}</div>
+        `;
+        container.appendChild(weekEl);
+      }
+      updateProgress();
+    }
+
+    function renderRow(lesson) {
+      const isToday = isCurrentView && lesson.week === TODAY_WEEK && lesson.day === TODAY_DAY;
+      const isPast  = isCurrentView && (lesson.week < TODAY_WEEK || (lesson.week === TODAY_WEEK && lesson.day < TODAY_DAY));
+      const hasUrl  = lesson.notionUrl && lesson.notionUrl.trim().length > 0;
+      const key     = `w${lesson.week}d${lesson.day}`;
+      return `
+        <div class="flex items-center gap-3 px-4 py-3 ${isToday?'bg-blue-50':isPast?'bg-gray-50/50':''} transition-colors">
+          <div class="flex-shrink-0 w-10 text-center">
+            <span class="text-xs font-bold ${isToday?'text-blue-600':isPast?'text-gray-400':'text-gray-600'}">D${lesson.day}</span>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium ${isPast&&!isToday?'text-gray-400':'text-gray-800'} truncate">${lesson.title}</p>
+            ${hasUrl
+              ? `<p class="text-xs text-blue-500 truncate mt-0.5">${lesson.notionUrl}</p>`
+              : `<p class="text-xs text-gray-400 mt-0.5">노션 링크 미입력</p>`
+            }
+          </div>
+          ${isToday ? '<span class="text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full font-bold flex-shrink-0">오늘</span>' : ''}
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <span class="w-2 h-2 rounded-full ${hasUrl?'bg-green-400':'bg-gray-200'}"></span>
+            <button onclick="openModal('${key}')"
+              class="text-xs px-3 py-1.5 rounded-lg border transition-colors ${hasUrl?'border-gray-200 text-gray-600 hover:bg-gray-50':'border-blue-300 text-blue-600 hover:bg-blue-50 font-semibold'}">
+              ${hasUrl ? '수정' : '링크 입력'}
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function openModal(key) {
+      editingKey = key;
+      const week = parseInt(key[1]);
+      const day  = parseInt(key[3]);
+      const lesson = getCurriculumItem(week, day) || { week, day, title:`W${week}/D${day}`, notionUrl:'' };
+      document.getElementById('modalTitle').textContent = `W${week}/D${day} 과제 편집`;
+      document.getElementById('modalSubtitle').textContent = lesson.title;
+      document.getElementById('lessonTitleInput').value = lesson.title;
+      document.getElementById('notionUrlInput').value   = lesson.notionUrl || '';
+      document.getElementById('editModal').classList.remove('hidden');
+      setTimeout(() => document.getElementById('notionUrlInput').focus(), 100);
+    }
+
+    function closeModal() {
+      document.getElementById('editModal').classList.add('hidden');
+      editingKey = null;
+    }
+
+    async function saveLessonModal() {
+      if (!editingKey) return;
+      const week  = parseInt(editingKey[1]);
+      const day   = parseInt(editingKey[3]);
+      const title = document.getElementById('lessonTitleInput').value.trim();
+      const url   = document.getElementById('notionUrlInput').value.trim();
+
+      await saveLessonFor(viewMonth, week, day, title || `W${week}/D${day}`, url);
+
+      // 로컬 배열도 업데이트
+      const idx = curriculum.findIndex(l => l.week === week && l.day === day);
+      if (idx >= 0) { curriculum[idx].title = title || curriculum[idx].title; curriculum[idx].notionUrl = url; }
+      else           { curriculum.push({ week, day, title: title||`W${week}/D${day}`, notionUrl: url }); }
+
+      closeModal();
+      renderAll();
+      showToast('✓ 저장됐어요!');
+    }
+
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.remove('hidden');
+      clearTimeout(window._t);
+      window._t = setTimeout(() => el.classList.add('hidden'), 2500);
+    }
+
+    document.getElementById('editModal').addEventListener('click', function(e) { if(e.target===this) closeModal(); });
+    document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
+
+    // 헤더 / 월 라벨 갱신
+    function updateMonthHeader() {
+      const [y, m] = viewMonth.split('-').map(Number);
+      document.getElementById('viewMonthLabel').textContent = `${y}년 ${m}월`;
+      document.getElementById('taskMonthLabel').textContent = `${m}월 챌린지 · 노션 링크 설정`;
+      const badge = document.getElementById('viewMonthBadge');
+      if (viewMonth === CHALLENGE_MONTH)      badge.textContent = '진행 중인 챌린지';
+      else if (viewMonth < CHALLENGE_MONTH)   badge.textContent = '지난 챌린지';
+      else                                    badge.textContent = '다음 챌린지 · 미리 준비';
+    }
+
+    // 월 이동 (delta: -1 지난달, +1 다음달)
+    async function changeMonth(delta) {
+      viewMonth = shiftMonth(viewMonth, delta);
+      await loadAndRender();
+    }
+
+    async function loadAndRender() {
+      updateMonthHeader();
+      document.getElementById('weekContainer').innerHTML = LOADING_HTML;
+
+      curriculum = await loadCurriculumFor(viewMonth);
+
+      // defaultCurriculum(하드코딩된 제목/링크)은 해당 월에만 자동 시드/동기화
+      if (viewMonth === DEFAULT_CURRICULUM_MONTH) {
+        if (curriculum.length === 0) {
+          // Firestore에 데이터가 없으면 기본 커리큘럼으로 초기화
+          curriculum = defaultCurriculum.map(l => ({ ...l }));
+          await Promise.all(curriculum.map(l =>
+            saveLessonFor(viewMonth, l.week, l.day, l.title, l.notionUrl)));
+        } else {
+          // 제목 또는 노션 링크가 기본값과 다르면 자동 동기화
+          const updates = [];
+          for (const lesson of curriculum) {
+            const def = defaultCurriculum.find(d => d.week === lesson.week && d.day === lesson.day);
+            if (def) {
+              const needsUpdate = lesson.title !== def.title || (def.notionUrl && lesson.notionUrl !== def.notionUrl);
+              if (needsUpdate) {
+                lesson.title = def.title;
+                if (def.notionUrl) lesson.notionUrl = def.notionUrl;
+                updates.push(saveLessonFor(viewMonth, lesson.week, lesson.day, lesson.title, lesson.notionUrl));
+              }
+            }
+          }
+          if (updates.length > 0) await Promise.all(updates);
+        }
+      }
+
+      renderAll();
+    }
+
+    loadAndRender();
+  </script>
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  <script>
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function(OneSignal) {
+      await OneSignal.init({
+        appId: "c7ec5930-ba5f-4eec-9613-d2dc1a499751",
+        serviceWorkerParam: { scope: "/" },
+        serviceWorkerPath: "sw.js",
+        notifyButton: { enable: false },
+      });
+    });
+  </script>
+</body>
+</html>
