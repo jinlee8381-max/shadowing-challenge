@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#3b82f6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="쉐도잉 챌린지">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <title>오늘 피드백 - 쉐도잉 챌린지</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <style>
+    body { font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen pb-10">
+
+  <header class="bg-white border-b px-4 py-3 sticky top-0 z-20 shadow-sm">
+    <div class="max-w-2xl mx-auto flex items-center justify-between">
+      <a href="index.html" class="text-sm text-gray-400 hover:text-gray-600">← 대시보드</a>
+      <div class="text-center">
+        <h1 class="text-base font-bold text-gray-900">오늘 피드백</h1>
+        <p class="text-xs text-gray-400" id="todayHeader">-</p>
+      </div>
+      <div class="text-right">
+        <p class="text-sm font-bold" id="progressLabel">-</p>
+        <p class="text-xs text-gray-400">피드백 완료</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- 날짜 선택 + 진행바 -->
+  <div class="bg-white border-b">
+    <div class="max-w-2xl mx-auto px-4 py-2 flex items-center gap-3">
+      <label class="text-xs text-gray-500 font-medium flex-shrink-0">날짜 선택</label>
+      <input type="date" id="datePicker"
+        class="text-sm border border-gray-200 rounded-lg px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-300"
+        onchange="loadForDate(this.value)" />
+      <div class="flex-1 bg-gray-100 rounded-full h-2">
+        <div id="progressBar" class="bg-green-500 h-2 rounded-full transition-all duration-500" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <main class="max-w-2xl mx-auto px-3 py-5 space-y-4">
+
+    <!-- 로딩 -->
+    <div id="loadingBlock" class="bg-white rounded-2xl shadow-sm p-10 text-center">
+      <div class="text-3xl mb-3">⏳</div>
+      <p class="text-sm text-gray-400">오늘 제출 목록을 불러오는 중...</p>
+    </div>
+
+    <!-- 제출 없음 -->
+    <div id="emptyBlock" class="hidden bg-white rounded-2xl shadow-sm p-10 text-center">
+      <div class="text-4xl mb-3">📭</div>
+      <p class="text-sm font-semibold text-gray-500">오늘 아직 제출한 학생이 없어요</p>
+    </div>
+
+    <!-- 제출 목록 -->
+    <div id="feedbackList" class="space-y-4"></div>
+
+  </main>
+
+  <!-- 토스트 -->
+  <div id="toast" class="hidden fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-gray-800 text-white text-sm font-medium px-5 py-3 rounded-full shadow-lg"></div>
+
+  <script>
+    const today = todayStr();
+    const [,tm, td] = today.split('-');
+    const dayNames = ['일','월','화','수','목','금','토'];
+    const dayName = dayNames[new Date().getDay()];
+    document.getElementById('todayHeader').textContent = `${dayName}요일 ${parseInt(tm)}/${parseInt(td)}`;
+    document.getElementById('datePicker').value = today;
+
+    let submissions = [];
+    let selectedDate = today;
+    let doneCount = 0;
+
+    function updateProgress() {
+      doneCount = submissions.filter(s => s.teacherFeedback && s.teacherFeedback.trim()).length;
+      const total = submissions.length;
+      document.getElementById('progressLabel').textContent = `${doneCount} / ${total}`;
+      document.getElementById('progressBar').style.width = total > 0 ? `${Math.round(doneCount/total*100)}%` : '0%';
+    }
+
+    function renderFiles(fileUrls) {
+      if (!fileUrls || fileUrls.length === 0) return '<p class="text-xs text-gray-400">첨부 파일 없음</p>';
+      return fileUrls.map((url, i) => {
+        const isAudio = url.includes('.m4a') || url.includes('.mp3') || url.includes('.wav')
+                     || url.includes('.aac') || url.includes('.ogg') || url.includes('audio');
+        if (isAudio) {
+          return `<div class="space-y-1">
+            <p class="text-xs text-gray-500 font-medium">🎙️ 녹음 파일 ${i+1}</p>
+            <audio src="${url}" controls class="w-full h-10" style="height:36px"></audio>
+          </div>`;
+        } else {
+          return `<div class="space-y-1">
+            <p class="text-xs text-gray-500 font-medium">📷 사진 ${i+1}</p>
+            <a href="${url}" target="_blank">
+              <img src="${url}" class="rounded-lg max-h-40 object-cover border border-gray-200 hover:opacity-90 transition-opacity" />
+            </a>
+          </div>`;
+        }
+      }).join('');
+    }
+
+    function renderList() {
+      const list = document.getElementById('feedbackList');
+      list.innerHTML = '';
+
+      const sorted = [...submissions].sort((a, b) => {
+        const aFb = a.teacherFeedback && a.teacherFeedback.trim();
+        const bFb = b.teacherFeedback && b.teacherFeedback.trim();
+        return aFb === bFb ? 0 : aFb ? 1 : -1;
+      });
+
+      sorted.forEach(sub => {
+        const hasFb = sub.teacherFeedback && sub.teacherFeedback.trim();
+        const card = document.createElement('div');
+        card.id = `card-${sub.id}`;
+        card.className = `bg-white rounded-2xl shadow-sm overflow-hidden border-2 transition-colors ${hasFb ? 'border-green-200' : 'border-transparent'}`;
+        card.innerHTML = `
+          <div class="px-4 pt-4 pb-3 border-b border-gray-50">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-gray-900 text-base">${sub.studentName}</span>
+                <span class="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-mono font-semibold">W${sub.week} D${sub.day}</span>
+              </div>
+              <span id="status-${sub.id}" class="text-xs px-2 py-1 rounded-full font-semibold ${hasFb ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'}">
+                ${hasFb ? '✓ 완료' : '미작성'}
+              </span>
+            </div>
+            ${sub.feeling ? `<p class="text-sm text-gray-600 mt-2 leading-relaxed bg-gray-50 rounded-lg px-3 py-2">"${sub.feeling}"</p>` : ''}
+          </div>
+
+          <div class="px-4 py-3 space-y-3">
+            ${renderFiles(sub.fileUrls)}
+          </div>
+
+          <div class="px-4 pb-4 space-y-2">
+            <label class="text-xs font-semibold text-gray-600">선생님 피드백</label>
+            <textarea
+              id="fb-${sub.id}"
+              rows="3"
+              placeholder="학생에게 전달할 피드백을 입력하세요..."
+              class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none leading-relaxed"
+            >${hasFb ? sub.teacherFeedback : ''}</textarea>
+            <button onclick="saveFb('${sub.id}')"
+              class="w-full bg-blue-600 text-white text-sm font-semibold py-2.5 rounded-xl hover:bg-blue-700 transition-colors">
+              저장
+            </button>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    async function saveFb(subId) {
+      const val = document.getElementById(`fb-${subId}`).value.trim();
+      if (!val) { showToast('피드백 내용을 입력해주세요'); return; }
+
+      await saveFeedback(subId, val);
+
+      const sub = submissions.find(s => s.id === subId);
+      if (sub) sub.teacherFeedback = val;
+
+      const card = document.getElementById(`card-${subId}`);
+      if (card) {
+        card.className = card.className.replace('border-transparent', 'border-green-200');
+        const status = document.getElementById(`status-${subId}`);
+        if (status) { status.textContent = '✓ 완료'; status.className = 'text-xs px-2 py-1 rounded-full font-semibold bg-green-100 text-green-600'; }
+      }
+
+      updateProgress();
+      showToast(`✓ ${sub?.studentName}님 피드백 저장 완료`);
+    }
+
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.remove('hidden');
+      clearTimeout(window._t);
+      window._t = setTimeout(() => el.classList.add('hidden'), 2500);
+    }
+
+    async function loadForDate(dateStr) {
+      selectedDate = dateStr;
+      const [,m, d] = dateStr.split('-');
+      const dow = new Date(dateStr + 'T12:00:00').getDay();
+      document.getElementById('todayHeader').textContent = `${dayNames[dow]}요일 ${parseInt(m)}/${parseInt(d)}`;
+
+      document.getElementById('loadingBlock').classList.remove('hidden');
+      document.getElementById('emptyBlock').classList.add('hidden');
+      document.getElementById('feedbackList').innerHTML = '';
+
+      const allSubs = await loadAllSubmissions();
+      submissions = allSubs.filter(s => tsToDateKey(s.submittedAt) === dateStr);
+
+      document.getElementById('loadingBlock').classList.add('hidden');
+
+      if (submissions.length === 0) {
+        document.getElementById('emptyBlock').classList.remove('hidden');
+        document.getElementById('progressLabel').textContent = '0 / 0';
+        return;
+      }
+
+      updateProgress();
+      renderList();
+    }
+
+    async function init() {
+      await loadForDate(today);
+    }
+
+    init();
+  </script>
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  <script>
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function(OneSignal) {
+      await OneSignal.init({
+        appId: "c7ec5930-ba5f-4eec-9613-d2dc1a499751",
+        serviceWorkerParam: { scope: "/" },
+        serviceWorkerPath: "sw.js",
+        notifyButton: { enable: false },
+      });
+    });
+  </script>
+</body>
+</html>

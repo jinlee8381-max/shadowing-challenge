@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>쉐도잉 챌린지 신청 | LJ CLASS</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="./firebase-config.js"></script>
+  <style>
+    :root {
+      --bg: #FAF8F5;
+      --card: #FFFFFF;
+      --text: #3A2A24;
+      --text-mid: #7A6054;
+      --text-mute: #B09A90;
+      --wine: #9A6070;
+      --wine-dark: #7A4A5A;
+      --wine-light: #C49AAA;
+      --wine-pale: #F2E4E9;
+      --border: #E8D4DA;
+      --shadow: 0 4px 24px rgba(154,96,112,.09);
+      --shadow-lg: 0 10px 48px rgba(154,96,112,.14);
+      --r: 20px;
+      --r-sm: 13px;
+    }
+
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .wrap { max-width: 480px; margin: 0 auto; padding: 0 20px; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Hero ── */
+    #hero {
+      padding: 60px 0 64px;
+      background:
+        radial-gradient(ellipse 70% 40% at 80% 10%, rgba(194,154,170,.22) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 35% at 10% 80%, rgba(194,154,170,.14) 0%, transparent 55%),
+        var(--bg);
+      text-align: center;
+    }
+
+    .brand-pill {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--wine);
+      background: var(--wine-pale);
+      padding: 5px 15px;
+      border-radius: 100px;
+      margin-bottom: 24px;
+    }
+
+    .hero-title {
+      font-size: clamp(1.65rem, 7.5vw, 2.3rem);
+      font-weight: 900;
+      line-height: 1.25;
+      letter-spacing: -.04em;
+      margin-bottom: 16px;
+      word-break: keep-all;
+    }
+
+    .hero-title em { font-style: normal; color: var(--wine); }
+
+    .hero-sub {
+      font-size: .95rem;
+      color: var(--text-mid);
+      line-height: 1.85;
+      margin-bottom: 28px;
+      word-break: keep-all;
+    }
+
+    .next-date-card {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 10px 18px;
+      font-size: .88rem;
+      font-weight: 600;
+      color: var(--text-mid);
+      margin-bottom: 28px;
+      box-shadow: var(--shadow);
+    }
+
+    .next-date-card .hl { color: var(--wine); font-weight: 700; }
+
+    /* ── Buttons ── */
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 16px 20px;
+      border: none;
+      border-radius: var(--r-sm);
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      font-family: inherit;
+      letter-spacing: -.01em;
+      transition: all .26s;
+      text-decoration: none;
+    }
+
+    .btn-wine {
+      background: var(--wine);
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(154,96,112,.32);
+    }
+
+    .btn-wine:hover { background: var(--wine-dark); transform: translateY(-2px); box-shadow: 0 8px 28px rgba(154,96,112,.38); }
+
+    .btn-outline {
+      background: transparent;
+      color: var(--wine);
+      border: 1.5px solid var(--wine-light);
+      box-shadow: none;
+    }
+    .btn-outline:hover { background: var(--wine-pale); transform: translateY(-1px); }
+
+    /* ── Sections ── */
+    .section { padding: 56px 0; }
+    .section + .section { border-top: 1px solid var(--border); }
+
+    .sec-badge {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--wine-light);
+      margin-bottom: 8px;
+    }
+
+    .sec-title {
+      font-size: clamp(1.3rem, 5.5vw, 1.75rem);
+      font-weight: 800;
+      line-height: 1.3;
+      letter-spacing: -.03em;
+      margin-bottom: 8px;
+      word-break: keep-all;
+    }
+
+    .sec-desc {
+      font-size: .9rem;
+      color: var(--text-mid);
+      line-height: 1.8;
+      margin-bottom: 32px;
+      word-break: keep-all;
+    }
+
+    /* ── Pain Points (말풍선) ── */
+    .bubble-list { display: flex; flex-direction: column; gap: 14px; }
+
+    .bubble {
+      position: relative;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 18px;
+      padding: 16px 20px;
+      font-size: .97rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.55;
+      word-break: keep-all;
+      box-shadow: var(--shadow);
+      max-width: 90%;
+    }
+
+    .bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      width: 16px;
+      height: 10px;
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      clip-path: polygon(0 0, 100% 0, 50% 100%);
+    }
+
+    .bubble.left { align-self: flex-start; border-bottom-left-radius: 4px; }
+    .bubble.left::after { left: 20px; clip-path: polygon(0 0, 100% 0, 0 100%); border-top: none; border-right: none; }
+
+    .bubble.right { align-self: flex-end; border-bottom-right-radius: 4px; }
+    .bubble.right::after { right: 20px; clip-path: polygon(0 0, 100% 0, 100% 100%); border-top: none; border-left: none; }
+
+    .bubble-char {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+      margin-top: 24px;
+      padding-top: 8px;
+    }
+
+    .bubble-char-label {
+      font-size: .82rem;
+      font-weight: 700;
+      color: var(--text-mute);
+      text-align: center;
+    }
+
+    /* ── Fire CTA Block ── */
+    .fire-block {
+      background: linear-gradient(135deg, #C0392B 0%, #E74C3C 40%, #E67E22 100%);
+      border-radius: var(--r);
+      padding: 28px 22px;
+      text-align: center;
+      color: #fff;
+      margin-top: 32px;
+    }
+
+    .fire-tags {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .fire-tag {
+      background: rgba(255,255,255,.18);
+      border: 1px solid rgba(255,255,255,.3);
+      border-radius: 100px;
+      padding: 5px 14px;
+      font-size: .8rem;
+      font-weight: 700;
+    }
+
+    .fire-cta-title {
+      font-size: clamp(1.2rem, 5vw, 1.55rem);
+      font-weight: 900;
+      line-height: 1.3;
+      letter-spacing: -.03em;
+      margin-bottom: 8px;
+    }
+
+    .fire-cta-sub {
+      font-size: .88rem;
+      opacity: .88;
+      line-height: 1.6;
+    }
+
+    /* ── How It Works ── */
+    .flow-list { display: flex; flex-direction: column; gap: 0; }
+
+    .flow-item {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r);
+      padding: 20px 20px;
+      text-align: center;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+
+    .flow-step {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--wine-light);
+      margin-bottom: 6px;
+    }
+
+    .flow-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 8px;
+      letter-spacing: -.02em;
+    }
+
+    .flow-desc {
+      font-size: .87rem;
+      color: var(--text-mid);
+      line-height: 1.75;
+      word-break: keep-all;
+    }
+
+    .flow-arrow {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 8px 0;
+    }
+
+    .flow-arrow svg { width: 28px; height: 28px; }
+
+    /* ── Benefits ── */
+    .benefit-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .benefit-item {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 16px 18px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .benefit-num {
+      font-size: .74rem;
+      font-weight: 800;
+      color: var(--wine);
+      background: var(--wine-pale);
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .benefit-text { font-size: .91rem; line-height: 1.65; color: var(--text-mid); word-break: keep-all; }
+    .benefit-text strong { display: block; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+
+    /* ── Full-width images ── */
+    .full-img {
+      width: 100%;
+      border-radius: var(--r);
+      box-shadow: var(--shadow-lg);
+      display: block;
+    }
+
+    .full-img + .full-img { margin-top: 14px; }
+
+    /* ── Pricing ── */
+    .pricing-grid { display: flex; flex-direction: column; gap: 14px; }
+
+    .price-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r);
+      padding: 22px 20px;
+      box-shadow: var(--shadow);
+      position: relative;
+    }
+
+    .price-card.featured {
+      border-color: var(--wine);
+      box-shadow: 0 6px 32px rgba(154,96,112,.18);
+    }
+
+    .price-badge {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--wine);
+      color: #fff;
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      padding: 4px 16px;
+      border-radius: 100px;
+      white-space: nowrap;
+    }
+
+    .price-opt-label {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      color: var(--wine-light);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .price-name { font-size: 1rem; font-weight: 700; color: var(--text); margin-bottom: 4px; word-break: keep-all; }
+
+    .price-amount {
+      font-size: 1.75rem;
+      font-weight: 900;
+      color: var(--wine-dark);
+      letter-spacing: -.04em;
+      margin: 10px 0;
+    }
+
+    .price-amount span { font-size: .9rem; font-weight: 600; color: var(--text-mute); }
+
+    .price-desc { font-size: .86rem; color: var(--text-mid); line-height: 1.8; word-break: keep-all; }
+    .price-desc strong { color: var(--text); }
+
+    /* ── Payment ── */
+    .payment-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 22px 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .payment-label {
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      color: var(--wine-light);
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .account-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .account-num { font-size: 1.08rem; font-weight: 700; color: var(--text); letter-spacing: .02em; }
+    .account-name { font-size: .85rem; color: var(--text-mid); margin-top: 2px; }
+
+    .copy-btn {
+      background: var(--wine-pale);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 14px;
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--wine-dark);
+      cursor: pointer;
+      font-family: inherit;
+      transition: all .2s;
+      flex-shrink: 0;
+    }
+
+    .copy-btn:hover { background: var(--border); }
+    .copy-btn.copied { background: var(--wine); color: #fff; border-color: var(--wine); }
+
+    .payment-note {
+      font-size: .82rem;
+      color: var(--text-mute);
+      line-height: 1.75;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+      word-break: keep-all;
+    }
+
+    /* ── Form ── */
+    #apply { background: var(--card); }
+
+    .form-group { margin-bottom: 24px; }
+
+    .form-label { display: block; font-size: .88rem; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+    .form-label .req { color: var(--wine); margin-left: 2px; }
+
+    .form-hint { font-size: .78rem; color: var(--text-mute); margin-bottom: 8px; line-height: 1.65; word-break: keep-all; }
+
+    .form-input {
+      display: block;
+      width: 100%;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 13px 15px;
+      font-size: .95rem;
+      font-family: inherit;
+      color: var(--text);
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    .form-input:focus {
+      border-color: var(--wine-light);
+      box-shadow: 0 0 0 3px rgba(154,96,112,.1);
+    }
+
+    .radio-opts { display: flex; flex-direction: column; gap: 8px; }
+
+    .radio-opt {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 12px 14px;
+      cursor: pointer;
+      transition: all .22s;
+    }
+
+    .radio-opt:hover { border-color: var(--wine-light); background: var(--wine-pale); }
+    .radio-opt.selected { border-color: var(--wine); background: var(--wine-pale); }
+
+    .radio-opt input[type="radio"] { flex-shrink: 0; margin-top: 3px; accent-color: var(--wine); }
+
+    .radio-opt-text { font-size: .88rem; line-height: 1.6; color: var(--text-mid); word-break: keep-all; }
+    .radio-opt.selected .radio-opt-text { color: var(--wine-dark); font-weight: 600; }
+
+    .checkbox-wrap {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: var(--wine-pale);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 14px;
+      cursor: pointer;
+    }
+
+    .checkbox-wrap input[type="checkbox"] { flex-shrink: 0; margin-top: 3px; accent-color: var(--wine); }
+    .checkbox-text { font-size: .85rem; color: var(--text-mid); line-height: 1.75; word-break: keep-all; }
+
+    .form-divider { height: 1px; background: var(--border); margin: 28px 0; }
+
+    #formError { color: var(--wine-dark); font-size: .84rem; text-align: center; margin-top: 12px; display: none; }
+
+    /* ── Success ── */
+    #successMsg { display: none; text-align: center; padding: 40px 0 20px; }
+    .success-icon { font-size: 3.2rem; margin-bottom: 16px; }
+    .success-title { font-size: 1.3rem; font-weight: 800; color: var(--text); margin-bottom: 10px; }
+    .success-desc { font-size: .9rem; color: var(--text-mid); line-height: 1.85; word-break: keep-all; }
+
+    /* ── Floating CTA ── */
+    .float-cta {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 48px);
+      max-width: 440px;
+      z-index: 100;
+      border-radius: var(--r-sm);
+      box-shadow: 0 8px 32px rgba(154,96,112,.38);
+      transition: opacity .3s ease, transform .3s ease;
+    }
+
+    .float-cta.hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateX(-50%) translateY(14px);
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════ HERO ════════ -->
+<section id="hero">
+  <div class="wrap">
+    <div class="brand-pill">LJ CLASS</div>
+    <h1 class="hero-title">
+      듣기&amp; 말하기 실력 수직 상승!<br>
+      <em>쉐도잉 챌린지</em>
+    </h1>
+    <p class="hero-sub">
+      🔥 매월 첫째 주 시작 · 4주 30일 챌린지<br>
+      의지 없이 바로 되는 학습 습관 만들기
+    </p>
+    <div class="next-date-card">
+      🗓&nbsp; 다음 기수&ensp;<span class="hl" id="nextDate">—</span>&ensp;시작
+    </div>
+    <a href="#apply" class="btn btn-wine" style="margin-bottom:12px;">지금 신청하기 →</a>
+    <a href="https://blog.naver.com/lj_english/224324600661" target="_blank" rel="noopener" class="btn btn-outline">📋 챌린지 내용 미리보기</a>
+  </div>
+</section>
+
+<!-- ════════ 이런 고민 ════════ -->
+<section class="section">
+  <div class="wrap">
+    <p class="sec-badge">Challenge For You</p>
+    <h2 class="sec-title">이런 고민 있으신가요?</h2>
+    <p class="sec-desc" style="margin-bottom:24px;">혼자 공부할 때 이런 말이 머릿속을 맴돌지 않나요?</p>
+
+    <div class="bubble-list">
+      <div class="bubble left">"퇴근하면 머리가 방전이라...<br>공부 의지 제로ㅠ"</div>
+      <div class="bubble right">"공부 계획 세우다 끝나.<br>한 게 없네?"</div>
+      <div class="bubble left">"내가 맞게 하는지 틀리게 하는지<br>모르겠어."</div>
+      <div class="bubble right">"의지 부족인데 누가 멱살 잡고<br>끌어주면 안돼나?<br>시키는 건 잘 함.."</div>
+    </div>
+
+    <div class="bubble-char">
+      <div class="bubble-char-label">혼자 공부</div>
+      <div style="font-size:2.8rem;">🤷</div>
+      <div class="bubble-char-label">왜 이렇게<br>안되지?</div>
+    </div>
+
+    <div class="fire-block">
+      <div class="fire-tags">
+        <span class="fire-tag">시간 부족</span>
+        <span class="fire-tag">의지 부족</span>
+        <span class="fire-tag">공부방법 모름</span>
+      </div>
+      <div class="fire-cta-title">빡센 관리 받으실 분만<br>오세요! 🔥</div>
+      <div class="fire-cta-sub">효율은 제가 책임집니다.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ 진행 방식 ════════ -->
+<section class="section" style="background: linear-gradient(180deg, var(--wine-pale) 0%, var(--bg) 100%);">
+  <div class="wrap">
+    <p class="sec-badge">How It Works</p>
+    <h2 class="sec-title">이렇게 진행돼요</h2>
+    <p class="sec-desc">매일 단 10분, 4단계 시스템으로 습관이 만들어져요</p>
+    <div class="flow-list">
+
+      <div class="flow-item">
+        <div class="flow-step">Step 1</div>
+        <div class="flow-title">매일 학습 진도 받기</div>
+        <div class="flow-desc">하루 10분 분량의 짧은 미션 안내<br>검증된 단계별 커리큘럼 + 실전 자료 제공</div>
+      </div>
+
+      <div class="flow-arrow">
+        <svg viewBox="0 0 28 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M14 0 L14 28" stroke="#C49AAA" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M5 20 L14 30 L23 20" stroke="#C49AAA" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <div class="flow-item">
+        <div class="flow-step">Step 2</div>
+        <div class="flow-title">따라하기 (모방)</div>
+        <div class="flow-desc">쉐도잉 포인트, 소리·억양 꿀팁<br>내 페이스에 맞춰 공부</div>
+      </div>
+
+      <div class="flow-arrow">
+        <svg viewBox="0 0 28 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M14 0 L14 28" stroke="#C49AAA" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M5 20 L14 30 L23 20" stroke="#C49AAA" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <div class="flow-item">
+        <div class="flow-step">Step 3</div>
+        <div class="flow-title">교정받기 (피드백)</div>
+        <div class="flow-desc">개인 레포트로 매일 2명의 선생님께 상담 받기<br>맞춤 과외형 피드백</div>
+      </div>
+
+      <div class="flow-arrow">
+        <svg viewBox="0 0 28 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M14 0 L14 28" stroke="#C49AAA" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M5 20 L14 30 L23 20" stroke="#C49AAA" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <div class="flow-item" style="border-color: var(--wine); box-shadow: 0 6px 28px rgba(154,96,112,.15);">
+        <div class="flow-step">Step 4</div>
+        <div class="flow-title">반복 &amp; 자동화</div>
+        <div class="flow-desc">팀원들과 자극·응원·동기부여로 습관 형성<br><strong style="color:var(--wine-dark)">'안 하면 이상할 정도의 시스템'</strong></div>
+      </div>
+
+    </div>
+
+    <img src="./images/detail.png" alt="의지 말고 루틴이 먼저 움직이게! 시스템에 맡겨요" class="full-img" style="margin-top:24px;">
+  </div>
+</section>
+
+<!-- ════════ 도전 혜택 ════════ -->
+<section class="section">
+  <div class="wrap">
+    <p class="sec-badge">Challenge Benefits</p>
+    <h2 class="sec-title">도전 혜택</h2>
+    <p class="sec-desc">디테일 끝판왕 LJ쌤과 함께하면 이게 다 내 것이 돼요</p>
+    <div class="benefit-list">
+      <div class="benefit-item">
+        <div class="benefit-num">1</div>
+        <div class="benefit-text">
+          <strong>매일 챌린지 포인트 &amp; 자료 쏟아지기</strong>
+          LJ쌤이 매일 정리한 핵심 포인트와 실전 자료를 받아요
+        </div>
+      </div>
+      <div class="benefit-item">
+        <div class="benefit-num">2</div>
+        <div class="benefit-text">
+          <strong>다양한 영어 표현 학습</strong>
+          매일 새로운 영어 챌린지 주제와 표현 제공
+        </div>
+      </div>
+      <div class="benefit-item">
+        <div class="benefit-num">3</div>
+        <div class="benefit-text">
+          <strong>매일 1:1 맞춤 발음 피드백</strong>
+          피드백 환급 시스템으로 동기부여까지 강화
+        </div>
+      </div>
+      <div class="benefit-item">
+        <div class="benefit-num">4</div>
+        <div class="benefit-text">
+          <strong>평생 소장 쉐도잉 키트</strong>
+          영상 클립, 음성 녹음 파일 모두 제공 — 챌린지 후에도 계속 활용
+        </div>
+      </div>
+      <div class="benefit-item">
+        <div class="benefit-num">5</div>
+        <div class="benefit-text">
+          <strong>최다 인증자 특별 추가 선물 🎁</strong>
+          가장 열심히 참여한 분께 특별 선물을 드려요!
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:20px;padding:16px 18px;background:var(--wine-pale);border-radius:var(--r-sm);border:1px solid var(--border);">
+      <p style="font-size:.9rem;color:var(--wine-dark);font-weight:600;line-height:1.75;word-break:keep-all;">
+        매일 작은 성취의 기쁨 + 영어 문장력, 표현력의 엄청난 변화를 느껴보세요!
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ LJ쌤 소개 ════════ -->
+<section class="section">
+  <div class="wrap">
+    <p class="sec-badge">About LJ</p>
+    <h2 class="sec-title">LJ쌤 소개</h2>
+    <p class="sec-desc">음성학 전문가 + 원어민 교사, 두 가지 관점에서 정확한 피드백을 드려요</p>
+    <img src="./images/profile.png" alt="LJ쌤 쉐도잉 소개" class="full-img">
+    <img src="./images/profile2.png" alt="LJ쌤 프로그램 소개" class="full-img">
+  </div>
+</section>
+
+<!-- ════════ 수강생 후기 ════════ -->
+<section class="section" style="background: var(--wine-pale);">
+  <div class="wrap">
+    <p class="sec-badge">Real Reviews</p>
+    <h2 class="sec-title">수강생 리얼 후기</h2>
+    <p class="sec-desc">직접 경험한 수강생들의 솔직한 이야기</p>
+    <img src="./images/feed1.png" alt="수강생 후기" class="full-img">
+    <img src="./images/feed2.png" alt="수강생 후기 모음" class="full-img">
+  </div>
+</section>
+
+<!-- ════════ 결제 및 환급 안내 ════════ -->
+<section class="section">
+  <div class="wrap">
+    <p class="sec-badge">Pricing &amp; Refund</p>
+    <h2 class="sec-title">결제 및 환급 안내</h2>
+
+    <div class="pricing-grid">
+      <div class="price-card">
+        <div class="price-opt-label">참여비</div>
+        <div class="price-name">쉐도잉 챌린지 참여비</div>
+        <div class="price-amount">8만원 <span>/ 월</span></div>
+        <div class="price-desc">리스닝 클래스 참여자 무료</div>
+      </div>
+      <div class="price-card featured">
+        <div class="price-badge">100% 환급 가능</div>
+        <div class="price-opt-label">챌린지비 (보증금)</div>
+        <div class="price-name">챌린지 환급 보증금</div>
+        <div class="price-amount">4만원 <span>/ 월</span></div>
+        <div class="price-desc">성실 인증 시 전액 환급</div>
+      </div>
+    </div>
+
+    <div style="margin-top:20px;background:var(--card);border:1.5px solid var(--wine);border-radius:var(--r);padding:20px 20px;">
+      <p style="font-size:.82rem;font-weight:700;letter-spacing:.1em;color:var(--wine-light);text-transform:uppercase;margin-bottom:10px;">실제 비용 계산</p>
+      <p style="font-size:.95rem;line-height:1.85;color:var(--text-mid);word-break:keep-all;">
+        👉 총 12만원 중, 매일 참여하신 분들은 <strong style="color:var(--wine-dark)">4만원을 돌려받고</strong><br>
+        실제 비용 <strong style="color:var(--wine-dark)">월 8만원</strong>으로 모든 1:1 학습 관리를 받게 됩니다.
+      </p>
+      <div style="height:1px;background:var(--border);margin:14px 0;"></div>
+      <p style="font-size:.82rem;font-weight:700;color:var(--text);margin-bottom:6px;">환급 조건</p>
+      <p style="font-size:.85rem;color:var(--text-mid);line-height:1.75;word-break:keep-all;">
+        📌 매주 5회 이상 참여 시 <strong style="color:var(--text)">1만원씩 환급</strong><br>
+        📌 4주 모두 성공 시 <strong style="color:var(--text)">보증금 전액(4만원) 환불</strong><br>
+        📌 챌린지 기간: 매주 5일 이상 주어진 진도 &amp; 자율 진도 쉐도잉
+      </p>
+    </div>
+
+    <div style="margin-top:14px;padding:14px 16px;background:#FFF8E7;border:1px solid #F0D080;border-radius:var(--r-sm);">
+      <p style="font-size:.85rem;color:#7A6020;line-height:1.7;word-break:keep-all;">
+        ⚠️ <strong>수업 수강자분들도 첫 등록 시 보증금 4만원은 입금하셔야 합니다.</strong>
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ 입금 안내 ════════ -->
+<section class="section">
+  <div class="wrap">
+    <p class="sec-badge">Payment</p>
+    <h2 class="sec-title">입금 안내</h2>
+    <div class="payment-box">
+      <div class="payment-label">카카오뱅크</div>
+      <div class="account-row">
+        <div>
+          <div class="account-num">3333-19-4033339</div>
+          <div class="account-name">예금주: 이진</div>
+        </div>
+        <button class="copy-btn" onclick="copyAccount(this)">복사</button>
+      </div>
+      <div class="payment-note">
+        📌 입금자명이 신청자명과 다를 경우, 신청 폼 하단에 입력해 주세요.<br>
+        📌 입금 확인 후 카카오톡으로 오픈채팅방 링크를 보내드려요.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ 신청 폼 ════════ -->
+<section id="apply" class="section" style="background: var(--card); border-top: 1px solid var(--border);">
+  <div class="wrap">
+    <p class="sec-badge">Apply Now</p>
+    <h2 class="sec-title">쉐도잉 챌린지<br>신청하기</h2>
+    <p class="sec-desc">신청 후 카카오톡으로 안내를 보내드려요 :)</p>
+
+    <div id="formWrap">
+      <form id="applyForm" novalidate>
+
+        <div class="form-group">
+          <label class="form-label">이름<span class="req">*</span></label>
+          <input type="text" class="form-input" id="name" placeholder="이름을 입력해 주세요" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">카카오톡 ID<span class="req">*</span></label>
+          <p class="form-hint">오카방 링크, 팀채팅방 초대, 필수 안내사항 발송에 사용됩니다</p>
+          <input type="text" class="form-input" id="kakaoId" placeholder="카카오톡 ID를 입력해 주세요" required>
+        </div>
+
+        <div class="form-divider"></div>
+
+        <div class="form-group">
+          <label class="form-label">쉐도잉 챌린지를 통해 가장 기대하는 변화는?<span class="req">*</span></label>
+          <div class="radio-opts">
+            <label class="radio-opt"><input type="radio" name="expectedChange" value="긴 문장도 호흡과 리듬으로 자연스럽게 의미 이해하며 듣기"><span class="radio-opt-text">긴 문장도 호흡과 리듬으로 자연스럽게 의미 이해하며 듣기</span></label>
+            <label class="radio-opt"><input type="radio" name="expectedChange" value="자연스럽고 원어민에 가까운 발음, 억양"><span class="radio-opt-text">자연스럽고 원어민에 가까운 발음, 억양</span></label>
+            <label class="radio-opt"><input type="radio" name="expectedChange" value="작은 소리 디테일까지 잡아내어 모두 듣기"><span class="radio-opt-text">작은 소리 디테일까지 잡아내어 모두 듣기</span></label>
+            <label class="radio-opt"><input type="radio" name="expectedChange" value="매일 짧게라도 꾸준히 연습하는 습관"><span class="radio-opt-text">매일 짧게라도 꾸준히 연습하는 습관</span></label>
+            <label class="radio-opt"><input type="radio" name="expectedChange" value="짧은 시간 안에 리스닝·스피킹 감각 빠르게 키우기"><span class="radio-opt-text">짧은 시간 안에 리스닝·스피킹 감각 빠르게 키우기</span></label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">멤버 전용 혜택 중 가장 기대되는 것은?<span class="req">*</span></label>
+          <div class="radio-opts">
+            <label class="radio-opt"><input type="radio" name="expectedBenefit" value="평생 소장 쉐도잉 키트, 영상 클립, 음성 녹음 파일"><span class="radio-opt-text">평생 소장 쉐도잉 키트, 영상 클립, 음성 녹음 파일</span></label>
+            <label class="radio-opt"><input type="radio" name="expectedBenefit" value="매일 학습 설계 & 관리로 공부 습관 형성"><span class="radio-opt-text">매일 학습 설계 &amp; 관리로 공부 습관 형성</span></label>
+            <label class="radio-opt"><input type="radio" name="expectedBenefit" value="모든 영어 관련 무제한 Q&A"><span class="radio-opt-text">모든 영어 관련 무제한 Q&amp;A</span></label>
+            <label class="radio-opt"><input type="radio" name="expectedBenefit" value="모든 컨텐츠 리스닝 꿀팁 (영화, 애니, 광고 등)"><span class="radio-opt-text">모든 컨텐츠 리스닝 꿀팁 (영화, 애니, 광고, 인터뷰, 강연 등)</span></label>
+            <label class="radio-opt"><input type="radio" name="expectedBenefit" value="발음 연습 맞춤형 1:1 피드백"><span class="radio-opt-text">발음 연습 맞춤형 1:1 피드백</span></label>
+          </div>
+        </div>
+
+        <div class="form-divider"></div>
+
+        <div class="form-group">
+          <label class="form-label">옵션 선택<span class="req">*</span></label>
+          <div class="radio-opts">
+            <label class="radio-opt">
+              <input type="radio" name="option" value="옵션 1 - 월 12만원">
+              <span class="radio-opt-text"><strong style="color:var(--text)">옵션 1</strong>&emsp;쉐도잉 챌린지 참여비 — 월 12만원</span>
+            </label>
+            <label class="radio-opt">
+              <input type="radio" name="option" value="옵션 2 - 월 15만원 (VOD 강의 포함)">
+              <span class="radio-opt-text">
+                <strong style="color:var(--text)">옵션 2</strong>&emsp;VOD 강의 추가 — 월 15만원<br>
+                <span style="font-size:.81rem;color:var(--wine-dark);font-weight:600;">발음·억양·연음을 미리 익히고 쉐도잉하면 효과가 완전히 달라요.</span><br>
+                <span style="font-size:.79rem;color:var(--text-mute)">준비된 상태로 연습하니까 같은 시간에 두 배 흡수 💡</span>
+              </span>
+            </label>
+            <label class="radio-opt">
+              <input type="radio" name="option" value="옵션 3 - 리스닝 클래스 참여자 (환급 보증금 4만원)">
+              <span class="radio-opt-text">
+                <strong style="color:var(--text)">옵션 3</strong>&emsp;리스닝 클래스 참여자 — 환급 보증금 4만원<br>
+                <span style="font-size:.81rem;color:var(--text-mute)">참여비 무료 · 보증금만 입금 (성실 인증 시 전액 환급)</span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">입금 확인<span class="req">*</span></label>
+          <p class="form-hint">카카오뱅크 3333-19-4033339 (이진)</p>
+          <div class="radio-opts">
+            <label class="radio-opt"><input type="radio" name="payment" value="입금 완료"><span class="radio-opt-text">입금 완료하였습니다</span></label>
+            <label class="radio-opt"><input type="radio" name="payment" value="기타"><span class="radio-opt-text">기타 (입금자명이 다른 경우 아래에 입력해 주세요)</span></label>
+          </div>
+          <input type="text" class="form-input" id="paymentNote" placeholder="입금자명이 다를 경우 여기에 입력해 주세요" style="margin-top:8px;display:none;">
+        </div>
+
+        <div class="form-divider"></div>
+
+        <!-- 환급 조건 확인 -->
+        <div class="form-group">
+          <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:16px;margin-bottom:12px;">
+            <p style="font-size:.85rem;font-weight:700;color:var(--text);margin-bottom:8px;">결제 및 환급 안내</p>
+            <p style="font-size:.83rem;color:var(--text-mid);line-height:1.8;word-break:keep-all;">
+              참여비: 월 8만원 (리스닝 클래스 참여자 무료)<br>
+              챌린지비: 월 4만원 (100% 환급 가능)<br>
+              <span style="font-size:.8rem;color:var(--text-mute)">(챌린지만 참여 시 12만원, 수업 등록자 4만원)</span>
+            </p>
+            <div style="height:1px;background:var(--border);margin:10px 0;"></div>
+            <p style="font-size:.83rem;color:var(--text-mid);line-height:1.75;word-break:keep-all;">
+              환급 조건: <strong style="color:var(--text)">매주 5회 이상 참여 시 1만원씩 환급</strong><br>
+              (4주 모두 성공 시 전액 환불)
+            </p>
+          </div>
+          <label class="checkbox-wrap">
+            <input type="checkbox" id="refundConfirm" required>
+            <span class="checkbox-text">
+              <strong style="color:var(--text)">환급 조건을 확인했습니다 (필수)</strong>
+            </span>
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-wrap">
+            <input type="checkbox" id="privacy" required>
+            <span class="checkbox-text">
+              <strong style="color:var(--text)">개인정보 수집 및 이용 동의 (필수)</strong><br>
+              수강 신청과 관련된 연락 및 안내에 개인정보를 사용하는 데 동의합니다.
+              수집 항목: 이름, 카카오톡 ID / 보유 기간: 수강 종료 후 1년
+            </span>
+          </label>
+        </div>
+
+        <div style="background:#FFF3F3;border:1px solid #F0C0C0;border-radius:var(--r-sm);padding:14px 16px;margin-bottom:20px;">
+          <p style="font-size:.84rem;color:#8A3030;line-height:1.7;word-break:keep-all;">
+            ⚠️ 참여자마다 매일 피드백 수정을 해 드리는 관계로,<br>
+            <strong>챌린지 인원 제한, 조기 마감</strong>될 수 있습니다.
+          </p>
+        </div>
+
+        <button type="submit" class="btn btn-wine" id="submitBtn">신청 완료하기</button>
+        <p id="formError"></p>
+
+      </form>
+
+      <div id="successMsg">
+        <div class="success-icon">🎉</div>
+        <h3 class="success-title">신청이 완료되었어요!</h3>
+        <p class="success-desc">
+          LJ쌤이 카카오톡으로 곧 연락드릴게요.<br>
+          그 전에 먼저 오픈채팅방에 입장해 주세요!
+        </p>
+        <a href="https://invite.kakao.com/tc/KBq0gup2ta" target="_blank" rel="noopener"
+           class="btn btn-wine" style="margin-top:24px;">
+          💬 오픈채팅방 바로 입장하기
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ Floating CTA ════════ -->
+<div class="float-cta" id="floatCta">
+  <a href="#apply" class="btn btn-wine">🔥 쉐도잉 챌린지 신청하기</a>
+</div>
+
+<script>
+  // ── 다음 첫 번째 월요일 계산 ──
+  function getNextFirstMonday() {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+    function firstMondayOf(y, m) {
+      const d = new Date(y, m, 1);
+      const day = d.getDay();
+      const diff = day === 1 ? 0 : (8 - day) % 7;
+      return new Date(y, m, 1 + diff);
+    }
+
+    let y = now.getFullYear(), m = now.getMonth();
+    let fm = firstMondayOf(y, m);
+    if (fm < today) {
+      m++;
+      if (m > 11) { m = 0; y++; }
+      fm = firstMondayOf(y, m);
+    }
+    return fm;
+  }
+
+  const nd = getNextFirstMonday();
+  document.getElementById('nextDate').textContent =
+    nd.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' });
+
+  // ── 라디오 선택 스타일 ──
+  document.querySelectorAll('.radio-opts').forEach(group => {
+    group.querySelectorAll('input[type="radio"]').forEach(r => {
+      r.addEventListener('change', () => {
+        group.querySelectorAll('.radio-opt').forEach(o => o.classList.remove('selected'));
+        r.closest('.radio-opt').classList.add('selected');
+      });
+    });
+  });
+
+  // ── 입금자명 다를 경우 필드 토글 ──
+  document.querySelectorAll('input[name="payment"]').forEach(r => {
+    r.addEventListener('change', () => {
+      document.getElementById('paymentNote').style.display =
+        r.value === '기타' ? 'block' : 'none';
+    });
+  });
+
+  // ── 계좌 복사 ──
+  function copyAccount(btn) {
+    navigator.clipboard.writeText('3333-19-4033339').then(() => {
+      btn.textContent = '복사됨 ✓';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = '복사'; btn.classList.remove('copied'); }, 2000);
+    });
+  }
+
+  // ── Floating CTA: 폼 영역 도달 시 숨기기 ──
+  const floatCta = document.getElementById('floatCta');
+  new IntersectionObserver(entries => {
+    floatCta.classList.toggle('hidden', entries[0].isIntersecting);
+  }, { threshold: 0.05 }).observe(document.getElementById('apply'));
+
+  // ── 폼 제출 (Firebase Firestore) ──
+  const applyForm = document.getElementById('applyForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const formError = document.getElementById('formError');
+  const successMsg = document.getElementById('successMsg');
+
+  applyForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    formError.style.display = 'none';
+
+    const name            = document.getElementById('name').value.trim();
+    const kakaoId         = document.getElementById('kakaoId').value.trim();
+    const expectedChange  = applyForm.querySelector('input[name="expectedChange"]:checked')?.value;
+    const expectedBenefit = applyForm.querySelector('input[name="expectedBenefit"]:checked')?.value;
+    const option          = applyForm.querySelector('input[name="option"]:checked')?.value;
+    const payment         = applyForm.querySelector('input[name="payment"]:checked')?.value;
+    const paymentNote     = document.getElementById('paymentNote').value.trim();
+    const refundConfirm   = document.getElementById('refundConfirm').checked;
+    const privacy         = document.getElementById('privacy').checked;
+
+    if (!name)            return showError('이름을 입력해 주세요');
+    if (!kakaoId)         return showError('카카오톡 ID를 입력해 주세요');
+    if (!expectedChange)  return showError('기대하는 변화를 선택해 주세요');
+    if (!expectedBenefit) return showError('기대되는 혜택을 선택해 주세요');
+    if (!option)          return showError('옵션을 선택해 주세요');
+    if (!payment)         return showError('입금 확인 여부를 선택해 주세요');
+    if (!refundConfirm)   return showError('환급 조건을 확인해 주세요');
+    if (!privacy)         return showError('개인정보 수집 및 이용에 동의해 주세요');
+
+    submitBtn.textContent = '신청 중...';
+    submitBtn.disabled = true;
+
+    try {
+      await db.collection('applications').add({
+        name, kakaoId, expectedChange, expectedBenefit,
+        option, payment,
+        paymentNote: paymentNote || '',
+        refundConfirm: true,
+        privacyConsent: true,
+        status: 'new',
+        submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+
+      // 관리자 이메일 알림
+      fetch('https://api.emailjs.com/api/v1.0/email/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          service_id: 'service_2428u4f',
+          template_id: 'template_q7j2iii',
+          user_id: 'nqLPvWJexb3PLr_uc',
+          template_params: {
+            name, kakaoId, option, payment,
+            paymentNote: paymentNote || '없음',
+            expectedChange, expectedBenefit
+          }
+        })
+      }).catch(() => {});
+
+      applyForm.style.display = 'none';
+      successMsg.style.display = 'block';
+      floatCta.classList.add('hidden');
+      document.getElementById('apply').scrollIntoView({ behavior: 'smooth' });
+    } catch (err) {
+      showError('오류가 발생했어요. 잠시 후 다시 시도해 주세요.');
+      submitBtn.textContent = '신청 완료하기';
+      submitBtn.disabled = false;
+      console.error(err);
+    }
+  });
+
+  function showError(msg) {
+    formError.textContent = msg;
+    formError.style.display = 'block';
+    formError.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+</script>
+</body>
+</html>

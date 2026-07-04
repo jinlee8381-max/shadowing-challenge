@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#3b82f6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="쉐도잉 챌린지">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <title>챌린지 결과 - 쉐도잉 챌린지</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <style>
+    body { font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; }
+
+    @keyframes fall {
+      0%   { transform: translateY(-10px) rotate(0deg);   opacity: 1; }
+      100% { transform: translateY(105vh) rotate(540deg); opacity: 0; }
+    }
+    .confetti { position: fixed; top: -12px; pointer-events: none; animation: fall linear infinite; }
+
+    @keyframes pop {
+      0%   { transform: scale(0) rotate(-10deg); opacity: 0; }
+      70%  { transform: scale(1.15) rotate(3deg); }
+      100% { transform: scale(1) rotate(0deg);   opacity: 1; }
+    }
+    .pop { animation: pop 0.45s ease forwards; opacity: 0; }
+
+    @keyframes slide-up {
+      from { transform: translateY(30px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+    .slide-up { animation: slide-up 0.5s ease forwards; opacity: 0; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen pb-24">
+
+  <!-- 하단 탭바 -->
+  <nav class="fixed bottom-0 inset-x-0 bg-white border-t border-gray-100 shadow-lg z-30">
+    <div class="max-w-lg mx-auto grid grid-cols-4">
+      <a href="my-page.html" class="flex flex-col items-center py-2.5 gap-0.5 text-gray-400 hover:text-gray-600 transition-colors">
+        <span class="text-xl leading-none">🏠</span>
+        <span class="text-xs font-medium">내 현황</span>
+      </a>
+      <a href="today.html" class="flex flex-col items-center py-2.5 gap-0.5 text-gray-400 hover:text-gray-600 transition-colors">
+        <span class="text-xl leading-none">📚</span>
+        <span class="text-xs font-medium">오늘 과제</span>
+      </a>
+      <a href="#" id="nav-record" class="flex flex-col items-center py-2.5 gap-0.5 text-gray-400 hover:text-gray-600 transition-colors">
+        <span class="text-xl leading-none">📖</span>
+        <span class="text-xs font-medium">학습 기록</span>
+      </a>
+      <a href="result.html" class="flex flex-col items-center py-2.5 gap-0.5 text-blue-600">
+        <span class="text-xl leading-none">🏆</span>
+        <span class="text-xs font-semibold">결과</span>
+      </a>
+    </div>
+  </nav>
+
+  <!-- 후기 저장 감사 모달 -->
+  <div id="reflectionThanksModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-xs p-6 text-center space-y-4">
+      <div class="text-5xl">📝</div>
+      <div>
+        <h3 class="font-bold text-gray-800 text-lg leading-snug">후기를 남겨주셔서<br>감사해요!</h3>
+        <p class="text-sm text-gray-400 mt-1.5">소중한 이야기가 잘 저장됐어요.</p>
+      </div>
+      <div class="bg-yellow-50 border border-yellow-200 rounded-xl px-4 py-3 flex items-center gap-2 justify-center">
+        <span class="text-xl">🏅</span>
+        <p class="text-sm font-bold text-yellow-700">'변화 기록 완료' 뱃지 획득!</p>
+      </div>
+      <button onclick="document.getElementById('reflectionThanksModal').classList.add('hidden')"
+        class="w-full bg-gray-800 text-white font-bold text-sm py-3 rounded-xl hover:bg-gray-700 transition-colors">
+        확인
+      </button>
+    </div>
+  </div>
+
+  <!-- 컨페티 컨테이너 -->
+  <div id="confettiBox" class="pointer-events-none fixed inset-0 overflow-hidden z-50"></div>
+
+  <!-- 상단 축하 헤더 -->
+  <div class="bg-gradient-to-br from-yellow-400 via-orange-400 to-pink-500 px-4 pt-12 pb-10 text-white text-center relative overflow-hidden">
+    <div class="text-7xl mb-3 slide-up" style="animation-delay:.1s">🏆</div>
+    <h1 class="text-2xl font-bold slide-up" style="animation-delay:.25s" id="resultTitle">5월 챌린지 결과</h1>
+    <p class="text-white/85 mt-1.5 slide-up" style="animation-delay:.4s" id="studentGreeting">수고하셨어요!</p>
+    <p class="text-sm text-white/70 mt-1 slide-up" style="animation-delay:.5s" id="challengePeriod">-</p>
+  </div>
+
+  <main class="max-w-lg mx-auto px-3 -mt-4 space-y-4">
+
+    <!-- 로딩 상태 -->
+    <div id="loadingBlock" class="bg-white rounded-2xl shadow-sm p-8 text-center slide-up" style="animation-delay:.3s">
+      <div class="text-3xl mb-3">⏳</div>
+      <p class="text-sm text-gray-400">결과를 불러오는 중...</p>
+    </div>
+
+    <!-- 주차별 결과 -->
+    <div id="resultBlock" class="hidden space-y-4">
+
+      <div class="bg-white rounded-2xl shadow-sm p-4 slide-up" style="animation-delay:.3s">
+        <h2 class="font-bold text-gray-800 text-sm mb-3">주차별 결과</h2>
+        <div class="grid grid-cols-4 gap-2" id="weekResults"></div>
+      </div>
+
+      <!-- 최종 환급액 -->
+      <div class="bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl p-5 text-white text-center slide-up" style="animation-delay:.4s">
+        <p class="text-sm font-medium opacity-80 mb-1">최종 환급액</p>
+        <p class="text-5xl font-bold" id="finalRefund">-</p>
+        <p class="text-sm opacity-75 mt-1" id="refundMsg">-</p>
+      </div>
+
+      <!-- 나의 기록 -->
+      <div class="grid grid-cols-3 gap-3 slide-up" style="animation-delay:.45s">
+        <div class="bg-white rounded-2xl shadow-sm p-3 text-center">
+          <p class="text-xl font-bold text-orange-500" id="totalDays">-</p>
+          <p class="text-xs text-gray-400 mt-0.5">총 인증 횟수</p>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm p-3 text-center">
+          <p class="text-xl font-bold text-red-500" id="bestStreak">-</p>
+          <p class="text-xs text-gray-400 mt-0.5">최장 연속일</p>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm p-3 text-center">
+          <p class="text-xl font-bold text-purple-500" id="achieveRate">-</p>
+          <p class="text-xs text-gray-400 mt-0.5">달성률</p>
+        </div>
+      </div>
+
+      <!-- 획득한 뱃지 -->
+      <div class="bg-white rounded-2xl shadow-sm p-4 slide-up" style="animation-delay:.5s">
+        <h2 class="font-bold text-gray-800 text-sm mb-3">획득한 뱃지</h2>
+        <div class="grid grid-cols-4 gap-3" id="badgeGrid"></div>
+      </div>
+
+      <!-- 월말 회상 -->
+      <div class="bg-white rounded-2xl shadow-sm p-4 slide-up" style="animation-delay:.55s">
+        <h2 class="font-bold text-gray-800 text-sm mb-0.5">📝 이번 달 내 변화 기록</h2>
+        <p class="text-xs text-gray-400 mb-2.5">한 달 동안 어떤 변화가 있었나요? 자유롭게 적어주세요 😊</p>
+        <div class="bg-amber-50 border border-amber-100 rounded-xl px-3 py-2.5 mb-3">
+          <p class="text-xs font-semibold text-amber-700 mb-1.5">💡 참고해 주세요 (꼭 다 답하지 않아도 돼요!)</p>
+          <ul class="text-xs text-amber-600 space-y-0.5 leading-relaxed">
+            <li>· 시작 전 가장 큰 고민은?</li>
+            <li>· 이번 달 가장 크게 깨달은 점은?</li>
+            <li>· 실제로 달라진 점은?</li>
+            <li>· 앞으로 더 이어가고 싶은 부분은?</li>
+            <li>· 이 수업을 어떤 사람에게 추천하고 싶은지?</li>
+          </ul>
+        </div>
+        <textarea id="reflectionText" rows="4"
+          class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 resize-none focus:outline-none focus:ring-2 focus:ring-blue-300 placeholder-gray-300"
+          placeholder="자유롭게 적어주세요 :)"></textarea>
+        <button id="saveReflectionBtn" onclick="saveReflection()"
+          class="mt-2 w-full bg-gray-800 text-white text-sm font-semibold py-2.5 rounded-xl hover:bg-gray-700 transition-colors">
+          기록 저장하기
+        </button>
+        <p id="reflectionSaved" class="hidden text-center text-xs text-green-500 mt-2">✅ 저장되었습니다!</p>
+      </div>
+
+      <!-- 다음 챌린지 & 이월 확인 -->
+      <div class="bg-white rounded-2xl shadow-sm p-4 text-center space-y-3 slide-up" style="animation-delay:.6s">
+        <p class="font-bold text-gray-800" id="nextChallengeTxt">다음 챌린지도 함께해요! 🎙️</p>
+        <p class="text-sm text-gray-500">이 습관을 끊지 말고 계속 이어나가요.</p>
+
+        <!-- 이월 선택 -->
+        <div id="continueChoice">
+          <p class="text-sm font-semibold text-gray-700 mb-2" id="nextMonthQuestion">다음 달 챌린지도 계속 참여하시겠어요?</p>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="selectContinue(true)"
+              class="py-3 rounded-xl border-2 border-gray-200 text-sm font-semibold text-gray-600 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+              ✅ 계속할게요!
+            </button>
+            <button onclick="selectContinue(false)"
+              class="py-3 rounded-xl border-2 border-gray-200 text-sm font-semibold text-gray-600 hover:border-red-300 hover:bg-red-50 hover:text-red-500 transition-colors">
+              😢 이번엔 여기까지
+            </button>
+          </div>
+        </div>
+
+        <!-- 계속 참여 확정 -->
+        <div id="continueYes" class="hidden space-y-2 pt-1">
+          <p class="text-green-600 font-semibold">🎉 <span id="nextMonthLabel"></span>월에도 함께해요!</p>
+          <a href="my-page.html"
+             class="block bg-blue-600 text-white font-bold text-sm py-3 rounded-xl hover:bg-blue-700 transition-colors">
+            내 페이지로 돌아가기
+          </a>
+          <button onclick="resetContinueChoice()" class="w-full text-xs text-gray-400 py-1.5 hover:text-gray-600 transition-colors">
+            선택 변경하기
+          </button>
+        </div>
+
+        <!-- 이번 달로 종료 → 환급 계좌 입력 -->
+        <div id="continueNo" class="hidden space-y-2.5 text-left pt-1">
+          <p class="text-sm text-gray-500 text-center">수고하셨어요! 환급 계좌를 입력해 주세요.</p>
+          <select id="refundBank"
+            class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-300 bg-white">
+            <option value="">은행 선택</option>
+            <option>카카오뱅크</option>
+            <option>토스뱅크</option>
+            <option>국민은행</option>
+            <option>신한은행</option>
+            <option>우리은행</option>
+            <option>하나은행</option>
+            <option>농협은행</option>
+            <option>기업은행</option>
+            <option>케이뱅크</option>
+            <option>새마을금고</option>
+            <option>SC제일은행</option>
+          </select>
+          <input id="refundAccountNum" type="tel" placeholder="계좌번호 (- 없이 숫자만)"
+            class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+          <input id="refundHolder" type="text" placeholder="예금주 이름"
+            class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-300" />
+          <button onclick="saveRefundAccount()"
+            class="w-full bg-orange-500 text-white font-bold text-sm py-3 rounded-xl hover:bg-orange-600 transition-colors">
+            계좌 정보 저장하기
+          </button>
+          <p id="accountSaved" class="hidden text-center text-xs text-green-500">✅ 저장되었습니다!</p>
+          <button onclick="resetContinueChoice()" class="w-full text-xs text-gray-400 py-1 hover:text-gray-600 transition-colors">
+            선택 변경하기
+          </button>
+        </div>
+      </div>
+
+    </div><!-- #resultBlock -->
+  </main>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const name   = params.get('name') || localStorage.getItem('shadowing_my_name') || '';
+
+    // 탭바 학습 기록 링크
+    document.getElementById('nav-record').href = `student.html?name=${encodeURIComponent(name)}&mode=student`;
+
+    // 챌린지 기간 표시
+    const weekDates1 = getWeekDates(1);
+    const weekDates4 = getWeekDates(4);
+    const [,m1,d1] = weekDates1[0].split('-');
+    const [,m4,d4] = weekDates4[4].split('-'); // 4주차 금요일
+    document.getElementById('challengePeriod').textContent =
+      `${parseInt(m1)}월 ${parseInt(d1)}일 ~ ${parseInt(m4)}월 ${parseInt(d4)}일`;
+    const [,cm] = CHALLENGE_START.split('-');
+    document.getElementById('resultTitle').textContent = `${parseInt(cm)}월 챌린지 결과`;
+    document.getElementById('nextChallengeTxt').textContent = `${parseInt(cm)+1}월 챌린지도 함께해요! 🎙️`;
+
+    // 이름 인사
+    if (name) {
+      document.getElementById('studentGreeting').textContent = `${name}님, 수고하셨어요!`;
+    }
+
+    function calcStreak(subs) {
+      const dates = [...new Set(subs.map(s => tsToDateKey(s.submittedAt)).filter(Boolean))].sort();
+      if (dates.length === 0) return 0;
+      let best = 1, cur = 1;
+      for (let i = 1; i < dates.length; i++) {
+        const diff = Math.round((new Date(dates[i]) - new Date(dates[i-1])) / 86400000);
+        if (diff === 1) { cur++; best = Math.max(best, cur); }
+        else cur = 1;
+      }
+      return best;
+    }
+
+    async function init() {
+      const [subs, resultSnap] = await Promise.all([
+        loadSubmissions(name),
+        db.collection('results').doc(`${CHALLENGE_MONTH}_${name}`).get().catch(() => null)
+      ]);
+      const resultData = resultSnap?.exists ? resultSnap.data() : {};
+      const hasReflection = !!resultData.reflection;
+
+      // 주차별 성공 여부
+      const weeks = [1,2,3,4].map(w => subs.filter(s => s.week === w).length >= 5);
+      const successCount = weeks.filter(Boolean).length;
+      const refund = successCount * 10000;
+      const streak = calcStreak(subs);
+      const achieveRate = Math.round((subs.length / 20) * 100);
+
+      // UI 표시
+      document.getElementById('loadingBlock').classList.add('hidden');
+      document.getElementById('resultBlock').classList.remove('hidden');
+
+      // 주차별 O/X
+      const weekGrid = document.getElementById('weekResults');
+      weeks.forEach((ok, i) => {
+        weekGrid.innerHTML += `
+          <div class="text-center rounded-xl p-3 border ${ok ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}">
+            <p class="text-xs text-gray-500 mb-1">${i+1}주</p>
+            <p class="text-2xl font-bold ${ok ? 'text-green-600' : 'text-red-500'}">${ok ? 'O' : 'X'}</p>
+            <p class="text-xs text-gray-400">${ok ? '5회 완료' : '미완료'}</p>
+          </div>`;
+      });
+
+      // 환급액
+      document.getElementById('finalRefund').textContent = refund.toLocaleString() + '원';
+      const msgs = ['다음엔 꼭 성공해요! 💪','조금만 더 했으면 좋았을 텐데!','절반 달성, 잘 하셨어요!','아깝다! 거의 다 했어요!','🎉 전액 환급 달성!'];
+      document.getElementById('refundMsg').textContent = msgs[successCount] ?? msgs[4];
+
+      // 기록
+      document.getElementById('totalDays').textContent   = subs.length + '회';
+      document.getElementById('bestStreak').textContent  = '🔥 ' + streak;
+      document.getElementById('achieveRate').textContent = achieveRate + '%';
+
+      // 뱃지
+      const allBadges = [
+        { emoji:'🌱', name:'시작의 씨앗',  desc:'첫 인증 완료',   earned: subs.length >= 1 },
+        { emoji:'⭐', name:'1주 완주',     desc:'1주차 성공',     earned: weeks[0] },
+        { emoji:'🌟', name:'2주 완주',     desc:'2주차 성공',     earned: weeks[1] },
+        { emoji:'💫', name:'3주 완주',     desc:'3주차 성공',     earned: weeks[2] },
+        { emoji:'🏆', name:'챌린지 완주',  desc:'4주 모두 성공',  earned: successCount === 4 },
+        { emoji:'🔥', name:'5일 연속',     desc:'5일 연속 인증',  earned: streak >= 5 },
+        { emoji:'💪', name:'10일 연속',    desc:'10일 연속 인증', earned: streak >= 10 },
+        { emoji:'🎯', name:'완벽한 달',    desc:'20회 모두 인증', earned: subs.length >= 20 },
+        { emoji:'📝', name:'변화 기록 완료', desc:'월말 후기 작성', earned: hasReflection },
+      ];
+      const badgeGrid = document.getElementById('badgeGrid');
+      allBadges.forEach((b, i) => {
+        const div = document.createElement('div');
+        div.className = 'text-center pop';
+        div.style.animationDelay = `${0.6 + i * 0.08}s`;
+        if (b.name === '변화 기록 완료') div.dataset.badge = 'reflection';
+        div.innerHTML = `
+          <div class="w-14 h-14 mx-auto rounded-2xl flex items-center justify-center text-2xl mb-1
+            ${b.earned ? 'bg-yellow-100 shadow-sm' : 'bg-gray-100 grayscale opacity-35'}">
+            ${b.emoji}
+          </div>
+          <p class="text-xs font-semibold leading-tight ${b.earned ? 'text-gray-700' : 'text-gray-400'}">${b.name}</p>
+          <p class="text-xs text-gray-400 leading-tight">${b.desc}</p>
+        `;
+        badgeGrid.appendChild(div);
+      });
+
+      // 컨페티 (3주 이상 성공)
+      if (successCount >= 3) spawnConfetti();
+
+      // 이전에 저장된 회상/이월 여부 표시
+      if (resultData.reflection) {
+        document.getElementById('reflectionText').value = resultData.reflection;
+        document.getElementById('reflectionSaved').classList.remove('hidden');
+        document.getElementById('saveReflectionBtn').textContent = '기록 수정하기';
+      }
+      if (resultData.continueNextMonth !== undefined) {
+        document.getElementById('continueChoice').classList.add('hidden');
+        document.getElementById(resultData.continueNextMonth ? 'continueYes' : 'continueNo').classList.remove('hidden');
+        if (!resultData.continueNextMonth && resultData.refundBank) {
+          document.getElementById('refundBank').value = resultData.refundBank;
+          document.getElementById('refundAccountNum').value = resultData.refundAccountNum || '';
+          document.getElementById('refundHolder').value = resultData.refundHolder || '';
+          document.getElementById('accountSaved').classList.remove('hidden');
+        }
+      }
+    }
+
+    function spawnConfetti() {
+      const box    = document.getElementById('confettiBox');
+      const colors = ['#f59e0b','#10b981','#3b82f6','#ef4444','#8b5cf6','#f97316','#ec4899'];
+      for (let i = 0; i < 50; i++) {
+        const el = document.createElement('div');
+        const size = Math.random() * 9 + 6;
+        el.className = 'confetti';
+        el.style.cssText = `
+          left:${Math.random()*100}vw;
+          width:${size}px; height:${size}px;
+          background:${colors[Math.floor(Math.random()*colors.length)]};
+          border-radius:${Math.random()>0.5 ? '50%' : '2px'};
+          animation-duration:${(Math.random()*2.5+2).toFixed(1)}s;
+          animation-delay:${(Math.random()*1.5).toFixed(1)}s;
+        `;
+        box.appendChild(el);
+      }
+      setTimeout(() => box.innerHTML = '', 6000);
+    }
+
+    // 다음 달 라벨 동적 설정
+    const [,challM] = CHALLENGE_MONTH.split('-');
+    const nextM = parseInt(challM) + 1;
+    document.getElementById('nextMonthQuestion').textContent = `${nextM}월 챌린지도 계속 참여하시겠어요?`;
+    document.getElementById('nextMonthLabel').textContent = nextM;
+
+    async function saveReflection() {
+      const text = document.getElementById('reflectionText').value.trim();
+      if (!text) { alert('내용을 입력해주세요.'); return; }
+      const btn = document.getElementById('saveReflectionBtn');
+      btn.disabled = true;
+      btn.textContent = '저장 중...';
+      try {
+        await db.collection('results').doc(`${CHALLENGE_MONTH}_${name}`).set({
+          reflection: text,
+          studentName: name,
+          challengeMonth: CHALLENGE_MONTH,
+          reflectionSavedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+        document.getElementById('reflectionSaved').classList.remove('hidden');
+        btn.textContent = '기록 수정하기';
+        // 뱃지 활성화
+        const badgeEl = document.querySelector('[data-badge="reflection"]');
+        if (badgeEl) {
+          const iconDiv = badgeEl.querySelector('div');
+          iconDiv.classList.remove('bg-gray-100', 'grayscale', 'opacity-35');
+          iconDiv.classList.add('bg-yellow-100', 'shadow-sm');
+          badgeEl.querySelectorAll('p')[0].classList.replace('text-gray-400', 'text-gray-700');
+        }
+        // 감사 팝업
+        document.getElementById('reflectionThanksModal').classList.remove('hidden');
+      } catch(e) {
+        alert('저장에 실패했어요. 다시 시도해주세요.');
+        btn.textContent = '기록 저장하기';
+      }
+      btn.disabled = false;
+    }
+
+    function resetContinueChoice() {
+      document.getElementById('continueYes').classList.add('hidden');
+      document.getElementById('continueNo').classList.add('hidden');
+      document.getElementById('continueChoice').classList.remove('hidden');
+    }
+
+    async function selectContinue(yes) {
+      document.getElementById('continueChoice').classList.add('hidden');
+      document.getElementById(yes ? 'continueYes' : 'continueNo').classList.remove('hidden');
+      try {
+        await db.collection('results').doc(`${CHALLENGE_MONTH}_${name}`).set({
+          continueNextMonth: yes,
+          studentName: name,
+          challengeMonth: CHALLENGE_MONTH,
+          continueSavedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+      } catch(e) { console.error(e); }
+    }
+
+    async function saveRefundAccount() {
+      const bank    = document.getElementById('refundBank').value;
+      const acctNum = document.getElementById('refundAccountNum').value.trim();
+      const holder  = document.getElementById('refundHolder').value.trim();
+      if (!bank || !acctNum || !holder) { alert('모든 항목을 입력해주세요.'); return; }
+      try {
+        await db.collection('results').doc(`${CHALLENGE_MONTH}_${name}`).set({
+          refundBank: bank,
+          refundAccountNum: acctNum,
+          refundHolder: holder,
+          accountSavedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+        document.getElementById('accountSaved').classList.remove('hidden');
+      } catch(e) {
+        alert('저장에 실패했어요. 다시 시도해주세요.');
+      }
+    }
+
+    init();
+  </script>
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  <script>
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function(OneSignal) {
+      await OneSignal.init({
+        appId: "c7ec5930-ba5f-4eec-9613-d2dc1a499751",
+        serviceWorkerParam: { scope: "/" },
+        serviceWorkerPath: "sw.js",
+        notifyButton: { enable: false },
+      });
+    });
+  </script>
+</body>
+</html>

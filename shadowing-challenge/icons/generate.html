@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>아이콘 생성</title>
+  <style>
+    body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center;
+           justify-content: center; min-height: 100vh; margin: 0; background: #f9fafb; }
+    p { color: #6b7280; font-size: 14px; margin: 8px 0; }
+    canvas { border-radius: 20px; margin: 16px; box-shadow: 0 4px 12px rgba(0,0,0,.15); }
+  </style>
+</head>
+<body>
+  <h2 style="color:#1f2937">📥 아이콘 자동 다운로드</h2>
+  <p>이 페이지를 브라우저에서 열면 아이콘 2개가 자동으로 다운로드돼요.</p>
+  <p>다운받은 파일 2개를 이 <code>icons/</code> 폴더에 넣어주세요.</p>
+  <canvas id="preview" width="192" height="192"></canvas>
+
+  <script>
+    function drawIcon(size) {
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+
+      // 그라데이션 배경
+      const grad = ctx.createLinearGradient(0, 0, size, size);
+      grad.addColorStop(0, '#f59e0b');
+      grad.addColorStop(0.5, '#f97316');
+      grad.addColorStop(1, '#ec4899');
+      ctx.fillStyle = grad;
+
+      const r = size * 0.2;
+      ctx.beginPath();
+      ctx.moveTo(r, 0); ctx.lineTo(size - r, 0);
+      ctx.arcTo(size, 0, size, r, r);
+      ctx.lineTo(size, size - r);
+      ctx.arcTo(size, size, size - r, size, r);
+      ctx.lineTo(r, size);
+      ctx.arcTo(0, size, 0, size - r, r);
+      ctx.lineTo(0, r);
+      ctx.arcTo(0, 0, r, 0, r);
+      ctx.closePath();
+      ctx.fill();
+
+      // 마이크 이모지
+      ctx.font = `${size * 0.52}px serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('🎙️', size / 2, size / 2 + size * 0.02);
+
+      return canvas;
+    }
+
+    // 미리보기
+    const preview = document.getElementById('preview');
+    const pCtx = preview.getContext('2d');
+    pCtx.drawImage(drawIcon(192), 0, 0);
+
+    // 자동 다운로드
+    function download(canvas, filename) {
+      const a = document.createElement('a');
+      a.download = filename;
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+    }
+
+    setTimeout(() => download(drawIcon(192), 'icon-192.png'), 500);
+    setTimeout(() => download(drawIcon(512), 'icon-512.png'), 1100);
+  </script>
+</body>
+</html>

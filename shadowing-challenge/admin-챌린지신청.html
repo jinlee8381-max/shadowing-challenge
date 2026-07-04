@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>신청 관리 | LJ CLASS</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="./firebase-config.js"></script>
+  <style>
+    :root {
+      --bg: #FAF8F5;
+      --card: #FFFFFF;
+      --text: #3A2A24;
+      --text-mid: #7A6054;
+      --text-mute: #B09A90;
+      --wine: #9A6070;
+      --wine-dark: #7A4A5A;
+      --wine-light: #C49AAA;
+      --wine-pale: #F2E4E9;
+      --border: #E8D4DA;
+      --shadow: 0 4px 24px rgba(154,96,112,.09);
+      --r: 16px;
+      --r-sm: 10px;
+      --green: #2E7D4F;
+      --green-pale: #E8F5EE;
+    }
+
+    *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: var(--shadow);
+    }
+
+    .header-left { display: flex; align-items: center; gap: 12px; }
+
+    .header-logo {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      color: var(--wine);
+      background: var(--wine-pale);
+      padding: 4px 12px;
+      border-radius: 100px;
+    }
+
+    .header-title { font-size: 1rem; font-weight: 700; color: var(--text); }
+
+    .notif-btn {
+      background: var(--wine-pale);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 7px 14px;
+      font-size: .82rem;
+      font-weight: 600;
+      color: var(--wine-dark);
+      cursor: pointer;
+      font-family: inherit;
+      transition: all .2s;
+    }
+
+    .notif-btn:hover { background: var(--wine); color: #fff; }
+    .notif-btn.on { background: var(--green); color: #fff; border-color: var(--green); }
+
+    /* ── Stats ── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      padding: 20px 24px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 16px 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .stat-label { font-size: .75rem; color: var(--text-mute); font-weight: 600; margin-bottom: 6px; }
+    .stat-num { font-size: 1.6rem; font-weight: 900; color: var(--text); letter-spacing: -.04em; }
+    .stat-num.new { color: var(--wine); }
+
+    /* ── Filter ── */
+    .filter-bar {
+      padding: 0 24px 16px;
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: .83rem;
+      font-weight: 600;
+      color: var(--text-mid);
+      cursor: pointer;
+      font-family: inherit;
+      transition: all .2s;
+    }
+
+    .filter-btn.active { background: var(--wine); color: #fff; border-color: var(--wine); }
+
+    /* ── List ── */
+    .list-wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .app-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r);
+      padding: 16px 18px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: start;
+      cursor: pointer;
+      transition: all .22s;
+      box-shadow: var(--shadow);
+    }
+
+    .app-card:hover { border-color: var(--wine-light); transform: translateY(-1px); }
+    .app-card.new-item { border-color: var(--wine); background: #FFF8FA; }
+
+    .app-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .app-meta {
+      font-size: .82rem;
+      color: var(--text-mute);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .app-meta-dot { color: var(--border); }
+
+    .badge {
+      display: inline-block;
+      font-size: .72rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 100px;
+    }
+
+    .badge-new { background: var(--wine-pale); color: var(--wine-dark); }
+    .badge-done { background: var(--green-pale); color: var(--green); }
+
+    .app-option {
+      font-size: .83rem;
+      font-weight: 600;
+      color: var(--wine-dark);
+      margin-top: 4px;
+    }
+
+    .card-actions { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
+
+    .btn-sm {
+      border: none;
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: .78rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      white-space: nowrap;
+      transition: all .2s;
+    }
+
+    .btn-confirm { background: var(--green-pale); color: var(--green); }
+    .btn-confirm:hover { background: var(--green); color: #fff; }
+    .btn-detail { background: var(--wine-pale); color: var(--wine-dark); }
+    .btn-detail:hover { background: var(--wine); color: #fff; }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.45);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--card);
+      border-radius: var(--r);
+      padding: 24px;
+      max-width: 520px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,.2);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .modal-title { font-size: 1.1rem; font-weight: 800; color: var(--text); }
+
+    .modal-close {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1rem;
+      color: var(--text-mid);
+    }
+
+    .detail-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .detail-row:last-of-type { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+    .detail-label {
+      font-size: .78rem;
+      font-weight: 700;
+      color: var(--text-mute);
+      min-width: 90px;
+      flex-shrink: 0;
+      padding-top: 2px;
+    }
+
+    .detail-val { font-size: .9rem; color: var(--text); line-height: 1.65; word-break: keep-all; }
+
+    .modal-actions { display: flex; gap: 8px; margin-top: 20px; }
+
+    .btn-full {
+      flex: 1;
+      border: none;
+      border-radius: var(--r-sm);
+      padding: 12px;
+      font-size: .9rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all .2s;
+    }
+
+    .btn-full.confirm { background: var(--green); color: #fff; }
+    .btn-full.confirm:hover { opacity: .88; }
+    .btn-full.cancel { background: var(--bg); color: var(--text-mid); border: 1px solid var(--border); }
+
+    /* ── Empty ── */
+    .empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-mute);
+    }
+
+    .empty-icon { font-size: 2.5rem; margin-bottom: 12px; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--wine-dark);
+      color: #fff;
+      padding: 12px 22px;
+      border-radius: var(--r-sm);
+      font-size: .88rem;
+      font-weight: 600;
+      z-index: 300;
+      transition: transform .3s ease;
+      white-space: nowrap;
+      box-shadow: 0 6px 24px rgba(0,0,0,.2);
+    }
+
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 600px) {
+      .stats { grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 16px; }
+      .stat-num { font-size: 1.3rem; }
+      .list-wrap { padding: 0 16px 40px; }
+      .filter-bar { padding: 0 16px 12px; }
+      .header { padding: 14px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-left">
+    <span class="header-logo">LJ CLASS</span>
+    <span class="header-title">쉐도잉 챌린지 신청 관리</span>
+  </div>
+  <button class="notif-btn" id="notifBtn" onclick="toggleNotification()">🔔 알림 켜기</button>
+</header>
+
+<div class="stats">
+  <div class="stat-card">
+    <div class="stat-label">총 신청</div>
+    <div class="stat-num" id="statTotal">—</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">미확인</div>
+    <div class="stat-num new" id="statNew">—</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">오늘</div>
+    <div class="stat-num" id="statToday">—</div>
+  </div>
+</div>
+
+<div class="filter-bar">
+  <button class="filter-btn active" onclick="setFilter('all', this)">전체</button>
+  <button class="filter-btn" onclick="setFilter('new', this)">미확인</button>
+  <button class="filter-btn" onclick="setFilter('confirmed', this)">확인완료</button>
+</div>
+
+<div class="list-wrap" id="listWrap">
+  <div class="empty">
+    <div class="empty-icon">📋</div>
+    <div>불러오는 중...</div>
+  </div>
+</div>
+
+<!-- 상세 모달 -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="modalName">—</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modalBody"></div>
+    <div class="modal-actions">
+      <button class="btn-full confirm" id="modalConfirmBtn" onclick="confirmFromModal()">✅ 확인 완료 처리</button>
+      <button class="btn-full cancel" onclick="closeModal()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 토스트 -->
+<div class="toast" id="toast"></div>
+
+<script>
+  let allApps = [];
+  let currentFilter = 'all';
+  let currentModalId = null;
+  let isFirstLoad = true;
+  let notifGranted = false;
+
+  // ── 알림 권한 ──
+  async function toggleNotification() {
+    const btn = document.getElementById('notifBtn');
+    if (Notification.permission === 'granted') {
+      notifGranted = !notifGranted;
+      btn.textContent = notifGranted ? '🔔 알림 켜짐' : '🔔 알림 켜기';
+      btn.className = notifGranted ? 'notif-btn on' : 'notif-btn';
+      return;
+    }
+    const perm = await Notification.requestPermission();
+    if (perm === 'granted') {
+      notifGranted = true;
+      btn.textContent = '🔔 알림 켜짐';
+      btn.className = 'notif-btn on';
+      showToast('새 신청이 오면 알림이 와요!');
+    } else {
+      showToast('브라우저 설정에서 알림을 허용해 주세요');
+    }
+  }
+
+  function sendNotification(name, option) {
+    if (!notifGranted || Notification.permission !== 'granted') return;
+    new Notification('🎉 새 쉐도잉 챌린지 신청!', {
+      body: `${name}님이 신청했어요 · ${option}`,
+      icon: './icons/icon-192x192.png'
+    });
+  }
+
+  // ── 실시간 리스너 ──
+  db.collection('applications')
+    .orderBy('submittedAt', 'desc')
+    .onSnapshot(snapshot => {
+      allApps = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      snapshot.docChanges().forEach(change => {
+        if (change.type === 'added' && !isFirstLoad) {
+          const d = change.doc.data();
+          sendNotification(d.name, d.option);
+          showToast(`🎉 ${d.name}님이 신청했어요!`);
+        }
+      });
+
+      isFirstLoad = false;
+      updateStats();
+      renderList();
+    }, err => {
+      console.error(err);
+      document.getElementById('listWrap').innerHTML =
+        '<div class="empty"><div class="empty-icon">⚠️</div><div>데이터를 불러올 수 없어요</div></div>';
+    });
+
+  // ── 통계 ──
+  function updateStats() {
+    const today = new Date().toLocaleDateString('ko-KR');
+    document.getElementById('statTotal').textContent = allApps.length;
+    document.getElementById('statNew').textContent = allApps.filter(a => a.status === 'new').length;
+    document.getElementById('statToday').textContent = allApps.filter(a => {
+      if (!a.submittedAt) return false;
+      const d = a.submittedAt.toDate ? a.submittedAt.toDate() : new Date(a.submittedAt);
+      return d.toLocaleDateString('ko-KR') === today;
+    }).length;
+  }
+
+  // ── 필터 ──
+  function setFilter(f, btn) {
+    currentFilter = f;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderList();
+  }
+
+  // ── 목록 렌더링 ──
+  function renderList() {
+    const filtered = currentFilter === 'all' ? allApps
+      : allApps.filter(a => a.status === currentFilter);
+
+    const wrap = document.getElementById('listWrap');
+
+    if (filtered.length === 0) {
+      wrap.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><div>신청 내역이 없어요</div></div>';
+      return;
+    }
+
+    wrap.innerHTML = filtered.map(a => {
+      const isNew = a.status === 'new';
+      const dateStr = a.submittedAt
+        ? (a.submittedAt.toDate ? a.submittedAt.toDate() : new Date(a.submittedAt))
+            .toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+        : '—';
+
+      return `
+        <div class="app-card ${isNew ? 'new-item' : ''}" onclick="openModal('${a.id}')">
+          <div>
+            <div class="app-name">${a.name}</div>
+            <div class="app-meta">
+              <span>${a.kakaoId}</span>
+              <span class="app-meta-dot">·</span>
+              <span>${dateStr}</span>
+            </div>
+            <div class="app-option">${a.option || '—'}</div>
+          </div>
+          <div class="card-actions">
+            <span class="badge ${isNew ? 'badge-new' : 'badge-done'}">${isNew ? '신규' : '확인완료'}</span>
+            ${isNew ? `<button class="btn-sm btn-confirm" onclick="confirm_('${a.id}', event)">✅ 확인</button>` : ''}
+            <button class="btn-sm btn-detail" onclick="openModal('${a.id}', event)">상세</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // ── 확인 처리 ──
+  async function confirm_(id, e) {
+    if (e) e.stopPropagation();
+    await db.collection('applications').doc(id).update({ status: 'confirmed' });
+    showToast('확인 완료 처리했어요');
+  }
+
+  async function confirmFromModal() {
+    if (!currentModalId) return;
+    await db.collection('applications').doc(currentModalId).update({ status: 'confirmed' });
+    document.getElementById('modalConfirmBtn').textContent = '✅ 완료!';
+    document.getElementById('modalConfirmBtn').disabled = true;
+    showToast('확인 완료 처리했어요');
+  }
+
+  // ── 모달 ──
+  function openModal(id, e) {
+    if (e) e.stopPropagation();
+    const a = allApps.find(x => x.id === id);
+    if (!a) return;
+    currentModalId = id;
+
+    const dateStr = a.submittedAt
+      ? (a.submittedAt.toDate ? a.submittedAt.toDate() : new Date(a.submittedAt))
+          .toLocaleString('ko-KR')
+      : '—';
+
+    document.getElementById('modalName').textContent = `${a.name}님 신청 상세`;
+    document.getElementById('modalBody').innerHTML = `
+      <div class="detail-row"><div class="detail-label">신청일시</div><div class="detail-val">${dateStr}</div></div>
+      <div class="detail-row"><div class="detail-label">이름</div><div class="detail-val">${a.name}</div></div>
+      <div class="detail-row"><div class="detail-label">카카오톡 ID</div><div class="detail-val">${a.kakaoId}</div></div>
+      <div class="detail-row"><div class="detail-label">선택 옵션</div><div class="detail-val">${a.option || '—'}</div></div>
+      <div class="detail-row"><div class="detail-label">입금 확인</div><div class="detail-val">${a.payment || '—'}${a.paymentNote ? ' · ' + a.paymentNote : ''}</div></div>
+      <div class="detail-row"><div class="detail-label">기대하는 변화</div><div class="detail-val">${a.expectedChange || '—'}</div></div>
+      <div class="detail-row"><div class="detail-label">기대되는 혜택</div><div class="detail-val">${a.expectedBenefit || '—'}</div></div>
+      <div class="detail-row"><div class="detail-label">상태</div><div class="detail-val"><span class="badge ${a.status === 'new' ? 'badge-new' : 'badge-done'}">${a.status === 'new' ? '신규' : '확인완료'}</span></div></div>
+    `;
+
+    const confirmBtn = document.getElementById('modalConfirmBtn');
+    if (a.status === 'confirmed') {
+      confirmBtn.textContent = '✅ 이미 확인완료';
+      confirmBtn.disabled = true;
+    } else {
+      confirmBtn.textContent = '✅ 확인 완료 처리';
+      confirmBtn.disabled = false;
+    }
+
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+
+  function closeModal(e) {
+    if (e && e.target !== document.getElementById('modalOverlay')) return;
+    document.getElementById('modalOverlay').classList.remove('open');
+    currentModalId = null;
+  }
+
+  // ── 토스트 ──
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+</script>
+</body>
+</html>
