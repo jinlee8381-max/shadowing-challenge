@@ -43,6 +43,22 @@
       </div>
     </div>
 
+    <!-- 월 이동 네비게이션 -->
+    <div class="bg-white rounded-2xl shadow-sm p-3 flex items-center justify-between gap-2">
+      <button onclick="changeMonth(-1)"
+        class="text-sm text-gray-600 px-3 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors font-medium flex-shrink-0">
+        ‹ 지난달
+      </button>
+      <div class="text-center min-w-0">
+        <p id="viewMonthLabel" class="text-base font-bold text-gray-900 truncate">—</p>
+        <p id="viewMonthBadge" class="text-xs text-blue-500 mt-0.5"></p>
+      </div>
+      <button onclick="changeMonth(1)"
+        class="text-sm text-gray-600 px-3 py-2 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors font-medium flex-shrink-0">
+        다음달 ›
+      </button>
+    </div>
+
     <!-- 진행 상태 요약 -->
     <div class="bg-white rounded-2xl shadow-sm p-4">
       <p class="text-xs text-gray-400 mb-2">링크 입력 현황</p>
@@ -108,34 +124,42 @@
     const TODAY_WEEK = weekInfo.week;
     const TODAY_DAY  = weekInfo.lessonDay;
 
+    // 아래 defaultCurriculum(제목/링크)이 적용되는 챌린지 월.
+    // 이 월에서만 자동 시드/동기화가 실행되어 다른 달 데이터를 덮어쓰지 않음.
+    // ※ 매달 firebase-config.js의 CHALLENGE_MONTH와 함께 이 값도 갱신하세요.
+    const DEFAULT_CURRICULUM_MONTH = '2026-07';
+
+    let viewMonth = CHALLENGE_MONTH;                  // 현재 화면에 표시 중인 월 ('YYYY-MM')
+    let isCurrentView = (viewMonth === CHALLENGE_MONTH); // 진행 중인 챌린지 월인지 (오늘/진행중 강조용)
+
     const WEEK_THEMES = {
-      1: { label:'1주차', theme:'다큐멘터리- 환경의 영향력',       color:'purple' },
-      2: { label:'2주차', theme:'다큐멘터리- 환경의 영향력 복습',  color:'green'  },
-      3: { label:'3주차', theme:'시트콤- 프렌즈 나쁜 습관',        color:'blue'   },
-      4: { label:'4주차', theme:'시트콤- 프렌즈 나쁜 습관 복습',   color:'orange' },
+      1: { label:'1주차', theme:'유튜브- 나에게 소중한 것',          color:'purple' },
+      2: { label:'2주차', theme:'유튜브- 나에게 소중한 것 복습',     color:'green'  },
+      3: { label:'3주차', theme:'애니메이션 인사이드아웃(2)',        color:'blue'   },
+      4: { label:'4주차', theme:'애니메이션 인사이드아웃(2) 복습',   color:'orange' },
     };
 
     const defaultCurriculum = [
-      { week:1, day:1, title:'W1/ D1 미션 다큐멘터리- 환경의 영향력',          notionUrl:'https://www.notion.so/W1-D1-36c6a9fdb6dd8048aba0cbb82666c53a?source=copy_link' },
-      { week:1, day:2, title:'W1/ D2 미션 다큐멘터리- 환경의 영향력',          notionUrl:'https://www.notion.so/W1-D2-36c6a9fdb6dd806eabffdf12f7c06373?source=copy_link' },
-      { week:1, day:3, title:'W1/ D3 미션 다큐멘터리- 환경의 영향력',          notionUrl:'https://www.notion.so/W1-D3-36c6a9fdb6dd80cd9b22c07832038890?source=copy_link' },
-      { week:1, day:4, title:'W1/ D4 미션 다큐멘터리- 환경의 영향력',          notionUrl:'https://www.notion.so/W1-D4-36c6a9fdb6dd80a6b6ffea5778e0f048?source=copy_link' },
-      { week:1, day:5, title:'W1/ D5 미션 다큐멘터리- 환경의 영향력 (복습)',   notionUrl:'https://www.notion.so/W1-D5-36c6a9fdb6dd80469e11c57b14b02bce?source=copy_link' },
-      { week:2, day:1, title:'W2/ D1 미션 다큐멘터리- 환경의 영향력 (복습)',   notionUrl:'https://www.notion.so/W2-D1-36c6a9fdb6dd80bd9533c3f227752c50?source=copy_link' },
-      { week:2, day:2, title:'W2/ D2 미션 다큐멘터리- 환경의 영향력(전체 복습)',notionUrl:'https://www.notion.so/W2-D2-36c6a9fdb6dd806187b1fc871ea2cde4?source=copy_link' },
-      { week:2, day:3, title:'W2/ D3 미션 다큐멘터리- 환경의 영향력(전체 복습)',notionUrl:'https://www.notion.so/W2-D3-36c6a9fdb6dd80eba688d57c96f64b3c?source=copy_link' },
-      { week:2, day:4, title:'W2/ D4 미션 다큐멘터리- 환경의 영향력(전체 복습)',notionUrl:'https://www.notion.so/W2-D4-36c6a9fdb6dd8079bfa8e5a5d19b0818?source=copy_link' },
-      { week:2, day:5, title:'W2/ D5 미션 다큐멘터리- 환경의 영향력(전체 복습)',notionUrl:'https://app.notion.com/p/W2-D5-36c6a9fdb6dd80348a7bc6d3a8845b58?source=copy_link' },
-      { week:3, day:1, title:'W3/ D1 미션 시트콤- 프렌즈 나쁜 습관',           notionUrl:'https://www.notion.so/W3-D1-36c6a9fdb6dd80af884dd9f7edfc6c2f?source=copy_link' },
-      { week:3, day:2, title:'W3/ D2 미션 시트콤- 프렌즈 나쁜 습관',           notionUrl:'https://www.notion.so/W3-D2-36c6a9fdb6dd8004927df1face7ea9f8?source=copy_link' },
-      { week:3, day:3, title:'W3/ D3 미션 시트콤- 프렌즈 나쁜 습관',           notionUrl:'https://www.notion.so/W3-D3-36c6a9fdb6dd8004927df1face7ea9f8' },
-      { week:3, day:4, title:'W3/ D4 미션 시트콤- 프렌즈 나쁜 습관',           notionUrl:'https://www.notion.so/W3-D4-36c6a9fdb6dd8072ace9e61b21099ec3?source=copy_link' },
-      { week:3, day:5, title:'W3/ D5 미션 시트콤- 프렌즈 나쁜 습관 (복습)',    notionUrl:'https://www.notion.so/W3-D5-36c6a9fdb6dd80cd838de7f1774750f0?source=copy_link' },
-      { week:4, day:1, title:'W4/ D1 미션 시트콤- 프렌즈 나쁜 습관 (복습)',    notionUrl:'https://www.notion.so/W4-D1-36c6a9fdb6dd8028b1a0f76afb1fff13?source=copy_link' },
-      { week:4, day:2, title:'W4/ D2 미션 시트콤- 프렌즈 나쁜 습관 (복습)',    notionUrl:'https://www.notion.so/W4-D2-36d6a9fdb6dd80a1bc90cf689cd2079d?source=copy_link' },
-      { week:4, day:3, title:'W4/ D3 미션 시트콤- 프렌즈 나쁜 습관 (전체복습)',notionUrl:'https://www.notion.so/W4-D3-36d6a9fdb6dd80559370ed28e3443ed9?source=copy_link' },
-      { week:4, day:4, title:'W4/ D4 미션 시트콤- 프렌즈 나쁜 습관 (전체복습)',notionUrl:'https://www.notion.so/W4-D4-36d6a9fdb6dd80fb819bdc31e8aa4ffa?source=copy_link' },
-      { week:4, day:5, title:'W4/ D5 미션 다큐멘터리- 환경의 영향력(전체 복습)',notionUrl:'https://www.notion.so/W4-D5-36d6a9fdb6dd803d9f81fb916d5dd0a9?source=copy_link' },
+      { week:1, day:1, title:'W1/ D1 미션 유튜브- 나에게 소중한 것',              notionUrl:'https://app.notion.com/p/W1-D1-36e6a9fdb6dd80c799a7fa946fe26492?source=copy_link' },
+      { week:1, day:2, title:'W1/ D2 미션 유튜브- 나에게 소중한 것',              notionUrl:'https://app.notion.com/p/W1-D2-36e6a9fdb6dd806992e9c42228071d2b?source=copy_link' },
+      { week:1, day:3, title:'W1/ D3 미션 유튜브- 나에게 소중한 것',              notionUrl:'https://app.notion.com/p/W1-D3-36e6a9fdb6dd80e78815d17fdac1bbab?source=copy_link' },
+      { week:1, day:4, title:'W1/ D4 미션 유튜브- 나에게 소중한 것',              notionUrl:'https://app.notion.com/p/W1-D4-36e6a9fdb6dd80639dc5d277a57c4871?source=copy_link' },
+      { week:1, day:5, title:'W1/ D5 미션 유튜브- 나에게 소중한 것',              notionUrl:'https://app.notion.com/p/W1-D5-36e6a9fdb6dd801896dae700a8850e5c?source=copy_link' },
+      { week:2, day:1, title:'W2/ D1 미션 유튜브- 나에게 소중한 것 (복습)',       notionUrl:'https://app.notion.com/p/W2-D1-36e6a9fdb6dd80d4811cc0c6498136c6?source=copy_link' },
+      { week:2, day:2, title:'W2/ D2 미션 유튜브- 나에게 소중한 것 (복습)',       notionUrl:'https://app.notion.com/p/W2-D2-36e6a9fdb6dd8018bceeccae7a5d150a?source=copy_link' },
+      { week:2, day:3, title:'W2/ D3 미션 유튜브- 나에게 소중한 것 (복습)',       notionUrl:'https://app.notion.com/p/W2-D3-36e6a9fdb6dd80ec8d3fdfeaffb4997e?source=copy_link' },
+      { week:2, day:4, title:'W2/ D4 미션 유튜브- 나에게 소중한 것 (전체복습)',   notionUrl:'https://app.notion.com/p/W2-D4-36e6a9fdb6dd809999f3d9af4da134d8?source=copy_link' },
+      { week:2, day:5, title:'W2/ D5 미션 유튜브- 나에게 소중한 것 (전체복습)',   notionUrl:'https://app.notion.com/p/W2-D5-36e6a9fdb6dd809f84e5e12142952a70?source=copy_link' },
+      { week:3, day:1, title:'W3/ D1 미션 -애니메이션 인사이드아웃(2)',           notionUrl:'https://app.notion.com/p/W3-D1-2-36e6a9fdb6dd80cab585f9907a448598?source=copy_link' },
+      { week:3, day:2, title:'W3/ D2 미션 -애니메이션 인사이드아웃(2)',           notionUrl:'https://app.notion.com/p/W3-D2-2-36e6a9fdb6dd8033b4a9d5fa2c6b180d?source=copy_link' },
+      { week:3, day:3, title:'W3/ D3 미션 -애니메이션 인사이드아웃(2)',           notionUrl:'https://app.notion.com/p/W3-D3-2-36e6a9fdb6dd8071a0cbe19e4b27206c?source=copy_link' },
+      { week:3, day:4, title:'W3/ D4 미션 -애니메이션 인사이드아웃(2) (복습)',    notionUrl:'https://app.notion.com/p/W3-D4-2-36e6a9fdb6dd8058ae89d00fe093ce64?source=copy_link' },
+      { week:3, day:5, title:'W3/ D5 미션 -애니메이션 인사이드아웃(2) (복습)',    notionUrl:'https://app.notion.com/p/W3-D5-2-36e6a9fdb6dd80ada39ce9f235745c4f?source=copy_link' },
+      { week:4, day:1, title:'W4/ D1 미션 -애니메이션 인사이드아웃(2) (복습)',    notionUrl:'https://app.notion.com/p/W4-D1-2-3836a9fdb6dd80b896c6fd50525a08a0?source=copy_link' },
+      { week:4, day:2, title:'W4/ D2 미션 -애니메이션 인사이드아웃(2) (복습)',    notionUrl:'https://app.notion.com/p/W4-D2-2-3836a9fdb6dd80309130fa9939566211?source=copy_link' },
+      { week:4, day:3, title:'W4/ D3 미션 -애니메이션 인사이드아웃(2) (전체복습)',notionUrl:'https://app.notion.com/p/W4-D3-2-3836a9fdb6dd80529228f4c74864b1f1?source=copy_link' },
+      { week:4, day:4, title:'W4/ D4 미션 -애니메이션 인사이드아웃(2) (전체복습)',notionUrl:'https://app.notion.com/p/W4-D4-2-3836a9fdb6dd80898315ccadbf231b6e?source=copy_link' },
+      { week:4, day:5, title:'W4/ D5 미션 -애니메이션 인사이드아웃(2) (전체복습)',notionUrl:'https://app.notion.com/p/W4-D5-2-3836a9fdb6dd80a995e7cd97497bed88?source=copy_link' },
     ];
 
     const colorMap = {
@@ -148,6 +172,40 @@
     let curriculum = [];
     let editingKey = null; // 'w1d1' 형식
 
+    const LOADING_HTML = `
+      <div class="text-center py-10 text-gray-400 text-sm">
+        <div class="text-3xl mb-2">⏳</div>
+        과제 데이터를 불러오는 중...
+      </div>`;
+
+    // 'YYYY-MM'에서 delta개월 이동
+    function shiftMonth(ym, delta) {
+      let [y, m] = ym.split('-').map(Number);
+      m += delta;
+      while (m < 1)  { m += 12; y--; }
+      while (m > 12) { m -= 12; y++; }
+      return `${y}-${String(m).padStart(2,'0')}`;
+    }
+
+    // 특정 월의 커리큘럼 불러오기
+    async function loadCurriculumFor(month) {
+      try {
+        const snap = await db.collection('curriculum')
+          .where('challengeMonth', '==', month).get();
+        return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+          .sort((a,b) => a.week !== b.week ? a.week - b.week : a.day - b.day);
+      } catch(e) { console.error('loadCurriculumFor:', e); return []; }
+    }
+
+    // 특정 월의 과제 한 개 저장
+    async function saveLessonFor(month, week, day, title, notionUrl) {
+      await db.collection('curriculum').doc(`${month}_w${week}d${day}`).set({
+        challengeMonth: month, week, day, title,
+        notionUrl: notionUrl || '',
+        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    }
+
     function getCurriculumItem(week, day) {
       return curriculum.find(l => l.week === week && l.day === day);
     }
@@ -159,13 +217,16 @@
     }
 
     function renderAll() {
+      isCurrentView = (viewMonth === CHALLENGE_MONTH);
       const container = document.getElementById('weekContainer');
       container.innerHTML = '';
       for (let w = 1; w <= 4; w++) {
         const info = WEEK_THEMES[w];
         const colors = colorMap[info.color];
-        const isCurrentWeek = (w === TODAY_WEEK);
-        const lessons = curriculum.filter(l => l.week === w);
+        const isCurrentWeek = isCurrentView && (w === TODAY_WEEK);
+        // 1~5일 슬롯을 항상 표시 (데이터 없는 달도 입력 가능)
+        const lessons = [1,2,3,4,5].map(day =>
+          getCurriculumItem(w, day) || { week:w, day, title:`W${w}/ D${day} 미션`, notionUrl:'' });
         const filled = lessons.filter(l => l.notionUrl && l.notionUrl.trim()).length;
 
         const weekEl = document.createElement('div');
@@ -175,7 +236,7 @@
             <div class="flex items-center gap-2">
               <span class="w-2 h-2 rounded-full ${colors.dot} ${isCurrentWeek?'animate-pulse':''}"></span>
               <span class="font-bold text-gray-800 text-sm">${info.label}</span>
-              <span class="text-xs ${colors.badge} px-2 py-0.5 rounded-full">${info.theme}</span>
+              ${isCurrentView ? `<span class="text-xs ${colors.badge} px-2 py-0.5 rounded-full">${info.theme}</span>` : ''}
               ${isCurrentWeek ? '<span class="text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full font-bold">진행중</span>' : ''}
             </div>
             <span class="text-xs text-gray-400 font-medium">${filled}/5 입력됨</span>
@@ -188,8 +249,8 @@
     }
 
     function renderRow(lesson) {
-      const isToday = lesson.week === TODAY_WEEK && lesson.day === TODAY_DAY;
-      const isPast  = lesson.week < TODAY_WEEK || (lesson.week === TODAY_WEEK && lesson.day < TODAY_DAY);
+      const isToday = isCurrentView && lesson.week === TODAY_WEEK && lesson.day === TODAY_DAY;
+      const isPast  = isCurrentView && (lesson.week < TODAY_WEEK || (lesson.week === TODAY_WEEK && lesson.day < TODAY_DAY));
       const hasUrl  = lesson.notionUrl && lesson.notionUrl.trim().length > 0;
       const key     = `w${lesson.week}d${lesson.day}`;
       return `
@@ -241,7 +302,7 @@
       const title = document.getElementById('lessonTitleInput').value.trim();
       const url   = document.getElementById('notionUrlInput').value.trim();
 
-      await saveLesson(week, day, title || `W${week}/D${day}`, url);
+      await saveLessonFor(viewMonth, week, day, title || `W${week}/D${day}`, url);
 
       // 로컬 배열도 업데이트
       const idx = curriculum.findIndex(l => l.week === week && l.day === day);
@@ -264,38 +325,58 @@
     document.getElementById('editModal').addEventListener('click', function(e) { if(e.target===this) closeModal(); });
     document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); });
 
-    async function init() {
-      const [,m] = CHALLENGE_START.split('-');
-      document.getElementById('taskMonthLabel').textContent = `${parseInt(m)}월 챌린지 · 노션 링크 설정`;
+    // 헤더 / 월 라벨 갱신
+    function updateMonthHeader() {
+      const [y, m] = viewMonth.split('-').map(Number);
+      document.getElementById('viewMonthLabel').textContent = `${y}년 ${m}월`;
+      document.getElementById('taskMonthLabel').textContent = `${m}월 챌린지 · 노션 링크 설정`;
+      const badge = document.getElementById('viewMonthBadge');
+      if (viewMonth === CHALLENGE_MONTH)      badge.textContent = '진행 중인 챌린지';
+      else if (viewMonth < CHALLENGE_MONTH)   badge.textContent = '지난 챌린지';
+      else                                    badge.textContent = '다음 챌린지 · 미리 준비';
+    }
 
-      curriculum = await loadCurriculum();
+    // 월 이동 (delta: -1 지난달, +1 다음달)
+    async function changeMonth(delta) {
+      viewMonth = shiftMonth(viewMonth, delta);
+      await loadAndRender();
+    }
 
-      if (curriculum.length === 0) {
-        // Firestore에 데이터가 없으면 기본 커리큘럼으로 초기화
-        curriculum = defaultCurriculum.map(l => ({ ...l }));
-        const saves = curriculum.map(l => saveLesson(l.week, l.day, l.title, l.notionUrl));
-        await Promise.all(saves);
-      } else {
-        // 제목 또는 노션 링크가 기본값과 다르면 자동 동기화
-        const updates = [];
-        for (const lesson of curriculum) {
-          const def = defaultCurriculum.find(d => d.week === lesson.week && d.day === lesson.day);
-          if (def) {
-            const needsUpdate = lesson.title !== def.title || (!lesson.notionUrl && def.notionUrl);
-            if (needsUpdate) {
-              lesson.title = def.title;
-              if (!lesson.notionUrl) lesson.notionUrl = def.notionUrl;
-              updates.push(saveLesson(lesson.week, lesson.day, lesson.title, lesson.notionUrl));
+    async function loadAndRender() {
+      updateMonthHeader();
+      document.getElementById('weekContainer').innerHTML = LOADING_HTML;
+
+      curriculum = await loadCurriculumFor(viewMonth);
+
+      // defaultCurriculum(하드코딩된 제목/링크)은 해당 월에만 자동 시드/동기화
+      if (viewMonth === DEFAULT_CURRICULUM_MONTH) {
+        if (curriculum.length === 0) {
+          // Firestore에 데이터가 없으면 기본 커리큘럼으로 초기화
+          curriculum = defaultCurriculum.map(l => ({ ...l }));
+          await Promise.all(curriculum.map(l =>
+            saveLessonFor(viewMonth, l.week, l.day, l.title, l.notionUrl)));
+        } else {
+          // 제목 또는 노션 링크가 기본값과 다르면 자동 동기화
+          const updates = [];
+          for (const lesson of curriculum) {
+            const def = defaultCurriculum.find(d => d.week === lesson.week && d.day === lesson.day);
+            if (def) {
+              const needsUpdate = lesson.title !== def.title || (def.notionUrl && lesson.notionUrl !== def.notionUrl);
+              if (needsUpdate) {
+                lesson.title = def.title;
+                if (def.notionUrl) lesson.notionUrl = def.notionUrl;
+                updates.push(saveLessonFor(viewMonth, lesson.week, lesson.day, lesson.title, lesson.notionUrl));
+              }
             }
           }
+          if (updates.length > 0) await Promise.all(updates);
         }
-        if (updates.length > 0) await Promise.all(updates);
       }
 
       renderAll();
     }
 
-    init();
+    loadAndRender();
   </script>
   <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
   <script>

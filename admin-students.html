@@ -54,7 +54,13 @@
 
     <!-- 학생 추가 -->
     <div class="bg-white rounded-2xl shadow-sm p-4 space-y-3">
-      <h2 class="font-bold text-gray-800 text-sm">학생 추가</h2>
+      <div class="flex items-center justify-between">
+        <h2 class="font-bold text-gray-800 text-sm">학생 추가</h2>
+        <button onclick="importPrevMonthStudents()"
+          class="text-xs text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-full hover:bg-amber-100 transition-colors font-medium">
+          ← 이전 달 학생 가져오기
+        </button>
+      </div>
       <div class="flex gap-2">
         <input type="text" id="newStudentInput"
           placeholder="학생 이름 입력"
@@ -352,6 +358,26 @@
       });
     }
 
+    async function importPrevMonthStudents() {
+      const [y, m] = CHALLENGE_MONTH.split('-').map(Number);
+      const prevD = new Date(y, m - 2, 1);
+      const prevMonth = `${prevD.getFullYear()}-${String(prevD.getMonth()+1).padStart(2,'0')}`;
+
+      const doc = await db.collection('challenges').doc(prevMonth).get();
+      if (!doc.exists || !doc.data().students?.length) {
+        showToast(`${prevMonth} 학생 데이터가 없어요`);
+        return;
+      }
+
+      const prevStudents = doc.data().students;
+      if (!confirm(`${prevMonth.replace('-', '년 ')}월 학생 ${prevStudents.length}명을 현재 달로 가져올까요?`)) return;
+
+      students = [...prevStudents];
+      await saveStudentList(students);
+      renderStudents();
+      showToast(`✓ ${prevStudents.length}명을 가져왔어요`);
+    }
+
     async function addStudent() {
       const input = document.getElementById('newStudentInput');
       const name = input.value.trim();
@@ -474,17 +500,18 @@
           }).catch(() => {})
       ]);
 
-      // 처음 Firebase 연결 시 데이터가 없으면 기본 학생 25명 자동 저장
       if (students.length === 0) {
-        const confirmInit = confirm(
-          '학생 데이터가 없어요.\n기본 학생 20명을 Firebase에 저장할까요?\n\n' +
-          '(이미 데이터가 있거나 직접 추가하실 경우 "취소"를 누르세요)'
-        );
-        if (confirmInit) {
-          students = [...DEFAULT_STUDENTS];
-          await saveStudentList(students);
-          showToast('✓ 기본 학생 20명이 Firebase에 저장됐어요!');
-        }
+        // Storage 폴더 목록으로 학생 이름 복구 시도
+        try {
+          const ref = storage.ref(`submissions/${CHALLENGE_MONTH}`);
+          const result = await ref.listAll();
+          const names = result.prefixes.map(p => p.name).filter(n => n).sort();
+          if (names.length > 0) {
+            students = names;
+            await saveStudentList(students);
+            showToast(`✓ Storage에서 학생 ${students.length}명을 복구했어요!`);
+          }
+        } catch(e) { console.error('Storage 복구 실패:', e); }
       }
 
       renderStudents();
