@@ -1,0 +1,603 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="LJ ENGLISH · 영어 축약·연음 소리법칙 리스닝 학습">
+<meta name="theme-color" content="#4C56E0">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎧%3C/text%3E%3C/svg%3E">
+<title>소리법칙 리스닝 랩</title>
+<style>
+  :root{
+    --bg:#F5F6F9; --panel:#FFFFFF; --ink:#191C24; --muted:#6B7180;
+    --line:#E4E7EE; --accent:#4C56E0; --accent-soft:#EEF0FF;
+    --warm:#E08A2B; --warm-soft:#FBF0DF; --good:#1F9E67; --bad:#DB5461;
+    --shadow:0 1px 2px rgba(25,28,36,.04),0 6px 20px rgba(25,28,36,.06);
+    --mono:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Apple SD Gothic Neo","Pretendard","Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+    line-height:1.5;letter-spacing:-.01em;padding-bottom:64px}
+  .wrap{max-width:760px;margin:0 auto;padding:0 18px}
+
+  /* ---- header ---- */
+  header{padding:30px 0 22px}
+  .brand{display:inline-flex;align-items:center;gap:9px;font-weight:800;font-size:15px;
+    letter-spacing:.1em;color:var(--ink);margin-bottom:20px}
+  .brand .mark{background:var(--accent);color:#fff;width:32px;height:32px;border-radius:9px;
+    display:grid;place-items:center;font-size:14px;letter-spacing:.02em;
+    box-shadow:0 4px 12px rgba(76,86,224,.32)}
+  .eyebrow{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--accent);margin:0 0 10px}
+  /* fixed watermark */
+  .watermark{position:fixed;right:13px;bottom:11px;z-index:5;pointer-events:none;
+    font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--muted);opacity:.45;user-select:none}
+  h1{font-size:clamp(26px,6vw,38px);line-height:1.1;margin:0;font-weight:800;text-wrap:balance}
+  h1 .thin{font-weight:500;color:var(--muted)}
+  .lede{margin:12px 0 0;color:var(--muted);font-size:15px;max-width:52ch}
+
+  /* equalizer motif */
+  .eq{display:flex;align-items:flex-end;gap:4px;height:34px;margin-top:20px}
+  .eq span{width:5px;border-radius:3px;background:var(--accent);opacity:.28;height:8px;
+    transition:opacity .2s}
+  .eq.live span{animation:bounce 1s ease-in-out infinite;opacity:.9}
+  .eq.live span:nth-child(2){animation-delay:.12s}
+  .eq.live span:nth-child(3){animation-delay:.24s}
+  .eq.live span:nth-child(4){animation-delay:.36s}
+  .eq.live span:nth-child(5){animation-delay:.48s}
+  .eq.live span:nth-child(6){animation-delay:.60s}
+  .eq.live span:nth-child(7){animation-delay:.72s}
+  @keyframes bounce{0%,100%{height:8px}50%{height:34px}}
+  @media (prefers-reduced-motion:reduce){.eq.live span{animation:none;height:22px}}
+
+  /* ---- toolbar ---- */
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:12px 14px;box-shadow:var(--shadow);margin-top:4px}
+  .toolbar .lbl{font-size:12.5px;font-weight:600;color:var(--muted)}
+  .seg{display:inline-flex;background:var(--bg);border:1px solid var(--line);
+    border-radius:9px;padding:3px;gap:2px}
+  .seg button{border:0;background:transparent;font:inherit;font-size:13px;font-weight:600;
+    color:var(--muted);padding:5px 12px;border-radius:6px;cursor:pointer}
+  .seg button.on{background:var(--panel);color:var(--accent);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+  .spacer{flex:1}
+  .warn{font-size:12px;color:var(--warm);font-weight:600;display:none}
+
+  /* lesson selector */
+  .lessons{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px}
+  .lessons .lbl{font-size:12.5px;font-weight:700;color:var(--muted);margin-right:2px}
+  .lessons button{border:1px solid var(--line);background:var(--panel);font:inherit;font-size:13px;
+    font-weight:700;color:var(--ink);padding:7px 13px;border-radius:20px;cursor:pointer;transition:.15s}
+  .lessons button:hover{border-color:var(--accent);color:var(--accent)}
+  .lessons button.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+  /* ---- tabs ---- */
+  nav.tabs{display:flex;gap:6px;margin:22px 0 18px;border-bottom:1px solid var(--line)}
+  nav.tabs button{border:0;background:transparent;font:inherit;font-size:14.5px;font-weight:700;
+    color:var(--muted);padding:10px 4px;margin-right:18px;cursor:pointer;position:relative;
+    letter-spacing:-.01em}
+  nav.tabs button.on{color:var(--ink)}
+  nav.tabs button.on::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2.5px;
+    background:var(--accent);border-radius:3px}
+  .panel-view{display:none}
+  .panel-view.on{display:block;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  /* ---- study cards ---- */
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:15px 16px;box-shadow:var(--shadow);margin-bottom:11px;display:grid;
+    grid-template-columns:1fr auto;gap:6px 14px;align-items:center}
+  .cat{grid-column:1;grid-row:1;font-size:12px;font-weight:700;color:var(--accent);
+    background:var(--accent-soft);padding:3px 9px;border-radius:20px;justify-self:start}
+  .sentence{grid-column:1;grid-row:2;font-size:16.5px;font-weight:600}
+  .sentence .drop{color:var(--muted);text-decoration:line-through;text-decoration-color:#C7CBD6}
+  .sound{grid-column:1;grid-row:3;font-size:13.5px;color:var(--muted);display:flex;
+    flex-wrap:wrap;gap:6px;align-items:baseline}
+  .sound b{color:var(--warm);font-weight:700}
+  .sound .ipa{font-family:var(--mono);font-size:12.5px;color:var(--ink);
+    background:var(--warm-soft);padding:1px 7px;border-radius:6px}
+  .play{grid-column:2;grid-row:1 / span 3;align-self:center;width:46px;height:46px;
+    border-radius:50%;border:1px solid var(--line);background:var(--panel);cursor:pointer;
+    display:grid;place-items:center;color:var(--accent);transition:.15s;flex:none}
+  .play:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .play svg{width:19px;height:19px}
+  .play.playing{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+  /* ---- shadowing ---- */
+  .shadow-stage{background:var(--panel);border:1px solid var(--line);border-radius:18px;
+    box-shadow:var(--shadow);padding:30px 24px 26px;text-align:center;min-height:280px;
+    display:flex;flex-direction:column;justify-content:center;align-items:center;gap:14px}
+  .s-count{font-size:12.5px;font-weight:700;color:var(--muted);letter-spacing:.04em}
+  .s-cat{font-size:13px;font-weight:700;color:var(--accent);background:var(--accent-soft);
+    padding:4px 12px;border-radius:20px}
+  .s-sentence{font-size:clamp(21px,5vw,27px);font-weight:800;line-height:1.25;text-wrap:balance;
+    transition:filter .2s;max-width:16ch}
+  .s-sentence.hidden{filter:blur(9px);user-select:none}
+  .s-sound{font-size:15px;color:var(--muted)}
+  .s-sound b{color:var(--warm)}
+  .s-sound .ipa{font-family:var(--mono);font-size:14px;background:var(--warm-soft);
+    padding:2px 9px;border-radius:6px;color:var(--ink)}
+  .s-note{font-size:13.5px;color:var(--muted);max-width:32ch}
+  .s-controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:6px}
+  .btn{border:1px solid var(--line);background:var(--panel);color:var(--ink);font:inherit;
+    font-weight:700;font-size:14px;padding:11px 18px;border-radius:11px;cursor:pointer;
+    display:inline-flex;align-items:center;gap:7px;transition:.15s}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn.primary:hover{background:#3b44c9}
+  .btn svg{width:16px;height:16px}
+  .s-progress{width:100%;max-width:420px;height:5px;background:var(--line);border-radius:4px;
+    margin:2px auto 0;overflow:hidden}
+  .s-progress i{display:block;height:100%;background:var(--accent);width:0;border-radius:4px;
+    transition:width .3s}
+
+  /* ---- quiz ---- */
+  .quiz-stage{background:var(--panel);border:1px solid var(--line);border-radius:18px;
+    box-shadow:var(--shadow);padding:26px 22px}
+  .q-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .q-score{font-size:13px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+  .q-prompt{text-align:center;padding:14px 0 20px}
+  .q-prompt p{margin:0 0 16px;font-size:14.5px;color:var(--muted)}
+  .q-bigplay{width:76px;height:76px;border-radius:50%;border:0;background:var(--accent);
+    color:#fff;cursor:pointer;display:grid;place-items:center;margin:0 auto;
+    box-shadow:0 8px 22px rgba(76,86,224,.35);transition:.15s}
+  .q-bigplay:hover{transform:scale(1.05)}
+  .q-bigplay svg{width:30px;height:30px}
+  .q-hint{font-size:12.5px;color:var(--muted);margin-top:12px}
+  .q-options{display:grid;gap:9px;margin-top:6px}
+  .opt{border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:13px 15px;
+    font:inherit;font-size:15.5px;font-weight:600;text-align:left;cursor:pointer;transition:.12s;
+    display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .opt:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
+  .opt .tag{font-size:11.5px;font-weight:700;color:var(--muted)}
+  .opt.correct{border-color:var(--good);background:#E7F6EE;color:var(--good)}
+  .opt.correct .tag{color:var(--good)}
+  .opt.wrong{border-color:var(--bad);background:#FBEBEC;color:var(--bad)}
+  .opt.wrong .tag{color:var(--bad)}
+  .opt:disabled{cursor:default}
+  .q-reveal{margin-top:16px;padding:14px 16px;background:var(--bg);border-radius:12px;
+    border:1px solid var(--line);display:none}
+  .q-reveal.show{display:block;animation:fade .25s}
+  .q-reveal .rs{font-size:16px;font-weight:800;margin-bottom:4px}
+  .q-reveal .rn{font-size:13.5px;color:var(--muted)}
+  .q-reveal .rn b{color:var(--warm)}
+  .q-reveal .ipa{font-family:var(--mono);background:var(--warm-soft);padding:1px 7px;
+    border-radius:6px;font-size:12.5px}
+  .q-next{margin-top:14px;display:flex;justify-content:flex-end}
+
+  footer{margin-top:34px;color:var(--muted);font-size:12.5px;text-align:center;line-height:1.6}
+  footer kbd{font-family:var(--mono);background:var(--panel);border:1px solid var(--line);
+    border-radius:5px;padding:1px 6px;font-size:11.5px}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <a href="javascript:history.back()" style="text-decoration:none;color:inherit;display:inline-block">
+      <div class="brand" style="margin-bottom:20px">‹ <span class="mark">LJ</span> ENGLISH <span style="font-weight:600;color:var(--muted);letter-spacing:0;font-size:13px">· 돌아가기</span></div>
+    </a>
+    <p class="eyebrow">Connected Speech · 소리법칙</p>
+    <h1>귀로 익히는 <span class="thin">축약·연음 리스닝 랩</span></h1>
+    <p class="lede">눈으로 아는 문법을 귀로 바꿉니다. 문장을 듣고, 따라 말하고(섀도잉),
+      들리는 소리로 형태를 맞혀보세요. 같은 24개 소리법칙을 <b style="color:var(--warm)">여러 연습 세트</b>의
+      다른 단어로 반복하며 익힐 수 있어요.</p>
+    <div class="eq" id="eq" aria-hidden="true">
+      <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <span class="lbl">재생 속도</span>
+    <div class="seg" id="speed">
+      <button data-rate="0.65">느리게</button>
+      <button data-rate="0.85" class="on">보통</button>
+      <button data-rate="1">원어민</button>
+    </div>
+    <div class="spacer"></div>
+    <span class="warn" id="warn">⚠︎ 이 브라우저는 영어 음성이 없어요</span>
+  </div>
+
+  <div class="lessons" id="lessons"><span class="lbl">연습 세트</span></div>
+
+  <nav class="tabs" id="tabs">
+    <button data-view="study" class="on">학습 리스트</button>
+    <button data-view="shadow">섀도잉</button>
+    <button data-view="quiz">받아쓰기 퀴즈</button>
+  </nav>
+
+  <section class="panel-view on" id="view-study" aria-label="학습 리스트"></section>
+
+  <section class="panel-view" id="view-shadow" aria-label="섀도잉">
+    <div class="shadow-stage">
+      <div class="s-count" id="sCount"></div>
+      <div class="s-cat" id="sCat"></div>
+      <div class="s-sentence" id="sSentence"></div>
+      <div class="s-sound" id="sSound"></div>
+      <div class="s-note" id="sNote"></div>
+      <div class="s-progress"><i id="sBar"></i></div>
+      <div class="s-controls">
+        <button class="btn" id="sPrev" aria-label="이전">‹ 이전</button>
+        <button class="btn primary" id="sPlay">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          다시 듣기
+        </button>
+        <button class="btn" id="sReveal">문장 보기</button>
+        <button class="btn" id="sNext" aria-label="다음">다음 ›</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel-view" id="view-quiz" aria-label="받아쓰기 퀴즈">
+    <div class="quiz-stage">
+      <div class="q-head">
+        <span class="q-score" id="qScore">점수 0 / 0</span>
+        <span class="q-score" id="qStreak"></span>
+      </div>
+      <div class="q-prompt">
+        <p>소리를 듣고 어떤 문장인지 골라보세요</p>
+        <button class="q-bigplay" id="qPlay" aria-label="문장 듣기">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <div class="q-hint">🔁 여러 번 들어도 됩니다</div>
+      </div>
+      <div class="q-options" id="qOptions"></div>
+      <div class="q-reveal" id="qReveal"></div>
+      <div class="q-next"><button class="btn primary" id="qNext" style="display:none">다음 문제 ›</button></div>
+    </div>
+  </section>
+
+  <footer>
+    브라우저 음성 합성(TTS)으로 재생됩니다 · 실제 원어민 발음의 근사치예요<br>
+    단축키 — <kbd>Space</kbd> 다시 듣기 · <kbd>→</kbd> 다음 · <kbd>H</kbd> 문장 보기<br>
+    <span style="display:inline-block;margin-top:10px;font-weight:800;letter-spacing:.12em;color:var(--ink)">© LJ ENGLISH</span>
+  </footer>
+</div>
+
+<div class="watermark">LJ ENGLISH</div>
+
+<script>
+/* ---------------- data ---------------- */
+const L1_ROWS = [
+  {cat:"현재 진행", full:"We are sending files.", say:"We're sending files.", drop:"are",
+    con:"We're", ipa:"wɪr", note:"we are가 한 덩어리로 붙습니다"},
+  {cat:"미래 단순", full:"We will send files.", say:"We'll send files.", drop:"will",
+    con:"We'll", ipa:"wiːl", note:"will이 [l] 소리로 축약됩니다"},
+  {cat:"가정법", full:"We would send files.", say:"We'd send files.", drop:"would",
+    con:"We'd", ipa:"wiːd", note:"would가 짧은 d처럼 들립니다"},
+  {cat:"가정법 완료", full:"We would have sent files.", say:"We would of sent files.", drop:"have",
+    con:"We'd've", ipa:"wiːdəv", note:"would have가 빠르게 붙어 [dəv]"},
+  {cat:"관계사절 완료", full:"the files that have been sent", say:"the files that of been sent", drop:"have",
+    con:"that've", ipa:"ðætəv", note:"have가 약하게 [əv]로 축약됩니다"},
+  {cat:"현재 완료", full:"We have sent files.", say:"We've sent files.", drop:"have",
+    con:"We've", ipa:"wiːv", note:"have가 [v] 소리로 붙습니다"},
+  {cat:"과거 완료", full:"We had sent files.", say:"We'd sent files.", drop:"had",
+    con:"We'd", ipa:"wiːd", note:"had가 d처럼 들립니다 (would와 소리 같음!)"},
+  {cat:"미래 완료", full:"We will have sent files.", say:"We'll of sent files.", drop:"will have",
+    con:"We'll've", ipa:"wiːləv", note:"will have가 [ləv] 한 덩어리로"},
+  {cat:"조동사 ought to", full:"We ought to send files.", say:"We oughta send files.", drop:"to",
+    con:"oughta", ipa:"ɔːtə", note:"to가 약하게 [ə]로 사라집니다"},
+  {cat:"should", full:"We should send files.", say:"We should send files.", drop:"",
+    con:"should", ipa:"ʃʊd", note:"짧고 분명하게 발음"},
+  {cat:"should not", full:"We should not send files.", say:"We shouldn't send files.", drop:"not",
+    con:"shouldn't", ipa:"ʃʊdənt", note:"not이 [ənt]로 축약됩니다"},
+  {cat:"should have", full:"We should have sent files.", say:"We should of sent files.", drop:"have",
+    con:"should've", ipa:"ʃʊdəv", note:"have가 약하게 [əv]"},
+  {cat:"should not have", full:"We should not have sent files.", say:"We shouldn't of sent files.", drop:"not have",
+    con:"shouldn't've", ipa:"ʃʊdəntəv", note:"not have가 모두 [əntəv]로 연결됩니다"},
+  {cat:"could", full:"We could send files.", say:"We could send files.", drop:"",
+    con:"could", ipa:"kʊd", note:"짧게 [kʊd]"},
+  {cat:"could not", full:"We could not send files.", say:"We couldn't send files.", drop:"not",
+    con:"couldn't", ipa:"kʊdənt", note:"not이 [ənt]로 축약됩니다"},
+  {cat:"could have", full:"We could have sent files.", say:"We could of sent files.", drop:"have",
+    con:"could've", ipa:"kʊdəv", note:"have가 거의 안 들립니다"},
+  {cat:"could not have", full:"We could not have sent files.", say:"We couldn't of sent files.", drop:"not have",
+    con:"couldn't've", ipa:"kʊdəntəv", note:"not have 모두 [əntəv]로 축약됩니다"},
+  {cat:"might", full:"We might send files.", say:"We might send files.", drop:"",
+    con:"might", ipa:"maɪt", note:"살짝 강조해서 발음"},
+  {cat:"might have", full:"We might have sent files.", say:"We might of sent files.", drop:"have",
+    con:"might've", ipa:"maɪdəv", note:"have가 [dəv]로 축약됩니다"},
+  {cat:"must", full:"We must send files.", say:"We must send files.", drop:"",
+    con:"must", ipa:"mʌst", note:"확실하게 발음"},
+  {cat:"must have", full:"We must have sent files.", say:"We must of sent files.", drop:"have",
+    con:"must've", ipa:"mʌstəv", note:"have가 [əv]로 축약됩니다"},
+  {cat:"can", full:"We can send files.", say:"We can send files.", drop:"",
+    con:"can", ipa:"kən", note:"빠르게 약화되어 [kən] — 모음이 약함"},
+  {cat:"can not", full:"We cannot send files.", say:"We can't send files.", drop:"",
+    con:"can't", ipa:"kænt", note:"can't는 [æ] 모음이 강하고 [t]가 약해 can과 헷갈림"},
+];
+
+/* generate a full 24-row lesson from a compact spec.
+   sc = subject contractions: [표시형, IPA, 한국어 설명] for each 시제.
+   ...of / oughta 트릭으로 축약 소리를 재생합니다. */
+function makeRows(L){
+  const S=L.subj, say=L.say||L.subj, are=L.are, ing=L.ing, base=L.base, pp=L.pp;
+  const oo=L.obj?" "+L.obj:"", sc=L.sc;
+  return [
+    {cat:"현재 진행", full:`${S} ${are} ${ing}${oo}.`, say:`${sc.re[3]||sc.re[0]} ${ing}${oo}.`, drop:are, con:sc.re[0], ipa:sc.re[1], note:sc.re[2]},
+    {cat:"미래 단순", full:`${S} will ${base}${oo}.`, say:`${sc.ll[0]} ${base}${oo}.`, drop:"will", con:sc.ll[0], ipa:sc.ll[1], note:sc.ll[2]},
+    {cat:"가정법", full:`${S} would ${base}${oo}.`, say:`${sc.wd[0]} ${base}${oo}.`, drop:"would", con:sc.wd[0], ipa:sc.wd[1], note:sc.wd[2]},
+    {cat:"가정법 완료", full:`${S} would have ${pp}${oo}.`, say:`${say} would of ${pp}${oo}.`, drop:"have", con:sc.wdh[0], ipa:sc.wdh[1], note:sc.wdh[2]},
+    L.rel,
+    {cat:"현재 완료", full:`${S} have ${pp}${oo}.`, say:`${sc.ve[0]} ${pp}${oo}.`, drop:"have", con:sc.ve[0], ipa:sc.ve[1], note:sc.ve[2]},
+    {cat:"과거 완료", full:`${S} had ${pp}${oo}.`, say:`${sc.hd[0]} ${pp}${oo}.`, drop:"had", con:sc.hd[0], ipa:sc.hd[1], note:sc.hd[2]},
+    {cat:"미래 완료", full:`${S} will have ${pp}${oo}.`, say:`${say}'ll of ${pp}${oo}.`, drop:"will have", con:sc.llh[0], ipa:sc.llh[1], note:sc.llh[2]},
+    {cat:"조동사 ought to", full:`${S} ought to ${base}${oo}.`, say:`${say} oughta ${base}${oo}.`, drop:"to", con:"oughta", ipa:"ɔːtə", note:"to가 약하게 [ə]로 사라집니다"},
+    {cat:"should", full:`${S} should ${base}${oo}.`, say:`${say} should ${base}${oo}.`, drop:"", con:"should", ipa:"ʃʊd", note:"짧고 분명하게 발음"},
+    {cat:"should not", full:`${S} should not ${base}${oo}.`, say:`${say} shouldn't ${base}${oo}.`, drop:"not", con:"shouldn't", ipa:"ʃʊdənt", note:"not이 [ənt]로 축약됩니다"},
+    {cat:"should have", full:`${S} should have ${pp}${oo}.`, say:`${say} should of ${pp}${oo}.`, drop:"have", con:"should've", ipa:"ʃʊdəv", note:"have가 약하게 [əv]"},
+    {cat:"should not have", full:`${S} should not have ${pp}${oo}.`, say:`${say} shouldn't of ${pp}${oo}.`, drop:"not have", con:"shouldn't've", ipa:"ʃʊdəntəv", note:"not have가 [əntəv]로 연결됩니다"},
+    {cat:"could", full:`${S} could ${base}${oo}.`, say:`${say} could ${base}${oo}.`, drop:"", con:"could", ipa:"kʊd", note:"짧게 [kʊd]"},
+    {cat:"could not", full:`${S} could not ${base}${oo}.`, say:`${say} couldn't ${base}${oo}.`, drop:"not", con:"couldn't", ipa:"kʊdənt", note:"not이 [ənt]로 축약됩니다"},
+    {cat:"could have", full:`${S} could have ${pp}${oo}.`, say:`${say} could of ${pp}${oo}.`, drop:"have", con:"could've", ipa:"kʊdəv", note:"have가 거의 안 들립니다"},
+    {cat:"could not have", full:`${S} could not have ${pp}${oo}.`, say:`${say} couldn't of ${pp}${oo}.`, drop:"not have", con:"couldn't've", ipa:"kʊdəntəv", note:"not have 모두 [əntəv]로 축약됩니다"},
+    {cat:"might", full:`${S} might ${base}${oo}.`, say:`${say} might ${base}${oo}.`, drop:"", con:"might", ipa:"maɪt", note:"살짝 강조해서 발음"},
+    {cat:"might have", full:`${S} might have ${pp}${oo}.`, say:`${say} might of ${pp}${oo}.`, drop:"have", con:"might've", ipa:"maɪdəv", note:"have가 [dəv]로 축약됩니다"},
+    {cat:"must", full:`${S} must ${base}${oo}.`, say:`${say} must ${base}${oo}.`, drop:"", con:"must", ipa:"mʌst", note:"확실하게 발음"},
+    {cat:"must have", full:`${S} must have ${pp}${oo}.`, say:`${say} must of ${pp}${oo}.`, drop:"have", con:"must've", ipa:"mʌstəv", note:"have가 [əv]로 축약됩니다"},
+    {cat:"can", full:`${S} can ${base}${oo}.`, say:`${say} can ${base}${oo}.`, drop:"", con:"can", ipa:"kən", note:"빠르게 약화되어 [kən] — 모음이 약함"},
+    {cat:"can not", full:`${S} cannot ${base}${oo}.`, say:`${say} can't ${base}${oo}.`, drop:"", con:"can't", ipa:"kænt", note:"can't는 [æ] 모음이 강하고 [t]가 약해 can과 헷갈림"},
+  ];
+}
+
+const REL=(subj,pp,obj)=>({cat:"관계사절 완료", full:`the ${subj} that have ${pp} ${obj}`,
+  say:`the ${subj} that of ${pp} ${obj}`, drop:"have", con:"that've", ipa:"ðætəv",
+  note:"have가 약하게 [əv]로 축약됩니다"});
+const RELP=(noun,pp)=>({cat:"관계사절 완료", full:`the ${noun} that have been ${pp}`,
+  say:`the ${noun} that of been ${pp}`, drop:"have", con:"that've", ipa:"ðætəv",
+  note:"have가 약하게 [əv]로 축약됩니다"});
+
+const CLIENTS=makeRows({
+  subj:"Clients", are:"are", ing:"sending", base:"send", pp:"sent", obj:"emails",
+  rel:REL("clients","sent","emails"),
+  sc:{
+    re:["Clients're","klaɪəntsər","are가 약하게 [ər]로 붙습니다","Clients er"],
+    ll:["Clients'll","klaɪəntsl","will이 덧붙듯 연결됩니다"],
+    wd:["Clients'd","klaɪəntsd","would가 d처럼 들립니다"],
+    wdh:["Clients'd've","klaɪəntsdəv","would have가 한 소리처럼 붙습니다"],
+    ve:["Clients've","klaɪəntsv","have가 거의 안 들립니다"],
+    hd:["Clients'd","klaɪəntsd","had가 d로 축약됩니다"],
+    llh:["Clients'll've","klaɪəntsləv","will have가 한 덩어리 소리로"],
+  }});
+
+const THEY=makeRows({
+  subj:"They", are:"are", ing:"finishing", base:"finish", pp:"finished", obj:"the report",
+  rel:RELP("reports","finished"),
+  sc:{
+    re:["They're","ðɛr","they are가 한 덩어리로"],
+    ll:["They'll","ðeɪl","will이 [l]로 축약됩니다"],
+    wd:["They'd","ðeɪd","would가 d처럼 들립니다"],
+    wdh:["They'd've","ðeɪdəv","would have가 빠르게 붙습니다"],
+    ve:["They've","ðeɪv","have가 [v]로 붙습니다"],
+    hd:["They'd","ðeɪd","had가 d처럼 들립니다 (would와 소리 같음!)"],
+    llh:["They'll've","ðeɪləv","will have가 [ləv] 한 덩어리로"],
+  }});
+
+const STUDENTS=makeRows({
+  subj:"Students", are:"are", ing:"submitting", base:"submit", pp:"submitted", obj:"homework",
+  rel:RELP("assignments","submitted"),
+  sc:{
+    re:["Students're","stuːdəntsər","are가 약하게 [ər]로 붙습니다","Students er"],
+    ll:["Students'll","stuːdəntsl","will이 덧붙듯 연결됩니다"],
+    wd:["Students'd","stuːdəntsd","would가 d처럼 들립니다"],
+    wdh:["Students'd've","stuːdəntsdəv","would have가 한 소리처럼 붙습니다"],
+    ve:["Students've","stuːdəntsv","have가 거의 안 들립니다"],
+    hd:["Students'd","stuːdəntsd","had가 d로 축약됩니다"],
+    llh:["Students'll've","stuːdəntsləv","will have가 한 덩어리 소리로"],
+  }});
+
+const DOGS=makeRows({
+  subj:"Dogs", are:"are", ing:"eating", base:"eat", pp:"eaten", obj:"bones",
+  rel:RELP("bones","eaten"),
+  sc:{
+    re:["Dogs're","dɔːɡzər","are가 약하게 [ər]로 붙습니다","Dogs er"],
+    ll:["Dogs'll","dɔːɡzl","will이 덧붙듯 연결됩니다"],
+    wd:["Dogs'd","dɔːɡzd","would가 d처럼 들립니다"],
+    wdh:["Dogs'd've","dɔːɡzdəv","would have가 한 소리처럼 붙습니다"],
+    ve:["Dogs've","dɔːɡzv","have가 거의 안 들립니다"],
+    hd:["Dogs'd","dɔːɡzd","had가 d로 축약됩니다"],
+    llh:["Dogs'll've","dɔːɡzləv","will have가 한 덩어리 소리로"],
+  }});
+
+const LESSONS=[
+  {id:"we",       title:"We · 파일 보내기",   rows:L1_ROWS},
+  {id:"clients",  title:"Clients · 이메일",    rows:CLIENTS},
+  {id:"they",     title:"They · 보고서",       rows:THEY},
+  {id:"students", title:"Students · 과제 제출", rows:STUDENTS},
+  {id:"dogs",     title:"Dogs · 뼈다귀 먹기",  rows:DOGS},
+];
+let DATA = LESSONS[0].rows;
+
+/* ---------------- TTS ---------------- */
+let rate = 0.85, enVoice = null, playingBtn = null;
+const eq = document.getElementById('eq');
+const synth = window.speechSynthesis;
+
+function pickVoice(){
+  if(!synth) return;
+  const vs = synth.getVoices().filter(v=>/^en(-|_)/i.test(v.lang));
+  enVoice = vs.find(v=>/US/i.test(v.lang)) || vs[0] || null;
+  document.getElementById('warn').style.display = (synth && (enVoice||vs.length||true)) ? 'none':'inline';
+  if(!synth){ document.getElementById('warn').style.display='inline'; }
+}
+if(synth){ pickVoice(); synth.onvoiceschanged = pickVoice; }
+else { document.getElementById('warn').style.display='inline'; }
+
+function speak(text, btn){
+  if(!synth){ document.getElementById('warn').style.display='inline'; return; }
+  synth.cancel();
+  if(playingBtn){ playingBtn.classList.remove('playing'); }
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang='en-US'; u.rate=rate; u.pitch=1;
+  if(enVoice) u.voice=enVoice;
+  u.onstart=()=>{ eq.classList.add('live'); if(btn){btn.classList.add('playing');playingBtn=btn;} };
+  const stop=()=>{ eq.classList.remove('live'); if(btn)btn.classList.remove('playing'); playingBtn=null; };
+  u.onend=stop; u.onerror=stop;
+  synth.speak(u);
+}
+
+/* speed control */
+document.getElementById('speed').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return;
+  rate=parseFloat(b.dataset.rate);
+  document.querySelectorAll('#speed button').forEach(x=>x.classList.toggle('on',x===b));
+});
+
+/* highlight helper: strike the dropped word in the full sentence */
+function markFull(item){
+  if(!item.drop) return item.full;
+  return item.full.replace(item.drop, `<span class="drop">${item.drop}</span>`);
+}
+
+/* ---------------- Tab 1: study list ---------------- */
+const PLAY_ICON='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+const study = document.getElementById('view-study');
+function buildStudyList(){
+  study.innerHTML='';
+  DATA.forEach(item=>{
+    const el=document.createElement('article'); el.className='card';
+    el.innerHTML=`
+      <span class="cat">${item.cat}</span>
+      <div class="sentence">${markFull(item)}</div>
+      <div class="sound"><span class="ipa">${item.con} [${item.ipa}]</span> <b>${item.note}</b></div>
+      <button class="play" aria-label="${item.say} 듣기">${PLAY_ICON}</button>`;
+    el.querySelector('.play').addEventListener('click',function(){ speak(item.say,this); });
+    study.appendChild(el);
+  });
+}
+buildStudyList();
+
+/* ---- lesson selector ---- */
+let curLesson=0;
+const lessonsEl=document.getElementById('lessons');
+LESSONS.forEach((L,i)=>{
+  const b=document.createElement('button'); b.type='button'; b.textContent=L.title;
+  if(i===0) b.classList.add('on');
+  b.addEventListener('click',()=>loadLesson(i));
+  lessonsEl.appendChild(b);
+});
+function loadLesson(i){
+  curLesson=i; DATA=LESSONS[i].rows;
+  if(synth) synth.cancel();
+  lessonsEl.querySelectorAll('button').forEach((b,bi)=>b.classList.toggle('on',bi===i));
+  buildStudyList();
+  sIdx=0; sHidden=false; renderShadow();
+  qItem=null; qRight=0; qTotal=0; qStreak=0;
+  document.getElementById('qScore').textContent='점수 0 / 0';
+  document.getElementById('qStreak').textContent='';
+  qOptions.innerHTML=''; qReveal.classList.remove('show'); qNext.style.display='none';
+  if(curView==='quiz') newQuestion();
+}
+
+/* ---------------- Tab 2: shadowing ---------------- */
+let sIdx=0, sHidden=false;
+const sEls={count:'sCount',cat:'sCat',sentence:'sSentence',sound:'sSound',note:'sNote',bar:'sBar'};
+for(const k in sEls) sEls[k]=document.getElementById(sEls[k]);
+function renderShadow(){
+  const it=DATA[sIdx];
+  sEls.count.textContent=`${sIdx+1} / ${DATA.length}`;
+  sEls.cat.textContent=it.cat;
+  sEls.sentence.innerHTML=markFull(it);
+  sEls.sentence.classList.toggle('hidden',sHidden);
+  sEls.sound.innerHTML=`<span class="ipa">${it.con} [${it.ipa}]</span>`;
+  sEls.note.innerHTML=`<b>${it.note.replace(/\[[^\]]+\]/g,m=>'<b>'+m+'</b>')}</b>`;
+  sEls.bar.style.width=((sIdx+1)/DATA.length*100)+'%';
+  document.getElementById('sReveal').textContent=sHidden?'문장 보기':'문장 가리기';
+}
+document.getElementById('sPlay').addEventListener('click',function(){ speak(DATA[sIdx].say,null); });
+document.getElementById('sPrev').addEventListener('click',()=>{ sIdx=(sIdx-1+DATA.length)%DATA.length; renderShadow(); autoSpeak(); });
+document.getElementById('sNext').addEventListener('click',()=>{ sIdx=(sIdx+1)%DATA.length; renderShadow(); autoSpeak(); });
+document.getElementById('sReveal').addEventListener('click',()=>{ sHidden=!sHidden; renderShadow(); });
+function autoSpeak(){ speak(DATA[sIdx].say,null); }
+renderShadow();
+
+/* ---------------- Tab 3: quiz ---------------- */
+let qItem=null, qOpts=[], qDone=false, qRight=0, qTotal=0, qStreak=0;
+const qOptions=document.getElementById('qOptions');
+const qReveal=document.getElementById('qReveal');
+const qNext=document.getElementById('qNext');
+
+/* confusable groups → better minimal-pair listening */
+const GROUPS=[
+  ["가정법","과거 완료","현재 완료","현재 진행"],      // We'd / We'd / We've / We're
+  ["should","should not","should have","should not have"],
+  ["could","could not","could have","could not have"],
+  ["should have","should not have","could have","could not have"], // -'ve / -n't've 극단 축약
+  ["might","might have","must","must have"],
+  ["can","can not","must","might"],                    // can vs can't 최소대립
+  ["미래 단순","미래 완료","가정법 완료","조동사 ought to"],
+];
+function byCat(c){ return DATA.find(d=>d.cat===c); }
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(seededRand()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+/* avoid Math.random restriction concerns? it's fine in browser; keep simple */
+function seededRand(){ return Math.random(); }
+
+function newQuestion(){
+  qDone=false; qReveal.classList.remove('show'); qNext.style.display='none';
+  const grp=GROUPS[Math.floor(Math.random()*GROUPS.length)];
+  const cats=shuffle(grp).slice(0,4);
+  qOpts=cats.map(byCat);
+  qItem=qOpts[Math.floor(Math.random()*qOpts.length)];
+  qOptions.innerHTML='';
+  qOpts.forEach(it=>{
+    const b=document.createElement('button'); b.className='opt';
+    b.innerHTML=`<span>${it.full}</span><span class="tag">${it.cat}</span>`;
+    b.addEventListener('click',()=>answer(b,it));
+    qOptions.appendChild(b);
+  });
+  setTimeout(()=>speak(qItem.say,null),180);
+}
+function answer(btn,it){
+  if(qDone)return; qDone=true; qTotal++;
+  const correct=it===qItem;
+  document.querySelectorAll('.opt').forEach(b=>b.disabled=true);
+  if(correct){ btn.classList.add('correct'); qRight++; qStreak++; }
+  else{
+    btn.classList.add('wrong'); qStreak=0;
+    document.querySelectorAll('.opt').forEach(b=>{
+      if(b.querySelector('.tag').textContent===qItem.cat) b.classList.add('correct');
+    });
+  }
+  qReveal.innerHTML=`<div class="rs">${correct?'✓ 정답!':'✗ 정답은 —'} ${qItem.full}</div>
+    <div class="rn"><span class="ipa">${qItem.con} [${qItem.ipa}]</span> · <b>${qItem.note}</b></div>`;
+  qReveal.classList.add('show');
+  qNext.style.display='inline-flex';
+  document.getElementById('qScore').textContent=`점수 ${qRight} / ${qTotal}`;
+  document.getElementById('qStreak').textContent=qStreak>=2?`🔥 연속 ${qStreak}`:'';
+}
+document.getElementById('qPlay').addEventListener('click',()=>{ if(qItem)speak(qItem.say,null); });
+qNext.addEventListener('click',newQuestion);
+
+/* ---------------- tabs switching ---------------- */
+let curView='study';
+document.getElementById('tabs').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return;
+  curView=b.dataset.view;
+  document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('.panel-view').forEach(v=>v.classList.remove('on'));
+  document.getElementById('view-'+curView).classList.add('on');
+  if(synth)synth.cancel();
+  if(curView==='quiz' && !qItem) newQuestion();
+});
+
+/* ---------------- keyboard ---------------- */
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT')return;
+  if(curView==='shadow'){
+    if(e.code==='Space'){e.preventDefault();autoSpeak();}
+    else if(e.key==='ArrowRight'){sIdx=(sIdx+1)%DATA.length;renderShadow();autoSpeak();}
+    else if(e.key==='ArrowLeft'){sIdx=(sIdx-1+DATA.length)%DATA.length;renderShadow();autoSpeak();}
+    else if(e.key.toLowerCase()==='h'){sHidden=!sHidden;renderShadow();}
+  } else if(curView==='quiz'){
+    if(e.code==='Space'){e.preventDefault();if(qItem)speak(qItem.say,null);}
+    else if(e.key==='ArrowRight'&&qDone)newQuestion();
+  }
+});
+</script>
+
+</body>
+</html>

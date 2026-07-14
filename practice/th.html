@@ -1,0 +1,598 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="LJ ENGLISH · th 발음 /θ/ vs /ð/ 완전 연습">
+<meta name="theme-color" content="#4C56E0">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🗣️%3C/text%3E%3C/svg%3E">
+<title>th 발음 /θ/ vs /ð/ · 발음 클리닉</title>
+<style>
+  :root{
+    --bg:#F5F6F9; --panel:#FFFFFF; --ink:#191C24; --muted:#6B7180;
+    --line:#E4E7EE; --accent:#4C56E0; --accent-soft:#EEF0FF;
+    --warm:#E08A2B; --warm-soft:#FBF0DF; --good:#1F9E67; --good-soft:#E7F6EE;
+    --bad:#DB5461; --bad-soft:#FBEBEC;
+    --shadow:0 1px 2px rgba(25,28,36,.04),0 6px 20px rgba(25,28,36,.06);
+    --mono:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Apple SD Gothic Neo","Pretendard","Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+    line-height:1.5;letter-spacing:-.01em;padding-bottom:72px}
+  .wrap{max-width:720px;margin:0 auto;padding:0 18px}
+
+  /* header */
+  header{padding:26px 0 10px}
+  .brand{display:inline-flex;align-items:center;gap:9px;font-weight:800;font-size:15px;
+    letter-spacing:.1em;color:var(--ink);margin-bottom:18px}
+  .brand .mark{background:var(--accent);color:#fff;width:32px;height:32px;border-radius:9px;
+    display:grid;place-items:center;font-size:14px;box-shadow:0 4px 12px rgba(76,86,224,.32)}
+  .eyebrow{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--accent);margin:0 0 8px}
+  h1{font-size:clamp(27px,6.5vw,40px);line-height:1.08;margin:0;font-weight:800}
+  h1 .ipa{font-family:var(--mono);color:var(--accent);font-weight:700}
+  h1 .ipa.vd{color:var(--good)}
+  .lede{margin:11px 0 0;color:var(--muted);font-size:15px;max-width:48ch}
+
+  /* section */
+  section{margin-top:30px}
+  .s-head{display:flex;align-items:center;gap:9px;margin:0 0 13px}
+  .s-num{width:25px;height:25px;border-radius:8px;background:var(--accent);color:#fff;
+    font-size:13px;font-weight:800;display:grid;place-items:center;flex:none}
+  .s-head h2{margin:0;font-size:19px;font-weight:800}
+  .s-head .sub{font-size:13px;color:var(--muted);font-weight:600}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    box-shadow:var(--shadow);padding:20px}
+
+  /* 색 코드 범례 */
+  .legend{display:flex;flex-wrap:wrap;gap:9px;margin:0 0 4px}
+  .lg{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;
+    border:1px solid var(--line);border-radius:20px;padding:5px 12px;background:var(--panel);box-shadow:var(--shadow)}
+  .lg .sw{width:12px;height:12px;border-radius:50%;flex:none}
+  .lg .sw.vl{background:var(--warm)} .lg .sw.vd{background:var(--good)}
+  .lg .ipa{font-family:var(--mono)}
+
+  /* how-to */
+  .voice-note{margin-top:15px;padding:12px 15px;background:var(--accent-soft);border-radius:12px;
+    font-size:13.5px;color:#3a409e;font-weight:600;display:flex;gap:8px;align-items:center}
+
+  /* speed toolbar */
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 14px}
+  .toolbar .lbl{font-size:12.5px;font-weight:700;color:var(--muted)}
+  .seg{display:inline-flex;background:var(--panel);border:1px solid var(--line);
+    border-radius:9px;padding:3px;gap:2px;box-shadow:var(--shadow)}
+  .seg button{border:0;background:transparent;font:inherit;font-size:13px;font-weight:700;
+    color:var(--muted);padding:6px 13px;border-radius:6px;cursor:pointer}
+  .seg button.on{background:var(--accent);color:#fff}
+
+  /* word groups */
+  .wgroup{margin-bottom:14px}
+  .wgroup .cap{font-size:12.5px;font-weight:700;color:var(--muted);margin:0 0 8px;
+    display:flex;align-items:center;gap:7px}
+  .wgroup .cap .ipa{font-family:var(--mono);background:var(--warm-soft);color:var(--ink);
+    padding:1px 7px;border-radius:6px;font-size:12px}
+  .wgroup.vd .cap .ipa{background:var(--good-soft)}
+  .words{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:9px}
+  .word{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);
+    border-radius:12px;padding:9px 11px;cursor:pointer;transition:.13s;text-align:left;font:inherit}
+  .word:hover{border-color:var(--accent);background:var(--accent-soft)}
+  .word.playing{border-color:var(--accent);background:var(--accent-soft)}
+  .word .pbtn{width:32px;height:32px;border-radius:50%;background:var(--accent-soft);color:var(--accent);
+    display:grid;place-items:center;flex:none;transition:.13s}
+  .word.playing .pbtn,.word:hover .pbtn{background:var(--accent);color:#fff}
+  .word .pbtn svg{width:15px;height:15px}
+  .word .txt{display:flex;flex-direction:column;line-height:1.25}
+  .word .en{font-size:15.5px;font-weight:700}
+  .word .en .hi{color:var(--warm)} .word .en .voi{color:var(--good)}
+  .word .ko{font-size:11.5px;color:var(--muted)}
+
+  /* θ vs ð 비교 */
+  .pairs{display:grid;gap:10px}
+  .pair{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;
+    box-shadow:var(--shadow)}
+  .pair .side{display:flex;align-items:center;gap:9px;cursor:pointer;padding:8px 10px;
+    border-radius:11px;transition:.13s;font:inherit;border:1px solid transparent;background:transparent}
+  .pair .side:hover{background:var(--accent-soft);border-color:var(--line)}
+  .pair .side.l{justify-content:flex-end;text-align:right}
+  .pair .side .en{font-size:17px;font-weight:800}
+  .pair .side .en .hi{color:var(--warm)} .pair .side .en .voi{color:var(--good)}
+  .pair .side .mini{width:29px;height:29px;border-radius:50%;background:var(--bg);color:var(--accent);
+    display:grid;place-items:center;flex:none}
+  .pair .side.l .mini{order:2}
+  .pair .side .mini svg{width:14px;height:14px}
+  .pair .vs{font-size:11px;font-weight:800;color:var(--muted);background:var(--bg);
+    border-radius:20px;padding:3px 8px}
+  .tone{font-size:10px;font-weight:800;letter-spacing:.02em;padding:1px 6px;border-radius:5px}
+  .tone.vl{background:var(--warm-soft);color:#8a5a12} .tone.vd{background:var(--good-soft);color:#146848}
+
+  /* sentences */
+  .sent{display:flex;align-items:center;gap:13px;background:var(--panel);border:1px solid var(--line);
+    border-radius:14px;padding:14px 16px;box-shadow:var(--shadow);margin-bottom:10px}
+  .sent .play{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--panel);
+    cursor:pointer;display:grid;place-items:center;color:var(--accent);flex:none;transition:.13s}
+  .sent .play:hover,.sent .play.playing{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .sent .play svg{width:18px;height:18px}
+  .sent .en{font-size:16.5px;font-weight:700;line-height:1.35}
+  .sent .en .hi{color:var(--warm)} .sent .en .voi{color:var(--good)}
+  .sent .ko{font-size:12.5px;color:var(--muted);margin-top:2px}
+
+  /* record & compare */
+  .rec{text-align:center;padding:26px 20px}
+  .rec .target{font-size:clamp(19px,4.6vw,24px);font-weight:800;line-height:1.3}
+  .rec .target .hi{color:var(--warm)} .rec .target .voi{color:var(--good)}
+  .rec .target .ko{display:block;font-size:13px;color:var(--muted);font-weight:600;margin-top:5px}
+  .rec-controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:20px}
+  .btn{border:1px solid var(--line);background:var(--panel);color:var(--ink);font:inherit;
+    font-weight:700;font-size:14.5px;padding:12px 18px;border-radius:12px;cursor:pointer;
+    display:inline-flex;align-items:center;gap:8px;transition:.13s}
+  .btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+  .btn:disabled{opacity:.4;cursor:default}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn.primary:hover{background:#3b44c9;color:#fff}
+  .btn.rec-on{background:var(--bad);color:#fff;border-color:var(--bad)}
+  .btn svg{width:17px;height:17px}
+  .rec-hint{font-size:12.5px;color:var(--muted);margin-top:14px}
+  .rec-hint.err{color:var(--bad);font-weight:600}
+  .dot{width:9px;height:9px;border-radius:50%;background:#fff;display:inline-block;
+    animation:pulse 1s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+
+  /* detailed how-to steps */
+  .hsteps{display:grid;gap:16px;margin-top:6px}
+  .hstep{display:flex;gap:13px;align-items:flex-start}
+  .hstep .hn{width:28px;height:28px;border-radius:9px;background:var(--accent);color:#fff;font-weight:800;
+    font-size:13px;display:grid;place-items:center;flex:none;margin-top:1px}
+  .hstep.vl .hn{background:var(--warm)} .hstep.vd .hn{background:var(--good)}
+  .hstep .htitle{font-weight:800;font-size:16px;margin-bottom:6px}
+  .hstep .htitle .tag{font-family:var(--mono);font-size:13px;font-weight:700;margin-left:6px}
+  .hstep .htitle .tag.vl{color:var(--warm)} .hstep .htitle .tag.vd{color:var(--good)}
+  .hstep ul{margin:0;padding-left:18px;display:grid;gap:5px;font-size:14px;color:#3c414d;line-height:1.5}
+  .hstep ul b{color:var(--warm)} .hstep.vd ul b{color:var(--good)}
+  .hstep .htip{margin-top:9px;background:var(--warm-soft);border-radius:10px;padding:9px 12px;
+    font-size:13px;color:#8a5a12;font-weight:600;line-height:1.5}
+  .hstep.vd .htip{background:var(--good-soft);color:#146848}
+  .exwords{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}
+  .exw{display:inline-flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);
+    border-radius:11px;padding:7px 12px;cursor:pointer;font:inherit;transition:.13s}
+  .exw:hover,.exw.playing{border-color:var(--accent);background:var(--accent-soft)}
+  .exw .pi{width:26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent);
+    display:grid;place-items:center;flex:none}
+  .exw.playing .pi,.exw:hover .pi{background:var(--accent);color:#fff}
+  .exw .pi svg{width:13px;height:13px}
+  .exw .en{font-weight:700;font-size:15px}
+  .exw .en .hi{color:var(--warm)} .exw .en .voi{color:var(--good)}
+  .exw .ipa{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+
+  /* mouth svg */
+  .mouth{background:linear-gradient(160deg,#FFF,#F3F4FB);border:1px solid var(--line);
+    border-radius:14px;padding:8px;display:grid;place-items:center}
+  .mouth svg{width:100%;height:auto}
+
+  /* pitfall table */
+  .ptable{width:100%;border-collapse:separate;border-spacing:0;font-size:13.5px}
+  .ptable th,.ptable td{text-align:left;padding:11px 13px;vertical-align:top;border-bottom:1px solid var(--line)}
+  .ptable th{font-size:11.5px;font-weight:700;color:var(--muted);background:var(--bg);white-space:nowrap}
+  .ptable td:first-child{font-weight:800;color:var(--bad);white-space:nowrap}
+  .ptable tr:last-child td{border-bottom:0}
+  .ptable .fix{color:var(--good);font-weight:600}
+  @media(max-width:520px){.ptable th,.ptable td{padding:9px 9px;font-size:12.5px}}
+
+  /* routine */
+  .routine{display:grid;gap:11px}
+  .rstep{display:flex;gap:13px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);
+    border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
+  .rstep .rn{width:30px;height:30px;border-radius:9px;background:var(--warm-soft);color:var(--warm);
+    font-weight:800;display:grid;place-items:center;flex:none}
+  .rstep .rt{font-weight:800;font-size:15px;margin-bottom:3px}
+  .rstep .rd{font-size:13.5px;color:var(--muted);line-height:1.55}
+  .rstep .rd b{color:var(--ink)}
+  .big-f{font-family:var(--mono);font-weight:800;color:var(--warm);letter-spacing:.06em}
+  .big-f.vd{color:var(--good)}
+
+  /* sense tips */
+  .tips{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:480px){.tips{grid-template-columns:1fr}}
+  .tipc{background:var(--accent-soft);border-radius:14px;padding:15px 16px;font-size:13.5px;color:#3a409e;
+    font-weight:600;display:flex;gap:10px;align-items:flex-start;line-height:1.5}
+  .tipc .ic{font-size:20px;flex:none;line-height:1.2}
+  .tipc b{color:var(--accent)}
+
+  footer{margin-top:38px;color:var(--muted);font-size:12.5px;text-align:center;line-height:1.7}
+  .watermark{position:fixed;right:13px;bottom:11px;z-index:5;pointer-events:none;font-size:11px;
+    font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);opacity:.4}
+</style>
+</head>
+<body>
+<div class="watermark">LJ ENGLISH</div>
+<div class="wrap">
+
+  <header>
+    <a href="javascript:history.back()" style="text-decoration:none;color:inherit;display:inline-block">
+      <div class="brand">‹ <span class="mark">LJ</span> ENGLISH <span style="font-weight:600;color:var(--muted);letter-spacing:0;font-size:13px">· 돌아가기</span></div>
+    </a>
+    <p class="eyebrow">Pronunciation Lab · 발음 클리닉</p>
+    <h1><span class="ipa">/θ/</span> · <span class="ipa vd">/ð/</span> th 발음</h1>
+    <p class="lede">혀끝을 <b style="color:var(--warm)">윗니 끝에 살짝 걸쳐 대는</b> 소리예요.
+      혀 위치는 하나! <b style="color:var(--warm)">바람만</b>이면 무성 /θ/, <b style="color:var(--good)">목을 울리면</b> 유성 /ð/.
+      한국어엔 없는 소리라 직접 듣고 따라 말하며 익혀보세요.</p>
+  </header>
+
+  <!-- 색 코드 범례 -->
+  <div class="legend">
+    <span class="lg"><span class="sw vl"></span><span class="ipa">/θ/</span> 무성 · 바람만 (진동 ❌)</span>
+    <span class="lg"><span class="sw vd"></span><span class="ipa">/ð/</span> 유성 · 목 울림 (진동 ✅)</span>
+  </div>
+
+  <!-- 재생 속도 -->
+  <div class="toolbar" style="margin-top:14px">
+    <span class="lbl">🔊 재생 속도</span>
+    <div class="seg" id="speed">
+      <button data-rate="0.6">느리게</button>
+      <button data-rate="0.85" class="on">보통</button>
+      <button data-rate="1">원어민</button>
+    </div>
+  </div>
+
+  <!-- 1. 발음 내는 법 -->
+  <section>
+    <div class="s-head"><span class="s-num">1</span><h2>‘th’ 발음, 혀 위치는 하나예요!</h2></div>
+    <div class="card">
+      <div class="mouth" style="max-width:210px;margin:0 auto 14px">
+        <!-- 옆에서 본 입 단면: 혀끝이 윗니·아랫니 사이로 살짝 나옴 -->
+        <svg viewBox="0 0 160 150" aria-label="입 모양 · 혀가 이 사이로">
+          <path d="M18 126 Q80 150 142 120" fill="none" stroke="#E4E7EE" stroke-width="2"/>
+          <!-- 얼굴 앞선 -->
+          <path d="M120 18 Q130 55 120 78 Q114 90 120 100 L120 104" fill="none" stroke="#C9CEDC" stroke-width="2.5" stroke-linecap="round"/>
+          <!-- 윗니 -->
+          <rect x="60" y="60" width="20" height="15" rx="3" fill="#fff" stroke="#9AA2B6" stroke-width="2"/>
+          <!-- 아랫니 -->
+          <rect x="60" y="92" width="20" height="14" rx="3" fill="#fff" stroke="#9AA2B6" stroke-width="2"/>
+          <!-- 혀: 뒤에서 나와 혀끝이 윗니 끝에 살짝 닿음 -->
+          <path d="M118 96 Q90 102 68 92 Q56 86 49 76 Q57 73 72 78 Q96 80 118 82 Z"
+                fill="#F0A6A6" stroke="#DB5461" stroke-width="1.6" stroke-linejoin="round"/>
+          <!-- 접촉 강조 -->
+          <circle cx="55" cy="76" r="4.5" fill="none" stroke="#E08A2B" stroke-width="1.8"/>
+          <!-- 바람 화살표 (무성 θ) -->
+          <g stroke="#4C56E0" stroke-width="2.4" stroke-linecap="round" fill="none" opacity=".85">
+            <path d="M42 80 L18 76"/><path d="M26 70 L18 76 L26 82"/>
+          </g>
+          <text x="10" y="62" font-size="13" fill="#4C56E0" font-weight="800">th</text>
+          <text x="60" y="128" font-size="10.5" fill="#DB5461" font-weight="800">혀끝 살짝 닿기</text>
+        </svg>
+      </div>
+      <div class="hsteps">
+        <div class="hstep"><span class="hn">1</span><div>
+          <div class="htitle">혀끝을 윗니 끝에 살짝 걸치듯 대요</div>
+          <ul>
+            <li>혀끝으로 <b>윗니 끝을 살짝 긁듯</b> 가볍게 올려놓아요. 완전히 눌러 막지 말고 <b>스치듯</b> 닿게!</li>
+            <li>그 좁은 틈으로 <b>바람이 새어나가며</b> 마찰 소리가 나요.</li>
+            <li>혀끝이 <b>살짝 보일</b> 정도면 딱 좋아요. 혀를 이 뒤에 숨기면 ‘ㅅ/ㄷ’이 돼요.</li>
+          </ul>
+          <div class="htip">💡 /θ/와 /ð/는 이 혀 위치가 <b>똑같아요.</b> 차이는 딱 하나 — <b>목의 진동</b>이에요.</div>
+        </div></div>
+        <div class="hstep vl"><span class="hn">2</span><div>
+          <div class="htitle">바람만 “후~” 내뱉으면 무성<span class="tag vl">/θ/</span></div>
+          <ul>
+            <li>목소리는 <b>내지 않아요.</b> “sssss”가 아니라 <b>“thhhhh”</b> 바람 소리.</li>
+            <li>손바닥을 입 앞에 대면 <b>바람이 느껴져야</b> 해요.</li>
+            <li>목에 손을 대면 <b>진동이 없어요.</b></li>
+          </ul>
+          <div class="exwords" id="exVl"></div>
+        </div></div>
+        <div class="hstep vd"><span class="hn">3</span><div>
+          <div class="htitle">목을 울리면 유성<span class="tag vd">/ð/</span></div>
+          <ul>
+            <li>입 모양은 /θ/와 <b>똑같이</b> 하고, 이번엔 <b>목을 울려요.</b></li>
+            <li>목에 손을 얹으면 <b>진동이 느껴져야</b> 해요.</li>
+            <li>‘z’나 ‘ㄷ’ 아니에요! <b>부드럽고 연한 진동</b>이에요.</li>
+          </ul>
+          <div class="exwords" id="exVd"></div>
+        </div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. 한국인이 자주 하는 실수 -->
+  <section>
+    <div class="s-head"><span class="s-num">2</span><h2>한국인이 자주 하는 실수</h2></div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="ptable">
+        <thead><tr><th>잘못된 발음</th><th>왜 그럴까</th><th>어떻게 고치나</th></tr></thead>
+        <tbody>
+          <tr><td>/θ/ → ‘ㅅ/ㅆ’</td><td>혀를 이 뒤에 숨겨서</td><td class="fix">혀끝을 윗니 끝에 살짝 걸쳐 대기! 거울로 확인</td></tr>
+          <tr><td>/ð/ → ‘ㄷ/ㄸ’</td><td>진동 없이 단단하게 발음해서</td><td class="fix">목에 진동을 느끼며 부드럽게 흘려보내기</td></tr>
+          <tr><td>th → ‘z’</td><td>혀를 이 뒤에 두어서</td><td class="fix">혀끝을 이 <b>사이</b>로 내밀어 마찰 만들기</td></tr>
+          <tr><td>‘뜨’처럼 강하게</td><td>혀를 치아로 힘주어 깨물어서</td><td class="fix">혀만 윗니 끝에 살짝 대고 입 공간으로 바람 내보내기</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 3. 소리 듣고 따라하기 -->
+  <section>
+    <div class="s-head"><span class="s-num">3</span><h2>단어로 따라하기</h2><span class="sub">단어를 누르면 소리가 나요</span></div>
+    <div class="card" id="wordsCard"></div>
+  </section>
+
+  <!-- 4. θ vs ð 비교 -->
+  <section>
+    <div class="s-head"><span class="s-num">4</span><h2>무성 /θ/ ↔ 유성 /ð/ 비교</h2><span class="sub">진동 차이를 느껴보세요</span></div>
+    <div class="pairs" id="pairsBox"></div>
+  </section>
+
+  <!-- 5. 문장 연습 -->
+  <section>
+    <div class="s-head"><span class="s-num">5</span><h2>문장으로 연습</h2><span class="sub">주황=무성 · 초록=유성</span></div>
+    <div id="sentBox"></div>
+  </section>
+
+  <!-- 6. 매일 3분 루틴 -->
+  <section>
+    <div class="s-head"><span class="s-num">6</span><h2>매일 3분 연습 루틴</h2><span class="sub">이 순서로 하루 3분</span></div>
+    <div class="routine">
+      <div class="rstep"><span class="rn">1</span><div>
+        <div class="rt">혀 내밀기 + 진동 비교</div>
+        <div class="rd">혀끝을 이 사이에 끼우고 <b>바람만</b> <span class="big-f">thhhh…</span>(무성) 5초,
+          이어서 <b>목 울리며</b> <span class="big-f vd">thhhh…</span>(유성) 5초 — 목에 손 얹고 진동 확인</div>
+      </div></div>
+      <div class="rstep"><span class="rn">2</span><div>
+        <div class="rt">단어 반복 훈련 <span style="font-weight:600;color:var(--muted);font-size:12.5px">· 혀 보이게</span></div>
+        <div class="rd">위 <b>‘단어로 따라하기’</b>의 단어를 눌러 듣고 두 번씩 따라 말하기 — think · this · bath · mother</div>
+      </div></div>
+      <div class="rstep"><span class="rn">3</span><div>
+        <div class="rt">문장 속 연습</div>
+        <div class="rd">위 <b>‘문장으로 연습’</b>의 문장을 들으며 무성·유성을 구분해 따라 읽기</div>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- 7. 녹음해서 비교 -->
+  <section>
+    <div class="s-head"><span class="s-num">7</span><h2>녹음해서 비교하기</h2><span class="sub">모델 소리와 내 발음을 나란히</span></div>
+    <div class="card rec">
+      <div class="target">
+        My <span class="hi">th</span>ree bro<span class="voi">th</span>ers <span class="hi">th</span>ank <span class="voi">th</span>eir mo<span class="voi">th</span>er.
+        <span class="ko">내 세 형제가 그들의 엄마에게 감사해요.</span>
+      </div>
+      <div class="rec-controls">
+        <button class="btn primary" id="modelBtn">🔊 모델 듣기</button>
+        <button class="btn" id="recBtn">🎤 내 발음 녹음</button>
+        <button class="btn" id="playBtn" disabled>▶ 내 발음 듣기</button>
+      </div>
+      <p class="rec-hint" id="recHint">녹음 버튼을 누르면 마이크 사용 허용을 물어봐요. 허용하면 녹음돼요.</p>
+    </div>
+  </section>
+
+  <!-- 감각 익히기 팁 -->
+  <section>
+    <div class="s-head"><span class="s-num" style="background:var(--warm)">🧠</span><h2>감각 익히기 팁</h2></div>
+    <div class="tips">
+      <div class="tipc"><span class="ic">✋</span><span>목에 손을 얹고 <b>think(무진동)</b> ↔ <b>this(진동)</b>를 번갈아 말해보세요. 손끝의 진동 차이가 곧 θ·ð의 차이예요.</span></div>
+      <div class="tipc"><span class="ic">📄</span><span>입 앞에 <b>종이</b>를 대고 말해보세요. /θ/(think)는 종이가 많이 흔들리고, /ð/(this)는 덜 흔들려요.</span></div>
+    </div>
+  </section>
+
+  <footer>
+    🗣️ LJ ENGLISH 발음 클리닉 · 원어민 음성으로 재생됩니다<br>
+    소리가 안 나면 기기의 소리(무음 모드)를 확인해 주세요.
+  </footer>
+</div>
+
+<script>
+/* ============ 데이터 ============ */
+/* tone: 'vl' 무성 /θ/ (주황) · 'vd' 유성 /ð/ (초록) */
+const WORDS = [
+  { tone:"vl", cap:"무성 /θ/ · 첫소리", ipa:"/θ/…", items:[
+    {en:"think", ko:"생각하다"}, {en:"thank", ko:"감사하다"},
+    {en:"three", ko:"셋"},       {en:"thing", ko:"것"},
+    {en:"thumb", ko:"엄지"},     {en:"Thursday", ko:"목요일"},
+  ]},
+  { tone:"vl", cap:"무성 /θ/ · 가운데·끝소리", ipa:"…/θ/", items:[
+    {en:"nothing", ko:"아무것도"}, {en:"healthy", ko:"건강한"},
+    {en:"birthday", ko:"생일"},    {en:"bath", ko:"목욕"},
+    {en:"math", ko:"수학"},        {en:"mouth", ko:"입"},
+    {en:"tooth", ko:"이(치아)"},   {en:"both", ko:"둘 다"},
+  ]},
+  { tone:"vd", cap:"유성 /ð/ · 첫소리", ipa:"/ð/…", items:[
+    {en:"this", ko:"이것"},  {en:"that", ko:"저것"},
+    {en:"they", ko:"그들"},  {en:"the", ko:"그 (정관사)"},
+    {en:"then", ko:"그때"},  {en:"there", ko:"거기"},
+  ]},
+  { tone:"vd", cap:"유성 /ð/ · 가운데·끝소리", ipa:"…/ð/", items:[
+    {en:"mother", ko:"엄마"},   {en:"father", ko:"아빠"},
+    {en:"brother", ko:"형제"},  {en:"weather", ko:"날씨"},
+    {en:"together", ko:"함께"}, {en:"bathe", ko:"목욕하다"},
+    {en:"breathe", ko:"숨쉬다"},{en:"with", ko:"~와 함께"},
+  ]},
+];
+/* θ(무성) ↔ ð(유성) 비교쌍 */
+const PAIRS = [
+  {l:"think", r:"this",   lko:"생각하다", rko:"이것"},
+  {l:"thank", r:"that",   lko:"감사하다", rko:"저것"},
+  {l:"three", r:"they",   lko:"셋",       rko:"그들"},
+  {l:"bath",  r:"bathe",  lko:"목욕",     rko:"목욕하다"},
+  {l:"tooth", r:"mother", lko:"이(치아)", rko:"엄마"},
+  {l:"both",  r:"weather",lko:"둘 다",    rko:"날씨"},
+];
+/* 문장: html 필드에 무성(hi)·유성(voi) 색을 미리 지정 */
+const SENTS = [
+  {say:"This is my thumb.",
+   html:'<span class="voi">Th</span>is is my <span class="hi">th</span>umb.', ko:"이건 내 엄지예요."},
+  {say:"Thank you for that.",
+   html:'<span class="hi">Th</span>ank you for <span class="voi">th</span>at.', ko:"그것에 대해 고마워요."},
+  {say:"I think she's there.",
+   html:'I <span class="hi">th</span>ink she\'s <span class="voi">th</span>ere.', ko:"그녀가 거기 있는 것 같아요."},
+  {say:"That bath was refreshing.",
+   html:'<span class="voi">Th</span>at ba<span class="hi">th</span> was refreshing.', ko:"그 목욕은 상쾌했어요."},
+  {say:"They both brush their teeth.",
+   html:'<span class="voi">Th</span>ey bo<span class="hi">th</span> brush <span class="voi">th</span>eir tee<span class="hi">th</span>.', ko:"그들은 둘 다 이를 닦아요."},
+  {say:"My brother has a birthday this Thursday.",
+   html:'My bro<span class="voi">th</span>er has a bir<span class="hi">th</span>day <span class="voi">th</span>is <span class="hi">Th</span>ursday.', ko:"내 형은 이번 목요일이 생일이에요."},
+];
+const EXVL = [
+  {en:"think", ipa:"/θɪŋk/"}, {en:"thank", ipa:"/θæŋk/"},
+  {en:"math", ipa:"/mæθ/"},   {en:"bath", ipa:"/bæθ/"},
+];
+const EXVD = [
+  {en:"this", ipa:"/ðɪs/"},   {en:"that", ipa:"/ðæt/"},
+  {en:"mother", ipa:"/ˈmʌðər/"}, {en:"they", ipa:"/ðeɪ/"},
+];
+
+/* ============ TTS (mp3 없을 때 대체) ============ */
+let rate = 0.85, enVoice = null;
+function pickVoice(){
+  const vs = speechSynthesis.getVoices();
+  const pref = ["Samantha","Google US English","Microsoft Aria","Microsoft Jenny","Karen","Moira","Daniel"];
+  for(const name of pref){ const v = vs.find(x=>x.name===name); if(v){enVoice=v;return;} }
+  enVoice = vs.find(v=>/en[-_]US/i.test(v.lang)) || vs.find(v=>/^en/i.test(v.lang)) || null;
+}
+if('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+let curBtn = null;
+function speak(text, btn){
+  if(!('speechSynthesis' in window)){ return; }
+  speechSynthesis.cancel();
+  if(curBtn){ curBtn.classList.remove('playing'); }
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US'; u.rate = rate; u.pitch = 1;
+  if(enVoice) u.voice = enVoice;
+  if(btn){ btn.classList.add('playing'); curBtn = btn;
+    u.onend = u.onerror = ()=>{ btn.classList.remove('playing'); if(curBtn===btn) curBtn=null; }; }
+  speechSynthesis.speak(u);
+}
+
+/* 원어민 음성(mp3) 재생 — 없으면 브라우저 음성으로 대체 */
+const AUDIO_BASE = 'audio/th/';
+function slug(t){ return t.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,''); }
+let curAudio = null, curPlayBtn = null;
+function clearPlay(){ if(curPlayBtn){ curPlayBtn.classList.remove('playing'); curPlayBtn=null; } }
+function play(text, btn){
+  try{ if(curAudio){ curAudio.pause(); curAudio=null; } }catch(e){}
+  if('speechSynthesis' in window) speechSynthesis.cancel();
+  clearPlay();
+  const a = new Audio(AUDIO_BASE + slug(text) + '.mp3');
+  a.playbackRate = rate;
+  a.preservesPitch = a.mozPreservesPitch = a.webkitPreservesPitch = true;
+  if(btn){ btn.classList.add('playing'); curPlayBtn = btn; }
+  a.onended = ()=>{ if(curPlayBtn===btn) clearPlay(); };
+  a.onerror = ()=>{ if(curPlayBtn===btn) clearPlay(); speak(text, btn); };  // mp3 없으면 TTS
+  curAudio = a;
+  a.play().catch(()=>{});
+}
+
+/* 속도 토글 */
+document.getElementById('speed').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  document.querySelectorAll('#speed button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); rate = parseFloat(b.dataset.rate);
+});
+
+/* ============ 렌더 ============ */
+const PLAY_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+
+// 'th'(대소문자) 강조 — tone에 따라 hi(주황)/voi(초록)
+function hiTh(en, tone){
+  const cls = tone==='vd' ? 'voi' : 'hi';
+  return en.replace(/th/gi, m=>`<span class="${cls}">${m}</span>`);
+}
+
+// 단어
+const wc = document.getElementById('wordsCard');
+WORDS.forEach(g=>{
+  const grp = document.createElement('div'); grp.className='wgroup'+(g.tone==='vd'?' vd':'');
+  grp.innerHTML = `<p class="cap">${g.cap} <span class="ipa">${g.ipa}</span></p>
+    <div class="words">${g.items.map(w=>
+      `<button class="word" data-say="${w.en}">
+        <span class="pbtn">${PLAY_SVG}</span>
+        <span class="txt"><span class="en">${hiTh(w.en,g.tone)}</span><span class="ko">${w.ko}</span></span>
+      </button>`).join('')}</div>`;
+  wc.appendChild(grp);
+});
+
+// Step2·3 예시 단어
+function renderEx(id, list, tone){
+  document.getElementById(id).innerHTML = list.map(w=>
+    `<button class="exw" data-say="${w.en}">
+      <span class="pi">${PLAY_SVG}</span>
+      <span class="en">${hiTh(w.en,tone)}</span>
+      <span class="ipa">${w.ipa}</span>
+    </button>`).join('');
+}
+renderEx('exVl', EXVL, 'vl');
+renderEx('exVd', EXVD, 'vd');
+
+// θ vs ð 비교
+const koStyle = 'font-size:11px;color:var(--muted);font-weight:600';
+const txtCol = 'display:flex;flex-direction:column;line-height:1.25;gap:2px';
+document.getElementById('pairsBox').innerHTML = PAIRS.map(p=>`
+  <div class="pair">
+    <button class="side l" data-say="${p.l}">
+      <span style="${txtCol};align-items:flex-end">
+        <span class="tone vl">무성 θ</span>
+        <span class="en">${hiTh(p.l,'vl')}</span><span style="${koStyle}">${p.lko}</span></span>
+      <span class="mini">${PLAY_SVG}</span>
+    </button>
+    <span class="vs">vs</span>
+    <button class="side r" data-say="${p.r}">
+      <span class="mini">${PLAY_SVG}</span>
+      <span style="${txtCol};align-items:flex-start">
+        <span class="tone vd">유성 ð</span>
+        <span class="en">${hiTh(p.r,'vd')}</span><span style="${koStyle}">${p.rko}</span></span>
+    </button>
+  </div>`).join('');
+
+// 문장
+document.getElementById('sentBox').innerHTML = SENTS.map(s=>`
+  <div class="sent">
+    <button class="play" data-say="${s.say.replace(/"/g,'&quot;')}">${PLAY_SVG}</button>
+    <div><div class="en">${s.html}</div><div class="ko">${s.ko}</div></div>
+  </div>`).join('');
+
+// 클릭 → 재생 (이벤트 위임)
+document.body.addEventListener('click', e=>{
+  const el = e.target.closest('[data-say]'); if(!el) return;
+  const hasBtn = el.classList.contains('word')||el.classList.contains('play')||el.classList.contains('exw');
+  play(el.dataset.say, hasBtn ? el : null);
+});
+
+/* ============ 녹음 비교 ============ */
+const modelBtn=document.getElementById('modelBtn'), recBtn=document.getElementById('recBtn'),
+      playBtn=document.getElementById('playBtn'), recHint=document.getElementById('recHint');
+const TARGET = "My three brothers thank their mother.";
+modelBtn.addEventListener('click', ()=> play(TARGET, null));
+
+let mediaRec=null, chunks=[], myUrl=null, myAudio=null;
+recBtn.addEventListener('click', async ()=>{
+  if(mediaRec && mediaRec.state==='recording'){ mediaRec.stop(); return; }
+  if(!navigator.mediaDevices || !window.MediaRecorder){
+    recHint.textContent='이 브라우저는 녹음을 지원하지 않아요. Safari나 Chrome 최신 버전을 써주세요.';
+    recHint.classList.add('err'); return;
+  }
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    chunks=[]; mediaRec = new MediaRecorder(stream);
+    mediaRec.ondataavailable = ev=>{ if(ev.data.size>0) chunks.push(ev.data); };
+    mediaRec.onstop = ()=>{
+      stream.getTracks().forEach(t=>t.stop());
+      if(myUrl) URL.revokeObjectURL(myUrl);
+      myUrl = URL.createObjectURL(new Blob(chunks,{type:mediaRec.mimeType||'audio/webm'}));
+      myAudio = new Audio(myUrl);
+      playBtn.disabled=false;
+      recBtn.textContent='🎤 다시 녹음'; recBtn.classList.remove('rec-on');
+      recHint.textContent='좋아요! "내 발음 듣기"로 모델 소리와 비교해 보세요.'; recHint.classList.remove('err');
+    };
+    mediaRec.start();
+    recBtn.innerHTML='<span class="dot"></span> 멈추기'; recBtn.classList.add('rec-on');
+    recHint.textContent='녹음 중… 문장을 소리 내어 읽고, 끝나면 멈추기를 누르세요.'; recHint.classList.remove('err');
+  }catch(err){
+    recHint.textContent='마이크를 사용할 수 없어요. 브라우저 설정에서 마이크 권한을 허용해 주세요.';
+    recHint.classList.add('err');
+  }
+});
+playBtn.addEventListener('click', ()=>{ if(myAudio){ myAudio.currentTime=0; myAudio.play(); } });
+</script>
+</body>
+</html>

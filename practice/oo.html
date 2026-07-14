@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="LJ ENGLISH · 모음 /uː/ vs /ʊ/ 구별 완전 연습">
+<meta name="theme-color" content="#4C56E0">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🗣️%3C/text%3E%3C/svg%3E">
+<title>모음 /uː/ vs /ʊ/ · 발음 클리닉</title>
+<style>
+  :root{
+    --bg:#F5F6F9; --panel:#FFFFFF; --ink:#191C24; --muted:#6B7180;
+    --line:#E4E7EE; --accent:#4C56E0; --accent-soft:#EEF0FF;
+    --warm:#E08A2B; --warm-soft:#FBF0DF; --good:#1F9E67; --good-soft:#E7F6EE;
+    --bad:#DB5461; --bad-soft:#FBEBEC;
+    --shadow:0 1px 2px rgba(25,28,36,.04),0 6px 20px rgba(25,28,36,.06);
+    --mono:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Apple SD Gothic Neo","Pretendard","Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+    line-height:1.5;letter-spacing:-.01em;padding-bottom:72px}
+  .wrap{max-width:720px;margin:0 auto;padding:0 18px}
+
+  header{padding:26px 0 10px}
+  .brand{display:inline-flex;align-items:center;gap:9px;font-weight:800;font-size:15px;
+    letter-spacing:.1em;color:var(--ink);margin-bottom:18px}
+  .brand .mark{background:var(--accent);color:#fff;width:32px;height:32px;border-radius:9px;
+    display:grid;place-items:center;font-size:14px;box-shadow:0 4px 12px rgba(76,86,224,.32)}
+  .eyebrow{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--accent);margin:0 0 8px}
+  h1{font-size:clamp(27px,6.5vw,40px);line-height:1.08;margin:0;font-weight:800}
+  h1 .ipa{font-family:var(--mono);font-weight:700}
+  h1 .ipa.lu{color:var(--warm)} h1 .ipa.su{color:var(--accent)}
+  .lede{margin:11px 0 0;color:var(--muted);font-size:15px;max-width:50ch}
+
+  section{margin-top:30px}
+  .s-head{display:flex;align-items:center;gap:9px;margin:0 0 13px}
+  .s-num{width:25px;height:25px;border-radius:8px;background:var(--accent);color:#fff;
+    font-size:13px;font-weight:800;display:grid;place-items:center;flex:none}
+  .s-head h2{margin:0;font-size:19px;font-weight:800}
+  .s-head .sub{font-size:13px;color:var(--muted);font-weight:600}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:20px}
+
+  /* 색 코드 범례 */
+  .legend{display:flex;flex-wrap:wrap;gap:9px;margin:0 0 4px}
+  .lg{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;
+    border:1px solid var(--line);border-radius:20px;padding:5px 12px;background:var(--panel);box-shadow:var(--shadow)}
+  .lg .sw{width:12px;height:12px;border-radius:50%;flex:none}
+  .lg .sw.lu{background:var(--warm)} .lg .sw.su{background:var(--accent)}
+  .lg .ipa{font-family:var(--mono)}
+
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0 14px}
+  .toolbar .lbl{font-size:12.5px;font-weight:700;color:var(--muted)}
+  .seg{display:inline-flex;background:var(--panel);border:1px solid var(--line);
+    border-radius:9px;padding:3px;gap:2px;box-shadow:var(--shadow)}
+  .seg button{border:0;background:transparent;font:inherit;font-size:13px;font-weight:700;
+    color:var(--muted);padding:6px 13px;border-radius:6px;cursor:pointer}
+  .seg button.on{background:var(--accent);color:#fff}
+
+  /* 한눈에 비교 2카드 */
+  .cmp{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:560px){.cmp{grid-template-columns:1fr}}
+  .cmpc{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);
+    overflow:hidden;display:flex;flex-direction:column}
+  .cmpc .top{padding:13px 16px;color:#fff;display:flex;align-items:center;justify-content:space-between}
+  .cmpc.lu .top{background:var(--warm)} .cmpc.su .top{background:var(--accent)}
+  .cmpc .top .sy{font-family:var(--mono);font-size:22px;font-weight:800}
+  .cmpc .top .nm{font-size:11.5px;font-weight:800;background:rgba(255,255,255,.22);padding:3px 9px;border-radius:20px}
+  .cmpc dl{margin:0;padding:12px 16px 16px;display:grid;gap:9px}
+  .cmpc dt{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.02em}
+  .cmpc dd{margin:2px 0 0;font-size:13.5px;font-weight:600;line-height:1.4}
+
+  /* how-to blocks */
+  .hows{display:grid;gap:12px}
+  .howc{display:grid;grid-template-columns:104px 1fr;gap:16px;align-items:center;
+    background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:16px}
+  @media(max-width:520px){.howc{grid-template-columns:80px 1fr;gap:12px;padding:14px}}
+  .howc .mo{background:linear-gradient(160deg,#FFF,#F3F4FB);border:1px solid var(--line);
+    border-radius:13px;padding:6px;display:grid;place-items:center}
+  .howc .mo svg{width:100%;height:auto}
+  .howc h3{margin:0 0 6px;font-size:17px;font-weight:800;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .howc h3 .sy{font-family:var(--mono)}
+  .howc.lu h3 .sy{color:var(--warm)} .howc.su h3 .sy{color:var(--accent)}
+  .howc h3 .tagk{font-size:11px;font-weight:800;padding:2px 8px;border-radius:20px}
+  .howc.lu h3 .tagk{background:var(--warm-soft);color:#8a5a12}
+  .howc.su h3 .tagk{background:var(--accent-soft);color:#3a409e}
+  .howc ul{margin:0;padding-left:18px;display:grid;gap:5px;font-size:14px;color:#3c414d;line-height:1.5}
+  .howc ul b{color:var(--ink)}
+  .howc.lu ul b{color:#a5651a} .howc.su ul b{color:#3a409e}
+  .howc .htip{margin-top:9px;border-radius:10px;padding:9px 12px;font-size:13px;font-weight:600;line-height:1.5}
+  .howc.lu .htip{background:var(--warm-soft);color:#8a5a12}
+  .howc.su .htip{background:var(--accent-soft);color:#3a409e}
+  .exwords{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+  .exw{display:inline-flex;align-items:center;gap:7px;background:var(--panel);border:1px solid var(--line);
+    border-radius:11px;padding:6px 11px;cursor:pointer;font:inherit;transition:.13s}
+  .exw:hover,.exw.playing{border-color:var(--accent);background:var(--accent-soft)}
+  .exw .pi{width:24px;height:24px;border-radius:50%;background:var(--accent-soft);color:var(--accent);
+    display:grid;place-items:center;flex:none}
+  .exw.playing .pi,.exw:hover .pi{background:var(--accent);color:#fff}
+  .exw .pi svg{width:12px;height:12px}
+  .exw .en{font-weight:700;font-size:14.5px}
+  .exw .ipa{font-family:var(--mono);font-size:11px;color:var(--muted)}
+
+  /* highlight colors */
+  .hi-lu{color:var(--warm)} .hi-su{color:var(--accent)}
+
+  /* minimal pairs */
+  .pairs{display:grid;gap:10px}
+  .pair{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:var(--shadow)}
+  .pair .side{display:flex;align-items:center;gap:9px;cursor:pointer;padding:8px 10px;
+    border-radius:11px;transition:.13s;font:inherit;border:1px solid transparent;background:transparent}
+  .pair .side:hover{background:var(--accent-soft);border-color:var(--line)}
+  .pair .side.lu{justify-content:flex-end;text-align:right}
+  .pair .side .en{font-size:18px;font-weight:800}
+  .pair .side .mini{width:29px;height:29px;border-radius:50%;background:var(--bg);color:var(--accent);
+    display:grid;place-items:center;flex:none}
+  .pair .side.lu .mini{order:2}
+  .pair .side .mini svg{width:14px;height:14px}
+  .pair .vs{font-size:11px;font-weight:800;color:var(--muted);background:var(--bg);border-radius:20px;padding:3px 8px}
+  .pair .side .ko{font-size:11px;color:var(--muted);font-weight:600}
+  .cx{display:flex;flex-direction:column;line-height:1.22;gap:1px}
+
+  /* sentences */
+  .sent{display:flex;align-items:center;gap:13px;background:var(--panel);border:1px solid var(--line);
+    border-radius:14px;padding:14px 16px;box-shadow:var(--shadow);margin-bottom:10px}
+  .sent .play{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--panel);
+    cursor:pointer;display:grid;place-items:center;color:var(--accent);flex:none;transition:.13s}
+  .sent .play:hover,.sent .play.playing{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .sent .play svg{width:18px;height:18px}
+  .sent .en{font-size:16.5px;font-weight:700;line-height:1.35}
+  .sent .ko{font-size:12.5px;color:var(--muted);margin-top:2px}
+
+  /* record */
+  .rec{text-align:center;padding:26px 20px}
+  .rec .target{font-size:clamp(19px,4.6vw,24px);font-weight:800;line-height:1.3}
+  .rec .target .ko{display:block;font-size:13px;color:var(--muted);font-weight:600;margin-top:5px}
+  .rec-controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:20px}
+  .btn{border:1px solid var(--line);background:var(--panel);color:var(--ink);font:inherit;
+    font-weight:700;font-size:14.5px;padding:12px 18px;border-radius:12px;cursor:pointer;
+    display:inline-flex;align-items:center;gap:8px;transition:.13s}
+  .btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+  .btn:disabled{opacity:.4;cursor:default}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn.primary:hover{background:#3b44c9;color:#fff}
+  .btn.rec-on{background:var(--bad);color:#fff;border-color:var(--bad)}
+  .btn svg{width:17px;height:17px}
+  .rec-hint{font-size:12.5px;color:var(--muted);margin-top:14px}
+  .rec-hint.err{color:var(--bad);font-weight:600}
+  .dot{width:9px;height:9px;border-radius:50%;background:#fff;display:inline-block;animation:pulse 1s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+
+  /* tips */
+  .tips{display:grid;gap:10px}
+  .tipc{background:var(--accent-soft);border-radius:14px;padding:15px 16px;font-size:13.5px;color:#3a409e;
+    font-weight:600;display:flex;gap:10px;align-items:flex-start;line-height:1.5}
+  .tipc .ic{font-size:20px;flex:none;line-height:1.2}
+  .tipc b{color:var(--accent)} .tipc .hi-lu{color:#a5651a}
+
+  footer{margin-top:38px;color:var(--muted);font-size:12.5px;text-align:center;line-height:1.7}
+  .watermark{position:fixed;right:13px;bottom:11px;z-index:5;pointer-events:none;font-size:11px;
+    font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);opacity:.4}
+</style>
+</head>
+<body>
+<div class="watermark">LJ ENGLISH</div>
+<div class="wrap">
+
+  <header>
+    <a href="javascript:history.back()" style="text-decoration:none;color:inherit;display:inline-block">
+      <div class="brand">‹ <span class="mark">LJ</span> ENGLISH <span style="font-weight:600;color:var(--muted);letter-spacing:0;font-size:13px">· 돌아가기</span></div>
+    </a>
+    <p class="eyebrow">Pronunciation Lab · 발음 클리닉</p>
+    <h1>모음 <span class="ipa lu">/uː/</span> vs <span class="ipa su">/ʊ/</span></h1>
+    <p class="lede">둘 다 ‘우’ 같지만 <b style="color:var(--warm)">/uː/는 길고 깊게</b>(입술 쭉 내밀기),
+      <b style="color:var(--accent)">/ʊ/는 짧고 가볍게</b>(살짝만)! 길이와 입술 내미는 정도가 핵심이에요.</p>
+  </header>
+
+  <!-- 색 코드 범례 -->
+  <div class="legend">
+    <span class="lg"><span class="sw lu"></span><span class="ipa">/uː/</span> 길게 · 입 쭉 내밀기 · blue</span>
+    <span class="lg"><span class="sw su"></span><span class="ipa">/ʊ/</span> 짧게 · 살짝만 · book</span>
+  </div>
+
+  <!-- 재생 속도 -->
+  <div class="toolbar">
+    <span class="lbl">🔊 재생 속도</span>
+    <div class="seg" id="speed">
+      <button data-rate="0.6">느리게</button>
+      <button data-rate="0.85" class="on">보통</button>
+      <button data-rate="1">원어민</button>
+    </div>
+  </div>
+
+  <!-- 1. 한눈에 비교 -->
+  <section>
+    <div class="s-head"><span class="s-num">1</span><h2>한눈에 비교</h2></div>
+    <div class="cmp">
+      <div class="cmpc lu">
+        <div class="top"><span class="sy">/uː/</span><span class="nm">길게·깊게</span></div>
+        <dl>
+          <div><dt>길이</dt><dd>길다 (long vowel)</dd></div>
+          <div><dt>입 모양</dt><dd>더 둥글게, 더 오므림 (쭉!)</dd></div>
+          <div><dt>혀 위치</dt><dd>더 높고 뒤쪽</dd></div>
+          <div><dt>울림</dt><dd>길고 깊은 울림</dd></div>
+          <div><dt>한국어 비교</dt><dd>‘우’보다 길고 깊음</dd></div>
+        </dl>
+      </div>
+      <div class="cmpc su">
+        <div class="top"><span class="sy">/ʊ/</span><span class="nm">짧게·가볍게</span></div>
+        <dl>
+          <div><dt>길이</dt><dd>짧다 (short vowel)</dd></div>
+          <div><dt>입 모양</dt><dd>적당히 둥글게, 덜 오므림</dd></div>
+          <div><dt>혀 위치</dt><dd>약간 낮고 앞쪽</dd></div>
+          <div><dt>울림</dt><dd>짧고 가볍고 부드러움</dd></div>
+          <div><dt>한국어 비교</dt><dd>‘우’보다 짧고 닿기 직전 느낌</dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. 발음법 -->
+  <section>
+    <div class="s-head"><span class="s-num">2</span><h2>발음법 · 하나씩</h2><span class="sub">예시 단어를 눌러 들어보세요</span></div>
+    <div class="hows">
+      <div class="howc lu">
+        <div class="mo">
+          <svg viewBox="0 0 100 100" aria-label="/uː/ 입술 쭉 오므림">
+            <ellipse cx="50" cy="50" rx="15" ry="18" fill="#F5B9B9" stroke="#DB5461" stroke-width="3"/>
+            <ellipse cx="50" cy="50" rx="7" ry="10" fill="#8E2C3A"/>
+            <g stroke="#E08A2B" stroke-width="2" stroke-linecap="round">
+              <path d="M35 50 Q28 50 24 50"/><path d="M65 50 Q72 50 76 50"/>
+            </g>
+            <text x="50" y="90" font-size="12" fill="#E08A2B" font-weight="800" text-anchor="middle">쭉 내밀어 길게</text>
+          </svg>
+        </div>
+        <div>
+          <h3><span class="sy">/uː/</span> 입술 쭉! 길고 깊게 <span class="tagk">blue, moon</span></h3>
+          <ul>
+            <li>‘우’보다 입술을 <b>더 앞으로 쭉~</b> 내밀어 <b>뾰족한 원형</b> (부는 입처럼).</li>
+            <li>혀는 <b>높고 뒤쪽</b>, 등처럼 둥글게. 혀끝은 내려요.</li>
+            <li>“우우우~” <b>길고 깊게</b>, 성대 진동 꾸준히: blue /bluː/, moon /muːn/.</li>
+          </ul>
+          <div class="htip">🎯 활시위 당기듯 길게 “우↘~” · 🍜 면 후루룩 “우우우~” · 📣 목 깊은 울림</div>
+          <div class="exwords" id="exLu"></div>
+        </div>
+      </div>
+      <div class="howc su">
+        <div class="mo">
+          <svg viewBox="0 0 100 100" aria-label="/ʊ/ 살짝 둥글게 짧게">
+            <ellipse cx="50" cy="50" rx="19" ry="16" fill="#F5B9B9" stroke="#DB5461" stroke-width="2.5"/>
+            <ellipse cx="50" cy="50" rx="10" ry="8" fill="#8E2C3A"/>
+            <text x="50" y="88" font-size="12" fill="#4C56E0" font-weight="800" text-anchor="middle">살짝만·짧게</text>
+          </svg>
+        </div>
+        <div>
+          <h3><span class="sy">/ʊ/</span> 살짝만, 짧게 툭! <span class="tagk">book, put</span></h3>
+          <ul>
+            <li>입술은 둥글되 /uː/만큼 <b>쫙 모으지 않아요.</b> <b>작게 동그랗게</b>, 살짝만 내밀기.</li>
+            <li>혀는 /uː/보다 <b>낮고 덜 긴장</b> — 편안한, 약간 게으른 혀.</li>
+            <li><b>짧게</b> 툭!: book /bʊk/, put /pʊt/. 끌지 마세요!</li>
+          </ul>
+          <div class="htip">🐶 개가 “우?” 짖듯 짧게 톡 · 🍩 작은 도넛처럼 입 안에 톡! · 🎈 입 안에서만 둥글게</div>
+          <div class="exwords" id="exSu"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. 두 소리 비교 -->
+  <section>
+    <div class="s-head"><span class="s-num">3</span><h2>단어쌍 비교 · uː vs ʊ</h2><span class="sub">길이 차이를 느끼며</span></div>
+    <div class="pairs" id="pairsBox"></div>
+  </section>
+
+  <!-- 4. 문장 -->
+  <section>
+    <div class="s-head"><span class="s-num">4</span><h2>문장으로 연습</h2><span class="sub">🟠uː · 🔵ʊ 소리 구분해서</span></div>
+    <div id="sentBox"></div>
+  </section>
+
+  <!-- 5. 감각 팁 -->
+  <section>
+    <div class="s-head"><span class="s-num">5</span><h2>감각 익히는 팁</h2></div>
+    <div class="card">
+      <div class="tips">
+        <div class="tipc"><span class="ic">🪞</span><span><b>거울 보며</b> — <b class="hi-lu">/uː/</b>는 입술이 <b>빨대처럼 쭉</b> 튀어나오게, <b>/ʊ/</b>는 <b>살짝만</b> 둥글게.</span></div>
+        <div class="tipc"><span class="ic">📏</span><span><b>길이 훈련</b> — /uː/는 <b>길게</b> 끌고(“우우우~”), /ʊ/는 <b>짧게</b> 툭 끊어요. 이 길이 차이가 핵심!</span></div>
+        <div class="tipc"><span class="ic">🧠</span><span><b>이미지화</b> — /uː/ 🎯 활시위 당겨 길게 / /ʊ/ 🐶 개가 “우?” 짧게. 한국어 ‘우’는 그 <b>중간</b>이에요.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. 녹음 비교 -->
+  <section>
+    <div class="s-head"><span class="s-num">6</span><h2>녹음해서 비교하기</h2><span class="sub">모델 소리와 내 발음을 나란히</span></div>
+    <div class="card rec">
+      <div class="target">
+        <span id="targetEn"></span>
+        <span class="ko">Luke는 달을 볼 수 있었어요.</span>
+      </div>
+      <div class="rec-controls">
+        <button class="btn primary" id="modelBtn">🔊 모델 듣기</button>
+        <button class="btn" id="recBtn">🎤 내 발음 녹음</button>
+        <button class="btn" id="playBtn" disabled>▶ 내 발음 듣기</button>
+      </div>
+      <p class="rec-hint" id="recHint">녹음 버튼을 누르면 마이크 사용 허용을 물어봐요. 허용하면 녹음돼요.</p>
+    </div>
+  </section>
+
+  <footer>
+    🗣️ LJ ENGLISH 발음 클리닉 · 원어민 음성으로 재생됩니다<br>
+    소리가 안 나면 기기의 소리(무음 모드)를 확인해 주세요.
+  </footer>
+</div>
+
+<script>
+/* ============ 데이터 ============ */
+const EXLU = [ {en:"blue",hi:"ue",ipa:"/bluː/"}, {en:"food",hi:"oo",ipa:"/fuːd/"}, {en:"school",hi:"oo",ipa:"/skuːl/"}, {en:"moon",hi:"oo",ipa:"/muːn/"}, {en:"true",hi:"ue",ipa:"/truː/"} ];
+const EXSU = [ {en:"book",hi:"oo",ipa:"/bʊk/"}, {en:"good",hi:"oo",ipa:"/ɡʊd/"}, {en:"put",hi:"u",ipa:"/pʊt/"}, {en:"foot",hi:"oo",ipa:"/fʊt/"}, {en:"should",hi:"ou",ipa:"/ʃʊd/"} ];
+/* 미니 페어: lu(uː) 단어 / su(ʊ) 단어 + 강조 글자 */
+const PAIRS = [
+  {lu:"food", luh:"oo", su:"foot",  suh:"oo", luko:"음식",   suko:"발"},
+  {lu:"pool", luh:"oo", su:"pull",  suh:"u",  luko:"수영장", suko:"당기다"},
+  {lu:"Luke", luh:"u",  su:"look",  suh:"oo", luko:"루크",   suko:"보다"},
+  {lu:"cool", luh:"oo", su:"could", suh:"ou", luko:"시원한", suko:"할 수 있었다"},
+  {lu:"fool", luh:"oo", su:"full",  suh:"u",  luko:"바보",   suko:"가득한"},
+];
+/* 문장: html에 uː(hi-lu)·ʊ(hi-su) 색 미리 지정 */
+const SENTS = [
+  {say:"She looks at the moon.",
+   html:'She l<span class="hi-su">oo</span>ks at the m<span class="hi-lu">oo</span>n.', ko:"그녀는 달을 봐요."},
+  {say:"He put food in the fridge.",
+   html:'He p<span class="hi-su">u</span>t f<span class="hi-lu">oo</span>d in the fridge.', ko:"그는 음식을 냉장고에 넣었어요."},
+  {say:"I could go to school soon.",
+   html:'I c<span class="hi-su">ou</span>ld go to sch<span class="hi-lu">oo</span>l s<span class="hi-lu">oo</span>n.', ko:"나는 곧 학교에 갈 수 있어요."},
+  {say:"Don't pull the pool cover yet.",
+   html:'Don\'t p<span class="hi-su">u</span>ll the p<span class="hi-lu">oo</span>l cover yet.', ko:"아직 수영장 덮개를 당기지 마세요."},
+];
+const TARGET = "Luke could look at the moon.";
+const TARGET_HTML = 'L<span class="hi-lu">u</span>ke c<span class="hi-su">ou</span>ld l<span class="hi-su">oo</span>k at the m<span class="hi-lu">oo</span>n.';
+
+/* ============ TTS (mp3 없을 때 대체) ============ */
+let rate = 0.85, enVoice = null;
+function pickVoice(){
+  const vs = speechSynthesis.getVoices();
+  const pref = ["Samantha","Google US English","Microsoft Aria","Microsoft Jenny","Karen","Moira","Daniel"];
+  for(const name of pref){ const v = vs.find(x=>x.name===name); if(v){enVoice=v;return;} }
+  enVoice = vs.find(v=>/en[-_]US/i.test(v.lang)) || vs.find(v=>/^en/i.test(v.lang)) || null;
+}
+if('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+let curBtn = null;
+function speak(text, btn){
+  if(!('speechSynthesis' in window)){ return; }
+  speechSynthesis.cancel();
+  if(curBtn){ curBtn.classList.remove('playing'); }
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US'; u.rate = rate; u.pitch = 1;
+  if(enVoice) u.voice = enVoice;
+  if(btn){ btn.classList.add('playing'); curBtn = btn;
+    u.onend = u.onerror = ()=>{ btn.classList.remove('playing'); if(curBtn===btn) curBtn=null; }; }
+  speechSynthesis.speak(u);
+}
+const AUDIO_BASE = 'audio/oo/';
+function slug(t){ return t.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,''); }
+let curAudio = null, curPlayBtn = null;
+function clearPlay(){ if(curPlayBtn){ curPlayBtn.classList.remove('playing'); curPlayBtn=null; } }
+function play(text, btn){
+  try{ if(curAudio){ curAudio.pause(); curAudio=null; } }catch(e){}
+  if('speechSynthesis' in window) speechSynthesis.cancel();
+  clearPlay();
+  const a = new Audio(AUDIO_BASE + slug(text) + '.mp3');
+  a.playbackRate = rate;
+  a.preservesPitch = a.mozPreservesPitch = a.webkitPreservesPitch = true;
+  if(btn){ btn.classList.add('playing'); curPlayBtn = btn; }
+  a.onended = ()=>{ if(curPlayBtn===btn) clearPlay(); };
+  a.onerror = ()=>{ if(curPlayBtn===btn) clearPlay(); speak(text, btn); };
+  curAudio = a;
+  a.play().catch(()=>{});
+}
+document.getElementById('speed').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  document.querySelectorAll('#speed button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); rate = parseFloat(b.dataset.rate);
+});
+
+/* ============ 렌더 ============ */
+const PLAY_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+function hiWord(en, hi, tone){
+  const cls = tone==='su' ? 'hi-su' : 'hi-lu';
+  if(!hi) return en;
+  const i = en.toLowerCase().indexOf(hi.toLowerCase());
+  if(i<0) return en;
+  return en.slice(0,i)+'<span class="'+cls+'">'+en.slice(i,i+hi.length)+'</span>'+en.slice(i+hi.length);
+}
+
+// 예시 단어
+function renderEx(id, list, tone){
+  document.getElementById(id).innerHTML = list.map(w=>
+    `<button class="exw" data-say="${w.en}">
+      <span class="pi">${PLAY_SVG}</span>
+      <span class="en">${hiWord(w.en,w.hi,tone)}</span>
+      <span class="ipa">${w.ipa}</span>
+    </button>`).join('');
+}
+renderEx('exLu', EXLU, 'lu');
+renderEx('exSu', EXSU, 'su');
+
+// 미니 페어
+document.getElementById('pairsBox').innerHTML = PAIRS.map(p=>`
+  <div class="pair">
+    <button class="side lu" data-say="${p.lu}">
+      <span class="cx" style="align-items:flex-end"><span class="en">${hiWord(p.lu,p.luh,'lu')}</span><span class="ko">${p.luko}</span></span>
+      <span class="mini">${PLAY_SVG}</span>
+    </button>
+    <span class="vs">vs</span>
+    <button class="side su" data-say="${p.su}">
+      <span class="mini">${PLAY_SVG}</span>
+      <span class="cx" style="align-items:flex-start"><span class="en">${hiWord(p.su,p.suh,'su')}</span><span class="ko">${p.suko}</span></span>
+    </button>
+  </div>`).join('');
+
+// 문장
+document.getElementById('sentBox').innerHTML = SENTS.map(s=>`
+  <div class="sent">
+    <button class="play" data-say="${s.say.replace(/"/g,'&quot;')}">${PLAY_SVG}</button>
+    <div><div class="en">${s.html}</div><div class="ko">${s.ko}</div></div>
+  </div>`).join('');
+
+// 녹음 타깃
+document.getElementById('targetEn').innerHTML = TARGET_HTML;
+
+// 클릭 → 재생
+document.body.addEventListener('click', e=>{
+  const el = e.target.closest('[data-say]'); if(!el) return;
+  const hasBtn = el.classList.contains('exw')||el.classList.contains('side')||el.classList.contains('play');
+  play(el.dataset.say, hasBtn ? el : null);
+});
+
+/* ============ 녹음 비교 ============ */
+const modelBtn=document.getElementById('modelBtn'), recBtn=document.getElementById('recBtn'),
+      playBtn=document.getElementById('playBtn'), recHint=document.getElementById('recHint');
+modelBtn.addEventListener('click', ()=> play(TARGET, null));
+
+let mediaRec=null, chunks=[], myUrl=null, myAudio=null;
+recBtn.addEventListener('click', async ()=>{
+  if(mediaRec && mediaRec.state==='recording'){ mediaRec.stop(); return; }
+  if(!navigator.mediaDevices || !window.MediaRecorder){
+    recHint.textContent='이 브라우저는 녹음을 지원하지 않아요. Safari나 Chrome 최신 버전을 써주세요.';
+    recHint.classList.add('err'); return;
+  }
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    chunks=[]; mediaRec = new MediaRecorder(stream);
+    mediaRec.ondataavailable = ev=>{ if(ev.data.size>0) chunks.push(ev.data); };
+    mediaRec.onstop = ()=>{
+      stream.getTracks().forEach(t=>t.stop());
+      if(myUrl) URL.revokeObjectURL(myUrl);
+      myUrl = URL.createObjectURL(new Blob(chunks,{type:mediaRec.mimeType||'audio/webm'}));
+      myAudio = new Audio(myUrl);
+      playBtn.disabled=false;
+      recBtn.textContent='🎤 다시 녹음'; recBtn.classList.remove('rec-on');
+      recHint.textContent='좋아요! "내 발음 듣기"로 모델 소리와 비교해 보세요.'; recHint.classList.remove('err');
+    };
+    mediaRec.start();
+    recBtn.innerHTML='<span class="dot"></span> 멈추기'; recBtn.classList.add('rec-on');
+    recHint.textContent='녹음 중… 문장을 소리 내어 읽고, 끝나면 멈추기를 누르세요.'; recHint.classList.remove('err');
+  }catch(err){
+    recHint.textContent='마이크를 사용할 수 없어요. 브라우저 설정에서 마이크 권한을 허용해 주세요.';
+    recHint.classList.add('err');
+  }
+});
+playBtn.addEventListener('click', ()=>{ if(myAudio){ myAudio.currentTime=0; myAudio.play(); } });
+</script>
+</body>
+</html>

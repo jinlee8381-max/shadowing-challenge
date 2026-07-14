@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="LJ ENGLISH · 억양(강조 위치)에 따른 의미 차이 리스닝 학습">
+<meta name="theme-color" content="#4C56E0">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎵%3C/text%3E%3C/svg%3E">
+<title>억양에 따른 의미 차이 · 리스닝 랩</title>
+<style>
+  :root{
+    --bg:#F5F6F9; --panel:#FFFFFF; --ink:#191C24; --muted:#6B7180;
+    --line:#E4E7EE; --accent:#4C56E0; --accent-soft:#EEF0FF;
+    --warm:#E08A2B; --warm-soft:#FBF0DF; --good:#1F9E67; --bad:#DB5461;
+    --shadow:0 1px 2px rgba(25,28,36,.04),0 6px 20px rgba(25,28,36,.06);
+    --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Apple SD Gothic Neo","Pretendard","Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+    line-height:1.5;letter-spacing:-.01em;padding-bottom:64px}
+  .wrap{max-width:760px;margin:0 auto;padding:0 18px}
+  a{color:inherit}
+
+  header{padding:30px 0 20px}
+  .brand{display:inline-flex;align-items:center;gap:9px;font-weight:800;font-size:15px;
+    letter-spacing:.1em;color:var(--ink);margin-bottom:20px}
+  .brand .mark{background:var(--accent);color:#fff;width:32px;height:32px;border-radius:9px;
+    display:grid;place-items:center;font-size:14px;letter-spacing:.02em;
+    box-shadow:0 4px 12px rgba(76,86,224,.32)}
+  .lesson{display:flex;align-items:center;gap:14px;margin-bottom:4px}
+  .lesson .no{font-size:clamp(38px,10vw,58px);font-weight:900;color:var(--warm);line-height:.9;
+    letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+  .lesson .eyebrow{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--accent);margin:0 0 4px}
+  h1{font-size:clamp(23px,5.5vw,34px);line-height:1.1;margin:0;font-weight:800;text-wrap:balance}
+  .lede{margin:14px 0 0;color:var(--muted);font-size:15px;max-width:56ch}
+  .lede .em{color:var(--accent);font-weight:800}
+
+  .theory{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    box-shadow:var(--shadow);margin-top:20px;overflow:hidden}
+  .theory summary{list-style:none;cursor:pointer;padding:15px 18px;font-weight:800;font-size:14.5px;
+    display:flex;align-items:center;gap:9px;user-select:none}
+  .theory summary::-webkit-details-marker{display:none}
+  .theory summary .chev{margin-left:auto;color:var(--muted);transition:transform .2s;font-size:13px}
+  .theory[open] summary .chev{transform:rotate(180deg)}
+  .theory .body{padding:2px 18px 18px;border-top:1px solid var(--line)}
+  .theory h4{font-size:13.5px;margin:16px 0 7px;color:var(--accent);letter-spacing:.02em}
+  .theory p{font-size:13.5px;margin:0 0 8px;line-height:1.6}
+  .theory ul{margin:0;padding-left:18px}
+  .theory li{font-size:13.5px;color:var(--muted);margin-bottom:6px;line-height:1.55}
+  .theory li b{color:var(--ink)}
+  .rhythm{width:100%;border-collapse:collapse;margin-top:8px;font-size:12.5px}
+  .rhythm th,.rhythm td{border:1px solid var(--line);padding:8px 9px;text-align:left;vertical-align:top}
+  .rhythm th{background:var(--bg);font-weight:800;color:var(--ink)}
+  .rhythm td:first-child{font-weight:700;color:var(--accent);white-space:nowrap}
+  .rhythm td{color:var(--muted)}
+
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--panel);
+    border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:var(--shadow);margin-top:16px}
+  .toolbar .lbl{font-size:12.5px;font-weight:600;color:var(--muted)}
+  .seg{display:inline-flex;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:3px;gap:2px}
+  .seg button{border:0;background:transparent;font:inherit;font-size:13px;font-weight:600;color:var(--muted);
+    padding:5px 12px;border-radius:6px;cursor:pointer}
+  .seg button.on{background:var(--panel);color:var(--accent);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+  .spacer{flex:1}
+  .warn{font-size:12px;color:var(--warm);font-weight:600;display:none}
+
+  nav.tabs{display:flex;gap:6px;margin:22px 0 18px;border-bottom:1px solid var(--line)}
+  nav.tabs button{border:0;background:transparent;font:inherit;font-size:14.5px;font-weight:700;color:var(--muted);
+    padding:10px 4px;margin-right:18px;cursor:pointer;position:relative}
+  nav.tabs button.on{color:var(--ink)}
+  nav.tabs button.on::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2.5px;
+    background:var(--accent);border-radius:3px}
+  .panel-view{display:none}
+  .panel-view.on{display:block;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  /* emphasized word */
+  .emph{color:var(--accent);font-weight:800;position:relative;padding:0 1px}
+  .emph::after{content:"";position:absolute;left:1px;right:1px;bottom:-2px;height:2px;
+    background:var(--accent);border-radius:2px;opacity:.45}
+
+  /* study: family cards */
+  .fam{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);
+    padding:16px 17px;margin-bottom:14px}
+  .fam-base{display:flex;align-items:center;gap:11px;margin-bottom:12px}
+  .fam-base .q{font-size:17px;font-weight:800}
+  .fam-base .q .sub{font-size:12.5px;font-weight:600;color:var(--muted);margin-left:2px}
+  .vars{display:flex;flex-direction:column;gap:8px}
+  .var{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;align-items:center;
+    padding:9px 11px;border:1px solid var(--line);border-radius:11px;background:var(--bg)}
+  .var .vplay{grid-row:1 / span 2;width:38px;height:38px;border-radius:50%;border:1px solid var(--line);
+    background:var(--panel);cursor:pointer;display:grid;place-items:center;color:var(--accent);
+    transition:.15s;flex:none}
+  .var .vplay:hover,.var .vplay.playing{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .var .vplay svg{width:16px;height:16px}
+  .var .vs{grid-column:2;grid-row:1;font-size:15.5px;font-weight:600}
+  .var .vg{grid-column:2;grid-row:2;font-size:12.5px;color:var(--muted)}
+
+  /* shadowing */
+  .stage{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);
+    padding:30px 22px 26px;text-align:center;min-height:290px;display:flex;flex-direction:column;
+    justify-content:center;align-items:center;gap:14px}
+  .s-count{font-size:12.5px;font-weight:700;color:var(--muted);letter-spacing:.04em}
+  .s-sentence{font-size:clamp(22px,5.2vw,30px);font-weight:800;line-height:1.3;text-wrap:balance;max-width:20ch}
+  .s-gloss{font-size:14.5px;color:var(--ink);background:var(--accent-soft);padding:7px 14px;border-radius:10px;
+    max-width:32ch;transition:filter .2s}
+  .s-gloss.hidden{filter:blur(8px);user-select:none}
+  .s-progress{width:100%;max-width:420px;height:5px;background:var(--line);border-radius:4px;margin:2px auto 0;overflow:hidden}
+  .s-progress i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+  .controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:6px}
+  .btn{border:1px solid var(--line);background:var(--panel);color:var(--ink);font:inherit;font-weight:700;
+    font-size:14px;padding:11px 17px;border-radius:11px;cursor:pointer;display:inline-flex;align-items:center;
+    gap:7px;transition:.15s}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn.primary:hover{background:#3b44c9}
+  .btn svg{width:16px;height:16px}
+
+  /* quiz */
+  .quiz{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:24px 20px}
+  .q-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+  .q-score{font-size:13px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+  .q-center{text-align:center}
+  .q-type{font-size:11.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);
+    background:var(--accent-soft);padding:4px 12px;border-radius:20px;display:inline-block;margin:6px 0 0}
+  .q-prompt{font-size:15.5px;font-weight:700;margin:16px 0 4px}
+  .q-show{font-size:17px;font-weight:700;margin:10px 0 4px;line-height:1.4}
+  .q-show .qlabel{color:var(--muted);font-weight:800;font-size:13px;margin-right:6px}
+  .q-bigplay{width:70px;height:70px;border-radius:50%;border:0;background:var(--accent);color:#fff;cursor:pointer;
+    display:grid;place-items:center;margin:12px auto 6px;box-shadow:0 8px 22px rgba(76,86,224,.35);transition:.15s}
+  .q-bigplay:hover{transform:scale(1.05)}
+  .q-bigplay svg{width:26px;height:26px}
+  .q-hint{font-size:12px;color:var(--muted)}
+  .q-options{display:grid;gap:9px;margin-top:16px}
+  .q-options.words{grid-template-columns:repeat(auto-fit,minmax(90px,1fr))}
+  .opt{border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:13px 15px;font:inherit;
+    font-size:15px;font-weight:700;text-align:center;cursor:pointer;transition:.12s}
+  .q-options:not(.words) .opt{text-align:left;font-size:14px}
+  .opt:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
+  .opt.correct{border-color:var(--good);background:#E7F6EE;color:var(--good)}
+  .opt.wrong{border-color:var(--bad);background:#FBEBEC;color:var(--bad)}
+  .opt:disabled{cursor:default}
+  .q-reveal{margin-top:16px;padding:14px 16px;background:var(--bg);border:1px solid var(--line);border-radius:12px;display:none}
+  .q-reveal.show{display:block;animation:fade .25s}
+  .q-reveal .rs{font-size:16px;font-weight:800;margin-bottom:5px}
+  .q-reveal .rg{font-size:13.5px;color:var(--muted)}
+  .q-next{margin-top:14px;display:flex;justify-content:flex-end}
+
+  footer{margin-top:34px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px;
+    text-align:center;line-height:1.7}
+  footer kbd{font-family:var(--mono);background:var(--panel);border:1px solid var(--line);border-radius:5px;
+    padding:1px 6px;font-size:11.5px}
+  footer .cr{display:inline-block;margin-top:9px;font-weight:800;letter-spacing:.12em;color:var(--ink)}
+  .watermark{position:fixed;right:13px;bottom:11px;z-index:5;pointer-events:none;font-size:11px;font-weight:800;
+    letter-spacing:.16em;text-transform:uppercase;color:var(--muted);opacity:.42;user-select:none}
+  .overflow{overflow-x:auto}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="javascript:history.back()" style="text-decoration:none;color:inherit;display:inline-block">
+      <div class="brand">‹ <span class="mark">LJ</span> ENGLISH <span style="font-weight:600;color:var(--muted);letter-spacing:0;font-size:13px">· 돌아가기</span></div>
+    </a>
+    <div class="lesson">
+      <div class="no">05</div>
+      <div>
+        <p class="eyebrow">Intonation &amp; Stress</p>
+        <h1>억양에 따른 의미 차이</h1>
+      </div>
+    </div>
+    <p class="lede">같은 문장도 <span class="em">어느 단어를 강조하느냐</span>에 따라 뜻이 달라집니다.
+      강조된 단어는 소리에서 <span class="em">더 높고·크고·길게</span> 들려요. 그 차이를 귀로 잡아내는 연습입니다.</p>
+
+    <details class="theory">
+      <summary>📖 이론 — 억양은 어떻게 의미를 바꿀까? <span class="chev">▾</span></summary>
+      <div class="body">
+        <p>같은 문장인데 억양을 다르게 하면 의미도 달라질 수 있어요. 정보의 중요도, 감정, 의미의 차이에 따라
+          목소리 톤이 자연스럽게 바뀝니다. 영어는 억양으로 <b>어떤 정보가 중요한지, 어떤 감정인지, 무엇을 강조하는지</b>를 전달합니다.</p>
+        <h4>억양의 주요 기능</h4>
+        <ul>
+          <li>새로운 정보를 강조할 때</li>
+          <li>화자의 의견이나 감정을 나타낼 때</li>
+          <li>대조되는 내용을 비교할 때</li>
+          <li>부정이나 확신을 강조할 때</li>
+        </ul>
+        <h4>평범한 억양 vs 강조된 억양</h4>
+        <ul>
+          <li><b>"Where's the book?"</b> → 그냥 책이 어디 있는지 묻는 일반적인 질문</li>
+          <li><b>"Is the book on the table or under it?"</b> → 특정 위치(테이블 위냐 아래냐)를 구분하고 싶을 때</li>
+        </ul>
+        <h4>세 가지 리듬</h4>
+        <div class="overflow">
+        <table class="rhythm">
+          <tr><th>구분</th><th>정의</th><th>LJ 리스닝 수업 적용</th></tr>
+          <tr><td>감정 리듬<br>Emotional</td><td>문장 전체에 깔리는 감정의 에너지. 억양·속도·강세의 미묘한 변화로 표현.</td><td>Chunk 단위 섀도잉 시 감정선을 느끼며 리듬 타기로 훈련.</td></tr>
+          <tr><td>의도 리듬<br>Intentional</td><td>화자의 목적·의도(명령·설명·제안·회상)에 따른 리듬 방향.</td><td>같은 문장이라도 의도 리듬에 따라 강세 위치가 달라짐.</td></tr>
+          <tr><td>정보 리듬<br>Informational</td><td>문장 내 정보량에 따라 강약·길이가 달라지는 흐름.</td><td>새 정보(new info) vs 이미 언급된 정보(given info)에 따라 강세 패턴 변화.</td></tr>
+        </table>
+        </div>
+      </div>
+    </details>
+  </header>
+
+  <div class="toolbar">
+    <span class="lbl">재생 속도</span>
+    <div class="seg" id="speed">
+      <button data-rate="0.75">느리게</button>
+      <button data-rate="0.92" class="on">보통</button>
+      <button data-rate="1.05">원어민</button>
+    </div>
+    <div class="spacer"></div>
+    <span class="warn" id="warn">⚠︎ 이 브라우저는 영어 음성이 없어요</span>
+  </div>
+
+  <nav class="tabs" id="tabs">
+    <button data-view="study" class="on">문장 강조</button>
+    <button data-view="shadow">섀도잉</button>
+    <button data-view="quiz">듣기 퀴즈</button>
+  </nav>
+
+  <section class="panel-view on" id="view-study" aria-label="문장 강조"></section>
+
+  <section class="panel-view" id="view-shadow" aria-label="섀도잉">
+    <div class="stage">
+      <div class="s-count" id="sCount"></div>
+      <div class="s-sentence" id="sSent"></div>
+      <div class="s-gloss" id="sGloss"></div>
+      <div class="s-progress"><i id="sBar"></i></div>
+      <div class="controls">
+        <button class="btn" id="sPrev">‹ 이전</button>
+        <button class="btn primary" id="sPlay">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> 다시 듣기</button>
+        <button class="btn" id="sReveal">의미 가리기</button>
+        <button class="btn" id="sNext">다음 ›</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel-view" id="view-quiz" aria-label="듣기 퀴즈">
+    <div class="quiz">
+      <div class="q-head">
+        <span class="q-score" id="qScore">점수 0 / 0</span>
+        <span class="q-score" id="qStreak"></span>
+      </div>
+      <div class="q-center"><span class="q-type" id="qType"></span></div>
+      <div class="q-center">
+        <p class="q-prompt" id="qPrompt"></p>
+        <div class="q-show" id="qShow"></div>
+        <button class="q-bigplay" id="qPlay" aria-label="다시 듣기">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <div class="q-hint">🔁 여러 번 들어도 됩니다</div>
+      </div>
+      <div class="q-options" id="qOptions"></div>
+      <div class="q-reveal" id="qReveal"></div>
+      <div class="q-next"><button class="btn primary" id="qNext" style="display:none">다음 문제 ›</button></div>
+    </div>
+  </section>
+
+  <footer>
+    자연스러운 강조 음원(Google Neural TTS)으로 재생됩니다 · 미국 여성 음성<br>
+    단축키 — <kbd>Space</kbd> 다시 듣기 · <kbd>→</kbd> 다음 · <kbd>H</kbd> 의미 가리기<br>
+    <span class="cr">© LJ ENGLISH</span>
+  </footer>
+</div>
+<div class="watermark">LJ ENGLISH</div>
+
+<script>
+/* ---- data: 문장 가족 · 강조별 의미 · (일부) 유도 질문 ---- */
+const FAMILIES=[
+  {base:"What would you like?", vars:[
+    {emph:"What", gloss:"무엇을 원하는지 묻는 일반적인 질문"},
+    {emph:"would", gloss:"선택이나 의사를 확인 (원하는 것의 가능성)"},
+    {emph:"you", gloss:"다른 사람 말고 '당신'을 강조"},
+    {emph:"like", gloss:"구체적으로 원하는 것을 강조"},
+  ]},
+  {base:"Where are you going?", vars:[
+    {emph:"Where", gloss:"장소가 궁금할 때"},
+    {emph:"are", gloss:"현재 상황을 확인"},
+    {emph:"you", gloss:"다른 사람 말고 '당신'이 어디 가는지"},
+    {emph:"going", gloss:"가는 동작 자체에 주목"},
+  ]},
+  {base:"I thought you liked coffee.", vars:[
+    {emph:"I", gloss:"내가 그렇게 생각했어 (주어 강조)"},
+    {emph:"thought", gloss:"과거의 생각을 강조"},
+    {emph:"you", gloss:"다른 사람 말고 '너'"},
+    {emph:"liked", gloss:"좋아한다는 사실을 강조"},
+    {emph:"coffee", gloss:"대상(커피)을 강조"},
+  ]},
+  {base:"She loves playing tennis.", vars:[
+    {emph:"She", gloss:"그녀가 강조됨 (주어)"},
+    {emph:"loves", gloss:"사랑한다는 강한 감정을 강조"},
+    {emph:"playing", gloss:"행동(치는 것)을 강조"},
+    {emph:"tennis", gloss:"스포츠 종류를 강조"},
+  ]},
+  {base:"She bought a new car.", vars:[
+    {emph:"She", gloss:"주어 강조 (그녀가 샀다)"},
+    {emph:"bought", gloss:"행동 강조 (샀다)"},
+    {emph:"new", gloss:"차의 상태 강조 (새로운 차)"},
+  ]},
+  {base:"The keys are on the table.", vars:[
+    {emph:"keys", gloss:"다른 물건이 아니라 '열쇠'를 강조"},
+    {emph:"on the table", gloss:"위치(어디에 있는지)를 강조"},
+  ]},
+  {base:"I can't believe it.", vars:[
+    {emph:"I", gloss:"내가 믿을 수 없다는 것을 강조", trig:"Who can't believe it?"},
+    {emph:"can't", gloss:"믿을 수 없다는 사실을 강조", trig:"Can you believe it or not?"},
+    {emph:"believe", gloss:"믿는 행위 자체를 강조", trig:"Are you saying you can really believe it?"},
+    {emph:"it", gloss:"그것(it)을 강조", trig:"What exactly are you trying to believe?"},
+  ]},
+  {base:"They are watching a movie.", vars:[
+    {emph:"They", gloss:"주어를 강조", trig:"Who is watching a movie?"},
+    {emph:"are", gloss:"현재 진행임을 강조", trig:"Are they watching a movie now?"},
+    {emph:"watching", gloss:"활동 자체를 강조", trig:"What are they doing with a movie?"},
+    {emph:"movie", gloss:"보고 있는 대상을 강조", trig:"What are they watching?"},
+  ]},
+  {base:"We finished the report yesterday.", vars:[
+    {emph:"We", gloss:"누가 했는지를 강조", trig:"Who finished the report yesterday?"},
+    {emph:"finished", gloss:"완료했다는 사실을 강조", trig:"Did you do all of the report?"},
+    {emph:"the report", gloss:"완료한 대상을 강조", trig:"What did you finish yesterday?"},
+    {emph:"yesterday", gloss:"시간을 강조", trig:"When did you finish the report?"},
+  ]},
+  {base:"He will call you tomorrow.", vars:[
+    {emph:"He", gloss:"누가 전화할지를 강조", trig:"Who will call you tomorrow?"},
+    {emph:"will", gloss:"미래 계획을 강조", trig:"Will he really call you tomorrow?"},
+    {emph:"call", gloss:"전화 행위를 강조", trig:"What will he do tomorrow?"},
+    {emph:"you", gloss:"누구에게 전화하는지를 강조", trig:"Who will he call tomorrow?"},
+    {emph:"tomorrow", gloss:"시점을 강조", trig:"When will he call you?"},
+  ]},
+  {base:"What did you say?", vars:[
+    {emph:"What", gloss:"무슨 말을 했는지 궁금한 것", trig:"What exactly did you say?"},
+    {emph:"did", gloss:"정말 말했는지 확인 또는 의심", trig:"Did you actually say that?"},
+    {emph:"you", gloss:"다른 사람 말고 '너'가 말했냐는 것", trig:"Was it you who said that?"},
+    {emph:"say", gloss:"어떤 내용을 말했는지를 강조", trig:"What was it that you said?"},
+  ]},
+];
+
+/* flatten variants, attach family info */
+const VARIANTS=[];
+FAMILIES.forEach((f,fi)=>{
+  const words=f.vars.map(v=>v.emph);
+  const glosses=f.vars.map(v=>v.gloss);
+  f.vars.forEach((v,vi)=>VARIANTS.push({...v, base:f.base, words, glosses, fi, vi}));
+});
+const ALL_GLOSSES=VARIANTS.map(v=>v.gloss);
+
+/* ---- TTS with word emphasis ---- */
+let rate=0.92, enVoice=null, playingBtn=null;
+const synth=window.speechSynthesis;
+function pickVoice(){
+  if(!synth){ document.getElementById('warn').style.display='inline'; return; }
+  const vs=synth.getVoices().filter(v=>/^en(-|_)/i.test(v.lang));
+  enVoice=vs.find(v=>/US/i.test(v.lang))||vs[0]||null;
+}
+if(synth){ pickVoice(); synth.onvoiceschanged=pickVoice; } else document.getElementById('warn').style.display='inline';
+
+/* 단독 "I"를 일부 음성이 'capital I'로 읽는 문제 → 동음인 'eye'로 재생 (표시는 그대로 I) */
+function ttsText(s){ return s.replace(/\bI\b(?!['’])/g,'eye'); }
+function utter(text,{pitch=1,r=1,vol=1}={}){
+  const u=new SpeechSynthesisUtterance(ttsText(text));
+  u.lang='en-US'; if(enVoice)u.voice=enVoice; u.pitch=pitch; u.rate=r; u.volume=vol;
+  return u;
+}
+/* 문장을 [앞]·[강조]·[뒤]로 나눠 재생, 강조 단어만 높이고·크게·느리게 */
+function speakEmph(base, emph, btn){
+  if(!synth){ document.getElementById('warn').style.display='inline'; return; }
+  synth.cancel();
+  if(playingBtn) playingBtn.classList.remove('playing');
+  if(btn){ btn.classList.add('playing'); playingBtn=btn; }
+  const idx=base.indexOf(emph);
+  const pre=idx>0?base.slice(0,idx).trim():'';
+  const post=base.slice(idx+emph.length).trim();
+  const segs=[];
+  // 자연스러운 대조 강세: 강조 단어만 살짝 높이고·조금 느리게·또렷하게. 앞뒤는 자연 속도 유지.
+  if(pre) segs.push(utter(pre,{pitch:1.0,r:rate,vol:0.9}));
+  segs.push(utter(emph,{pitch:1.16,r:rate*0.9,vol:1}));            // 강조 (과장 줄임)
+  if(post && /[a-zA-Z]/.test(post)) segs.push(utter(post,{pitch:0.98,r:rate,vol:0.88}));
+  segs.forEach((u,i)=>{ if(i===segs.length-1){ u.onend=u.onerror=()=>{ if(btn)btn.classList.remove('playing'); playingBtn=null; }; } synth.speak(u); });
+}
+function speakPlain(text,btn){   // 유도 질문 등 일반 재생
+  if(!synth) return; synth.cancel();
+  if(btn){btn.classList.add('playing');playingBtn=btn;}
+  const u=utter(text,{pitch:1,r:rate,vol:.95});
+  u.onend=u.onerror=()=>{ if(btn)btn.classList.remove('playing'); playingBtn=null; };
+  synth.speak(u);
+}
+document.getElementById('speed').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return; rate=parseFloat(b.dataset.rate);
+  document.querySelectorAll('#speed button').forEach(x=>x.classList.toggle('on',x===b));
+});
+
+/* ---- audio file playback (자연스러운 강조 음원) + 브라우저 TTS 폴백 ---- */
+let curAudio=null;
+function stopAll(){ if(synth)synth.cancel(); if(curAudio){ curAudio.pause(); curAudio.onended=curAudio.onerror=null; curAudio=null; } }
+function playFile(src, fallback, btn){
+  stopAll();
+  const a=new Audio(src);
+  a.playbackRate=Math.min(1.5,Math.max(0.7, rate/0.92));   // 속도 버튼 반영 (보통=1.0)
+  if(btn) btn.classList.add('playing');
+  const done=()=>{ if(btn)btn.classList.remove('playing'); if(curAudio===a)curAudio=null; };
+  a.onended=done;
+  a.onerror=()=>{ done(); if(fallback)fallback(); };   // 파일 없으면 브라우저 TTS로
+  curAudio=a;
+  a.play().catch(()=>{ done(); if(fallback)fallback(); });
+}
+/* 강조 변형 재생: mp3 우선, 없으면 speakEmph */
+function playVariant(fi, vi, base, emph, btn){
+  playFile(`audio/f${fi}_v${vi}.mp3`, ()=>speakEmph(base,emph,btn), btn);
+}
+/* 유도 질문 재생: mp3 우선, 없으면 speakPlain */
+function playTrig(fi, vi, trig, btn){
+  playFile(`audio/trig_f${fi}_v${vi}.mp3`, ()=>speakPlain(trig,btn), btn);
+}
+
+/* ---- helpers ---- */
+const PLAY='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+function bold(base,emph){ return base.replace(emph, `<span class="emph">${emph}</span>`); }
+
+/* ---- Tab 1: study (family cards) ---- */
+const study=document.getElementById('view-study');
+FAMILIES.forEach((f,fi)=>{
+  const el=document.createElement('article'); el.className='fam';
+  const rows=f.vars.map((v,vi)=>`
+    <div class="var">
+      <button class="vplay" data-vi="${vi}" aria-label="${v.emph} 강조 듣기">${PLAY}</button>
+      <div class="vs">${bold(f.base,v.emph)}</div>
+      <div class="vg">${v.gloss}</div>
+    </div>`).join('');
+  el.innerHTML=`<div class="fam-base"><span class="q">"${f.base}"<span class="sub"> · 강조 위치로 듣기</span></span></div><div class="vars">${rows}</div>`;
+  el.querySelectorAll('.vplay').forEach(btn=>{
+    btn.addEventListener('click',function(){ const vi=+this.dataset.vi; playVariant(fi, vi, f.base, f.vars[vi].emph, this); });
+  });
+  study.appendChild(el);
+});
+
+/* ---- Tab 2: shadowing ---- */
+let sIdx=0, sHidden=false;
+const sSent=document.getElementById('sSent'), sGloss=document.getElementById('sGloss'),
+  sCount=document.getElementById('sCount'), sBar=document.getElementById('sBar');
+function renderShadow(){
+  const v=VARIANTS[sIdx];
+  sCount.textContent=`${sIdx+1} / ${VARIANTS.length}`;
+  sSent.innerHTML=bold(v.base,v.emph);
+  sGloss.textContent=v.gloss;
+  sGloss.classList.toggle('hidden',sHidden);
+  sBar.style.width=((sIdx+1)/VARIANTS.length*100)+'%';
+  document.getElementById('sReveal').textContent=sHidden?'의미 보기':'의미 가리기';
+}
+function playShadow(){ const v=VARIANTS[sIdx]; playVariant(v.fi,v.vi,v.base,v.emph,null); }
+document.getElementById('sPlay').addEventListener('click',playShadow);
+document.getElementById('sPrev').addEventListener('click',()=>{ sIdx=(sIdx-1+VARIANTS.length)%VARIANTS.length; renderShadow(); playShadow(); });
+document.getElementById('sNext').addEventListener('click',()=>{ sIdx=(sIdx+1)%VARIANTS.length; renderShadow(); playShadow(); });
+document.getElementById('sReveal').addEventListener('click',()=>{ sHidden=!sHidden; renderShadow(); });
+renderShadow();
+
+/* ---- Tab 3: quiz (3 types) ---- */
+let qItem=null, qType='word', qDone=false, qRight=0, qTotal=0, qStreak=0;
+const qOptions=document.getElementById('qOptions'), qReveal=document.getElementById('qReveal'),
+  qNext=document.getElementById('qNext'), qTypeEl=document.getElementById('qType'),
+  qPrompt=document.getElementById('qPrompt'), qShow=document.getElementById('qShow');
+const TRIG_VARS=VARIANTS.filter(v=>v.trig);
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function rand(a){ return a[Math.floor(Math.random()*a.length)]; }
+
+function newQuestion(){
+  qDone=false; qReveal.classList.remove('show'); qNext.style.display='none'; qOptions.innerHTML='';
+  qType=rand(['word','mean','trig']);
+  if(qType==='trig') qItem=rand(TRIG_VARS); else qItem=rand(VARIANTS);
+
+  if(qType==='word'){
+    qTypeEl.textContent='어느 단어?';
+    qPrompt.textContent='어느 단어가 강조됐나요?';
+    qShow.innerHTML=`"${qItem.base}"`;                       // 굵게 없이 (귀로 판단)
+    qOptions.className='q-options words';
+    shuffle(qItem.words).forEach(w=>{
+      const b=document.createElement('button'); b.className='opt'; b.textContent=w;
+      b.addEventListener('click',()=>answer(b, w===qItem.emph)); qOptions.appendChild(b);
+    });
+    setTimeout(()=>playVariant(qItem.fi,qItem.vi,qItem.base,qItem.emph,null),160);
+  } else if(qType==='mean'){
+    qTypeEl.textContent='의미 고르기';
+    qPrompt.textContent='이 강조는 어떤 의미일까요?';
+    qShow.innerHTML=`"${bold(qItem.base,qItem.emph)}"`;      // 강조 표시하고 의미 묻기
+    qOptions.className='q-options';
+    let distract=shuffle(qItem.glosses.filter(g=>g!==qItem.gloss)).slice(0,3);
+    while(distract.length<3){ const g=rand(ALL_GLOSSES); if(g!==qItem.gloss && !distract.includes(g)) distract.push(g); }
+    shuffle(distract.concat(qItem.gloss)).forEach(g=>{
+      const b=document.createElement('button'); b.className='opt'; b.textContent=g;
+      b.addEventListener('click',()=>answer(b, g===qItem.gloss)); qOptions.appendChild(b);
+    });
+    setTimeout(()=>playVariant(qItem.fi,qItem.vi,qItem.base,qItem.emph,null),160);
+  } else {
+    qTypeEl.textContent='질문 → 강조';
+    qPrompt.textContent='이 질문에 답할 때, 어느 단어를 강조해야 할까요?';
+    qShow.innerHTML=`<div><span class="qlabel">Q</span>${qItem.trig}</div><div style="margin-top:6px"><span class="qlabel">A</span>"${qItem.base}"</div>`;
+    qOptions.className='q-options words';
+    shuffle(qItem.words).forEach(w=>{
+      const b=document.createElement('button'); b.className='opt'; b.textContent=w;
+      b.addEventListener('click',()=>answer(b, w===qItem.emph)); qOptions.appendChild(b);
+    });
+    setTimeout(()=>playTrig(qItem.fi,qItem.vi,qItem.trig,null),160);
+  }
+}
+function answer(btn,correct){
+  if(qDone)return; qDone=true; qTotal++;
+  document.querySelectorAll('.opt').forEach(b=>b.disabled=true);
+  const want = qType==='mean' ? qItem.gloss : qItem.emph;
+  if(correct){ btn.classList.add('correct'); qRight++; qStreak++; }
+  else{ btn.classList.add('wrong'); qStreak=0;
+    document.querySelectorAll('.opt').forEach(b=>{ if(b.textContent===want) b.classList.add('correct'); }); }
+  qReveal.innerHTML=`<div class="rs">"${bold(qItem.base,qItem.emph)}"</div>
+    <div class="rg">강조 단어 <b style="color:var(--accent)">${qItem.emph}</b> → ${qItem.gloss}</div>`;
+  qReveal.classList.add('show'); qNext.style.display='inline-flex';
+  document.getElementById('qScore').textContent=`점수 ${qRight} / ${qTotal}`;
+  document.getElementById('qStreak').textContent=qStreak>=2?`🔥 연속 ${qStreak}`:'';
+}
+document.getElementById('qPlay').addEventListener('click',()=>{
+  if(!qItem)return;
+  if(qType==='trig') playTrig(qItem.fi,qItem.vi,qItem.trig,null);
+  else playVariant(qItem.fi,qItem.vi,qItem.base,qItem.emph,null);
+});
+qNext.addEventListener('click',newQuestion);
+
+/* ---- tabs ---- */
+let curView='study';
+document.getElementById('tabs').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return;
+  curView=b.dataset.view;
+  document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('.panel-view').forEach(v=>v.classList.remove('on'));
+  document.getElementById('view-'+curView).classList.add('on');
+  stopAll();
+  if(curView==='quiz' && !qItem) newQuestion();
+});
+
+/* ---- keyboard ---- */
+document.addEventListener('keydown',e=>{
+  if(curView==='shadow'){
+    if(e.code==='Space'){e.preventDefault();playShadow();}
+    else if(e.key==='ArrowRight'){sIdx=(sIdx+1)%VARIANTS.length;renderShadow();playShadow();}
+    else if(e.key==='ArrowLeft'){sIdx=(sIdx-1+VARIANTS.length)%VARIANTS.length;renderShadow();playShadow();}
+    else if(e.key.toLowerCase()==='h'){sHidden=!sHidden;renderShadow();}
+  } else if(curView==='quiz'){
+    if(e.code==='Space'){e.preventDefault();document.getElementById('qPlay').click();}
+    else if(e.key==='ArrowRight'&&qDone)newQuestion();
+  }
+});
+</script>
+</body>
+</html>

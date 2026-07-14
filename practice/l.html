@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="LJ ENGLISH · 자음 /l/ 발음 완전 연습">
+<meta name="theme-color" content="#4C56E0">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🗣️%3C/text%3E%3C/svg%3E">
+<title>자음 L 발음 · 발음 클리닉</title>
+<style>
+  :root{
+    --bg:#F5F6F9; --panel:#FFFFFF; --ink:#191C24; --muted:#6B7180;
+    --line:#E4E7EE; --accent:#4C56E0; --accent-soft:#EEF0FF;
+    --warm:#E08A2B; --warm-soft:#FBF0DF; --good:#1F9E67; --good-soft:#E7F6EE;
+    --bad:#DB5461; --bad-soft:#FBEBEC;
+    --shadow:0 1px 2px rgba(25,28,36,.04),0 6px 20px rgba(25,28,36,.06);
+    --mono:"SF Mono",ui-monospace,"JetBrains Mono",Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Apple SD Gothic Neo","Pretendard","Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+    line-height:1.5;letter-spacing:-.01em;padding-bottom:72px}
+  .wrap{max-width:720px;margin:0 auto;padding:0 18px}
+
+  /* header */
+  header{padding:26px 0 10px}
+  .brand{display:inline-flex;align-items:center;gap:9px;font-weight:800;font-size:15px;
+    letter-spacing:.1em;color:var(--ink);margin-bottom:18px}
+  .brand .mark{background:var(--accent);color:#fff;width:32px;height:32px;border-radius:9px;
+    display:grid;place-items:center;font-size:14px;box-shadow:0 4px 12px rgba(76,86,224,.32)}
+  .eyebrow{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--accent);margin:0 0 8px}
+  h1{font-size:clamp(27px,6.5vw,40px);line-height:1.08;margin:0;font-weight:800}
+  h1 .ipa{font-family:var(--mono);color:var(--accent);font-weight:700}
+  .lede{margin:11px 0 0;color:var(--muted);font-size:15px;max-width:48ch}
+
+  /* section */
+  section{margin-top:30px}
+  .s-head{display:flex;align-items:center;gap:9px;margin:0 0 13px}
+  .s-num{width:25px;height:25px;border-radius:8px;background:var(--accent);color:#fff;
+    font-size:13px;font-weight:800;display:grid;place-items:center;flex:none}
+  .s-head h2{margin:0;font-size:19px;font-weight:800}
+  .s-head .sub{font-size:13px;color:var(--muted);font-weight:600}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    box-shadow:var(--shadow);padding:20px}
+
+  /* how-to */
+  .howto{display:grid;grid-template-columns:150px 1fr;gap:22px;align-items:center}
+  @media(max-width:520px){.howto{grid-template-columns:1fr;gap:16px}}
+  .mouth{background:linear-gradient(160deg,#FFF,#F3F4FB);border:1px solid var(--line);
+    border-radius:14px;padding:8px;display:grid;place-items:center}
+  .mouth svg{width:100%;height:auto;max-width:150px}
+  .steps{margin:0;padding:0;list-style:none;display:grid;gap:11px}
+  .steps li{display:flex;gap:11px;align-items:flex-start;font-size:15px}
+  .steps .n{width:23px;height:23px;border-radius:50%;background:var(--accent-soft);color:var(--accent);
+    font-size:12.5px;font-weight:800;display:grid;place-items:center;flex:none;margin-top:1px}
+  .steps b{color:var(--warm)}
+  .voice-note{margin-top:15px;padding:12px 15px;background:var(--accent-soft);border-radius:12px;
+    font-size:13.5px;color:#3a409e;font-weight:600;display:flex;gap:8px;align-items:center}
+
+  /* pitfall */
+  .pitfall{margin-top:11px;display:grid;gap:9px}
+  .pf{display:flex;gap:11px;align-items:flex-start;background:var(--bad-soft);
+    border:1px solid #F3D3D6;border-radius:12px;padding:12px 14px;font-size:14px}
+  .pf .x{font-size:17px;flex:none;line-height:1.3}
+  .pf b{color:var(--bad)}
+  .pf .ipa{font-family:var(--mono);font-size:12.5px;background:#fff;padding:1px 6px;border-radius:5px}
+
+  /* speed toolbar */
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 14px}
+  .toolbar .lbl{font-size:12.5px;font-weight:700;color:var(--muted)}
+  .seg{display:inline-flex;background:var(--panel);border:1px solid var(--line);
+    border-radius:9px;padding:3px;gap:2px;box-shadow:var(--shadow)}
+  .seg button{border:0;background:transparent;font:inherit;font-size:13px;font-weight:700;
+    color:var(--muted);padding:6px 13px;border-radius:6px;cursor:pointer}
+  .seg button.on{background:var(--accent);color:#fff}
+
+  /* word groups */
+  .wgroup{margin-bottom:14px}
+  .wgroup .cap{font-size:12.5px;font-weight:700;color:var(--muted);margin:0 0 8px;
+    display:flex;align-items:center;gap:7px}
+  .wgroup .cap .ipa{font-family:var(--mono);background:var(--warm-soft);color:var(--ink);
+    padding:1px 7px;border-radius:6px;font-size:12px}
+  .words{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:9px}
+  .word{display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--line);
+    border-radius:12px;padding:9px 11px;cursor:pointer;transition:.13s;text-align:left;font:inherit}
+  .word:hover{border-color:var(--accent);background:var(--accent-soft)}
+  .word.playing{border-color:var(--accent);background:var(--accent-soft)}
+  .word .pbtn{width:32px;height:32px;border-radius:50%;background:var(--accent-soft);color:var(--accent);
+    display:grid;place-items:center;flex:none;transition:.13s}
+  .word.playing .pbtn,.word:hover .pbtn{background:var(--accent);color:#fff}
+  .word .pbtn svg{width:15px;height:15px}
+  .word .txt{display:flex;flex-direction:column;line-height:1.25}
+  .word .en{font-size:15.5px;font-weight:700}
+  .word .en .hi{color:var(--warm)}
+  .word .ko{font-size:11.5px;color:var(--muted)}
+
+  /* minimal pairs */
+  .pairs{display:grid;gap:10px}
+  .pair{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;
+    box-shadow:var(--shadow)}
+  .pair .side{display:flex;align-items:center;gap:9px;cursor:pointer;padding:8px 10px;
+    border-radius:11px;transition:.13s;font:inherit;border:1px solid transparent;background:transparent}
+  .pair .side:hover{background:var(--accent-soft);border-color:var(--line)}
+  .pair .side.f{justify-content:flex-end;text-align:right}
+  .pair .side .en{font-size:17px;font-weight:800}
+  .pair .side .en .hi{color:var(--warm)}
+  .pair .side .en .lo{color:var(--bad)}
+  .pair .side .mini{width:29px;height:29px;border-radius:50%;background:var(--bg);color:var(--accent);
+    display:grid;place-items:center;flex:none}
+  .pair .side.f .mini{order:2}
+  .pair .side .mini svg{width:14px;height:14px}
+  .pair .vs{font-size:11px;font-weight:800;color:var(--muted);background:var(--bg);
+    border-radius:20px;padding:3px 8px}
+
+  /* sentences */
+  .sent{display:flex;align-items:center;gap:13px;background:var(--panel);border:1px solid var(--line);
+    border-radius:14px;padding:14px 16px;box-shadow:var(--shadow);margin-bottom:10px}
+  .sent .play{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--panel);
+    cursor:pointer;display:grid;place-items:center;color:var(--accent);flex:none;transition:.13s}
+  .sent .play:hover,.sent .play.playing{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .sent .play svg{width:18px;height:18px}
+  .sent .en{font-size:16.5px;font-weight:700;line-height:1.35}
+  .sent .en .hi{color:var(--warm)}
+  .sent .ko{font-size:12.5px;color:var(--muted);margin-top:2px}
+
+  /* record & compare */
+  .rec{text-align:center;padding:26px 20px}
+  .rec .target{font-size:clamp(19px,4.6vw,24px);font-weight:800;line-height:1.3}
+  .rec .target .hi{color:var(--warm)}
+  .rec .target .ko{display:block;font-size:13px;color:var(--muted);font-weight:600;margin-top:5px}
+  .rec-controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:20px}
+  .btn{border:1px solid var(--line);background:var(--panel);color:var(--ink);font:inherit;
+    font-weight:700;font-size:14.5px;padding:12px 18px;border-radius:12px;cursor:pointer;
+    display:inline-flex;align-items:center;gap:8px;transition:.13s}
+  .btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+  .btn:disabled{opacity:.4;cursor:default}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn.primary:hover{background:#3b44c9;color:#fff}
+  .btn.rec-on{background:var(--bad);color:#fff;border-color:var(--bad)}
+  .btn svg{width:17px;height:17px}
+  .rec-hint{font-size:12.5px;color:var(--muted);margin-top:14px}
+  .rec-hint.err{color:var(--bad);font-weight:600}
+  .dot{width:9px;height:9px;border-radius:50%;background:#fff;display:inline-block;
+    animation:pulse 1s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+
+  /* detailed how-to steps */
+  .hsteps{display:grid;gap:16px;margin-top:6px}
+  .hstep{display:flex;gap:13px;align-items:flex-start}
+  .hstep .hn{width:28px;height:28px;border-radius:9px;background:var(--accent);color:#fff;font-weight:800;
+    font-size:13px;display:grid;place-items:center;flex:none;margin-top:1px}
+  .hstep .htitle{font-weight:800;font-size:16px;margin-bottom:6px}
+  .hstep ul{margin:0;padding-left:18px;display:grid;gap:5px;font-size:14px;color:#3c414d;line-height:1.5}
+  .hstep ul b{color:var(--warm)}
+  .hstep .htip{margin-top:9px;background:var(--warm-soft);border-radius:10px;padding:9px 12px;
+    font-size:13px;color:#8a5a12;font-weight:600;line-height:1.5}
+  .exwords{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}
+  .exw{display:inline-flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);
+    border-radius:11px;padding:7px 12px;cursor:pointer;font:inherit;transition:.13s}
+  .exw:hover,.exw.playing{border-color:var(--accent);background:var(--accent-soft)}
+  .exw .pi{width:26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent);
+    display:grid;place-items:center;flex:none}
+  .exw.playing .pi,.exw:hover .pi{background:var(--accent);color:#fff}
+  .exw .pi svg{width:13px;height:13px}
+  .exw .en{font-weight:700;font-size:15px}
+  .exw .en .hi{color:var(--warm)}
+  .exw .ipa{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+
+  /* pitfall table */
+  .ptable{width:100%;border-collapse:separate;border-spacing:0;font-size:13.5px}
+  .ptable th,.ptable td{text-align:left;padding:11px 13px;vertical-align:top;border-bottom:1px solid var(--line)}
+  .ptable th{font-size:11.5px;font-weight:700;color:var(--muted);background:var(--bg);white-space:nowrap}
+  .ptable td:first-child{font-weight:800;color:var(--bad);white-space:nowrap}
+  .ptable tr:last-child td{border-bottom:0}
+  .ptable .fix{color:var(--good);font-weight:600}
+  @media(max-width:520px){.ptable th,.ptable td{padding:9px 9px;font-size:12.5px}}
+
+  /* routine */
+  .routine{display:grid;gap:11px}
+  .rstep{display:flex;gap:13px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);
+    border-radius:14px;padding:14px 16px;box-shadow:var(--shadow)}
+  .rstep .rn{width:30px;height:30px;border-radius:9px;background:var(--warm-soft);color:var(--warm);
+    font-weight:800;display:grid;place-items:center;flex:none}
+  .rstep .rt{font-weight:800;font-size:15px;margin-bottom:3px}
+  .rstep .rd{font-size:13.5px;color:var(--muted);line-height:1.55}
+  .rstep .rd b{color:var(--ink)}
+  .big-f{font-family:var(--mono);font-weight:800;color:var(--warm);letter-spacing:.06em}
+
+  /* sense tips */
+  .tips{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:480px){.tips{grid-template-columns:1fr}}
+  .tipc{background:var(--accent-soft);border-radius:14px;padding:15px 16px;font-size:13.5px;color:#3a409e;
+    font-weight:600;display:flex;gap:10px;align-items:flex-start;line-height:1.5}
+  .tipc .ic{font-size:20px;flex:none;line-height:1.2}
+  .tipc b{color:var(--accent)}
+
+  footer{margin-top:38px;color:var(--muted);font-size:12.5px;text-align:center;line-height:1.7}
+  .watermark{position:fixed;right:13px;bottom:11px;z-index:5;pointer-events:none;font-size:11px;
+    font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);opacity:.4}
+</style>
+</head>
+<body>
+<div class="watermark">LJ ENGLISH</div>
+<div class="wrap">
+
+  <header>
+    <a href="javascript:history.back()" style="text-decoration:none;color:inherit;display:inline-block">
+      <div class="brand">‹ <span class="mark">LJ</span> ENGLISH <span style="font-weight:600;color:var(--muted);letter-spacing:0;font-size:13px">· 돌아가기</span></div>
+    </a>
+    <p class="eyebrow">Pronunciation Lab · 발음 클리닉</p>
+    <h1>자음 <span class="ipa">/l/</span> 발음</h1>
+    <p class="lede">혀끝을 <b style="color:var(--warm)">윗잇몸에 딱 붙였다 떼며</b> 내는 소리예요. (‘r’과 정반대 — r은 안 닿아요!)
+      만드는 법을 익히고, 단어와 문장을 직접 듣고 따라 말하며 내 발음을 녹음해 비교해 보세요.</p>
+  </header>
+
+  <!-- 재생 속도 -->
+  <div class="toolbar">
+    <span class="lbl">🔊 재생 속도</span>
+    <div class="seg" id="speed">
+      <button data-rate="0.6">느리게</button>
+      <button data-rate="0.85" class="on">보통</button>
+      <button data-rate="1">원어민</button>
+    </div>
+  </div>
+
+  <!-- 1. 발음 내는 법 -->
+  <section>
+    <div class="s-head"><span class="s-num">1</span><h2>‘l’ 발음 이렇게 해요!</h2></div>
+    <div class="card">
+      <div style="background:var(--accent-soft);border-radius:12px;padding:13px 15px;margin-bottom:16px;font-size:13.5px;color:#3a409e;line-height:1.6">
+        영어 ‘l’은 두 종류예요 — <b>🔆 light L</b>(단어 앞: <b>l</b>ove, <b>l</b>ike) · <b>🌑 dark L</b>(단어 끝: cal<b>l</b>, bal<b>l</b>).
+        느낌은 조금 다르지만 <b>원리는 똑같아요: 혀끝을 윗잇몸에 붙이기!</b>
+      </div>
+      <div class="mouth" style="max-width:200px;margin:0 auto 14px">
+        <!-- 옆에서 본 입 단면: 혀끝이 윗잇몸(윗니 바로 뒤)에 닿음 -->
+        <svg viewBox="0 0 160 150" aria-label="입 모양">
+          <!-- 입천장(위) -->
+          <path d="M24 56 Q80 44 132 60" fill="none" stroke="#C9CEDC" stroke-width="2.5" stroke-linecap="round"/>
+          <!-- 아래 턱선 -->
+          <path d="M24 124 Q80 140 132 120" fill="none" stroke="#E4E7EE" stroke-width="2"/>
+          <!-- 윗니(앞) -->
+          <rect x="119" y="58" width="9" height="13" rx="2" fill="#fff" stroke="#9AA2B6" stroke-width="1.6"/>
+          <!-- 혀: 앞으로 뻗어 혀끝이 윗니 바로 뒤(잇몸)에 닿음 -->
+          <path d="M30 122 Q60 116 92 104 Q116 96 118 74 Q119 67 112 69 Q110 84 92 96 Q60 110 36 112 Z"
+                fill="#F0A6A6" stroke="#DB5461" stroke-width="1.6" stroke-linejoin="round"/>
+          <!-- 닿는 지점 강조 -->
+          <circle cx="116" cy="71" r="4.5" fill="none" stroke="#1F9E67" stroke-width="2"/>
+          <text x="60" y="58" font-size="11" fill="#1F9E67" font-weight="800">여기 닿음!</text>
+          <!-- 소리 흘러나감(혀 옆) -->
+          <g stroke="#4C56E0" stroke-width="2" stroke-linecap="round" fill="none" opacity=".8">
+            <path d="M134 86 L150 86"/><path d="M144 81 L150 86 L144 91"/>
+          </g>
+          <text x="12" y="94" font-size="13" fill="#4C56E0" font-weight="800">lll</text>
+          <!-- 진동 -->
+          <g stroke="#E08A2B" stroke-width="2" fill="none" opacity=".9"><path d="M96 128 q4 -5 8 0 q4 5 8 0"/></g>
+          <text x="86" y="146" font-size="10" fill="#E08A2B" font-weight="800">진동</text>
+        </svg>
+      </div>
+      <div class="hsteps">
+        <div class="hstep"><span class="hn">1</span><div>
+          <div class="htitle">혀끝을 윗잇몸에 붙여요</div>
+          <ul>
+            <li>윗니 <b>바로 뒤쪽</b>, 입천장 앞부분에 <b>혀끝이 닿아야 해요!</b></li>
+            <li>꼭 혀를 윗잇몸에 <b>붙이고</b> 발음해요.</li>
+            <li>이게 ‘r’과 가장 큰 차이예요. <b>(‘r’은 혀가 안 닿아요)</b></li>
+          </ul>
+          <div class="htip">💡 거울을 보며 “혀가 위에 붙었나?” 확인하세요.</div>
+        </div></div>
+        <div class="hstep"><span class="hn">2</span><div>
+          <div class="htitle">소리를 혀 옆으로 흘려보내요</div>
+          <ul>
+            <li>‘l’은 혀 위로 내는 게 아니라, <b>혀 양옆으로</b> 공기와 소리를 흘려요.</li>
+            <li>살짝 <b>흘러나오는 느낌</b>을 기억하세요.</li>
+          </ul>
+        </div></div>
+        <div class="hstep"><span class="hn">3</span><div>
+          <div class="htitle">짧고 정확하게 (특히 끝소리)</div>
+          <ul>
+            <li>‘l’은 보통 <b>짧고 정확하게</b> 내요. 길게 늘이지 않아요.</li>
+            <li>특히 <b>단어 끝(dark L)에서는 무겁고 짧게, 끝까지!</b> (call, full, feel)</li>
+          </ul>
+          <div class="exwords" id="exWords"></div>
+        </div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. 한국인이 자주 하는 실수 -->
+  <section>
+    <div class="s-head"><span class="s-num">2</span><h2>한국인이 자주 하는 실수</h2></div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="ptable">
+        <thead><tr><th>잘못된 발음</th><th>왜 그럴까</th><th>어떻게 고치나</th></tr></thead>
+        <tbody>
+          <tr><td>‘l’ → ‘r’</td><td>혀를 안 붙이고 뒤로 말아서</td><td class="fix">혀끝을 <b>윗잇몸에 붙이고</b> 발음</td></tr>
+          <tr><td>‘l’을 ‘ㄹ’로 굴림</td><td>혀를 너무 많이 굴려서</td><td class="fix">굴리지 말고 <b>딱 붙였다 떼기</b></td></tr>
+          <tr><td>끝소리 ‘l’ 생략</td><td>어색해서 빼버려서</td><td class="fix">call·full·feel은 <b>끝까지 소리 내기!</b></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 3. 소리 듣고 따라하기 -->
+  <section>
+    <div class="s-head"><span class="s-num">3</span><h2>단어로 따라하기</h2><span class="sub">단어를 누르면 소리가 나요</span></div>
+    <div class="card" id="wordsCard"></div>
+  </section>
+
+  <!-- 4. 미니 페어 -->
+  <section>
+    <div class="s-head"><span class="s-num">4</span><h2>헷갈리는 짝 · l vs r</h2><span class="sub">혀 닿음(l) vs 안 닿음(r)! 번갈아 들어보세요</span></div>
+    <div class="pairs" id="pairsBox"></div>
+  </section>
+
+  <!-- 5. 문장 연습 -->
+  <section>
+    <div class="s-head"><span class="s-num">5</span><h2>문장으로 연습</h2><span class="sub">l 소리를 모두 살려서</span></div>
+    <div id="sentBox"></div>
+  </section>
+
+  <!-- 6. 매일 3분 루틴 -->
+  <section>
+    <div class="s-head"><span class="s-num">6</span><h2>매일 3분 연습 루틴</h2><span class="sub">이 순서로 하루 3분</span></div>
+    <div class="routine">
+      <div class="rstep"><span class="rn">1</span><div>
+        <div class="rt">소리 내는 순서</div>
+        <div class="rd">① 혀끝을 <b>뒤로 말기</b>(어디에도 안 닿게!) → ② 입을 <b>오므리기</b>(‘우’ 입) → ③ 진하게 <span class="big-f">rrrrrrr~</span></div>
+      </div></div>
+      <div class="rstep"><span class="rn">2</span><div>
+        <div class="rt">단어 반복 훈련 <span style="font-weight:600;color:var(--muted);font-size:12.5px">· 느리게</span></div>
+        <div class="rd">위 <b>‘단어로 따라하기’</b>의 단어를 눌러 듣고 두 번씩 따라 말하기 — Red · Right · Really · Around</div>
+      </div></div>
+      <div class="rstep"><span class="rn">3</span><div>
+        <div class="rt">문장 쉐도잉</div>
+        <div class="rd">위 <b>‘문장으로 연습’</b>의 문장을 들으며 r 소리를 모두 살려 따라 읽기</div>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- 7. 녹음해서 비교 -->
+  <section>
+    <div class="s-head"><span class="s-num">7</span><h2>녹음해서 비교하기</h2><span class="sub">모델 소리와 내 발음을 나란히</span></div>
+    <div class="card rec">
+      <div class="target">
+        <span class="hi">R</span>ed <span class="hi">r</span>oses a<span class="hi">r</span>e <span class="hi">r</span>eally <span class="hi">r</span>a<span class="hi">r</span>e.
+        <span class="ko">빨간 장미는 정말 드물어요.</span>
+      </div>
+      <div class="rec-controls">
+        <button class="btn primary" id="modelBtn">🔊 모델 듣기</button>
+        <button class="btn" id="recBtn">🎤 내 발음 녹음</button>
+        <button class="btn" id="playBtn" disabled>▶ 내 발음 듣기</button>
+      </div>
+      <p class="rec-hint" id="recHint">녹음 버튼을 누르면 마이크 사용 허용을 물어봐요. 허용하면 녹음돼요.</p>
+    </div>
+  </section>
+
+  <!-- 감각 익히기 팁 -->
+  <section>
+    <div class="s-head"><span class="s-num" style="background:var(--warm)">🧠</span><h2>감각 익히기 팁</h2></div>
+    <div class="tips">
+      <div class="tipc"><span class="ic">🎯</span><span>‘r’은 <b>입술 + 혀 + 목소리의 삼박자</b>예요. 셋이 동시에 맞아야 제 소리가 나요.</span></div>
+      <div class="tipc"><span class="ic">🪞</span><span><b>거울 + 핸드폰 녹음 + 느리게 따라하기</b> 조합이 최고예요! 혀가 어디에도 안 닿는지 확인하세요.</span></div>
+    </div>
+  </section>
+
+  <footer>
+    🗣️ LJ ENGLISH 발음 클리닉 · 원어민 음성으로 재생됩니다<br>
+    소리가 안 나면 기기의 소리(무음 모드)를 확인해 주세요.
+  </footer>
+</div>
+
+<script>
+/* ============ 데이터 ============ */
+const WORDS = [
+  { cap:"첫소리 (light L)", ipa:"/l/…", items:[
+    {en:"light", hi:"l", ko:"빛"},    {en:"love", hi:"l", ko:"사랑"},
+    {en:"long", hi:"l", ko:"긴"},     {en:"late", hi:"l", ko:"늦은"},
+    {en:"little", hi:"l", ko:"작은"},  {en:"lemon", hi:"l", ko:"레몬"},
+    {en:"look", hi:"l", ko:"보다"},    {en:"lucky", hi:"l", ko:"운 좋은"},
+    {en:"like", hi:"l", ko:"좋아하다"}, {en:"lake", hi:"l", ko:"호수"},
+  ]},
+  { cap:"가운데 소리", ipa:"…/l/…", items:[
+    {en:"yellow", hi:"ll", ko:"노란"},  {en:"follow", hi:"ll", ko:"따라가다"},
+    {en:"hello", hi:"ll", ko:"안녕"},   {en:"silly", hi:"ll", ko:"바보 같은"},
+    {en:"salad", hi:"l", ko:"샐러드"},
+  ]},
+  { cap:"끝소리 (dark L)", ipa:"…/l/", items:[
+    {en:"call", hi:"ll", ko:"전화하다"}, {en:"ball", hi:"ll", ko:"공"},
+    {en:"full", hi:"ll", ko:"가득 찬"},  {en:"feel", hi:"l", ko:"느끼다"},
+    {en:"cool", hi:"l", ko:"시원한"},    {en:"tell", hi:"ll", ko:"말하다"},
+  ]},
+];
+// 미니페어: 왼쪽 l(혀 닿음) / 오른쪽 r(혀 안 닿음)
+const PAIRS = [
+  {l:"light", r:"right", lko:"빛", rko:"오른쪽"},
+  {l:"load", r:"road", lko:"짐", rko:"길"},
+  {l:"lock", r:"rock", lko:"자물쇠", rko:"바위"},
+  {l:"lace", r:"race", lko:"끈·레이스", rko:"경주"},
+  {l:"fly", r:"fry", lko:"날다", rko:"튀기다"},
+  {l:"play", r:"pray", lko:"놀다", rko:"기도하다"},
+];
+const SENTS = [
+  {en:"Lucy loves lemonade.", ko:"루시는 레모네이드를 좋아해요."},
+  {en:"Look at the little light.", ko:"저 작은 불빛을 봐요."},
+  {en:"He left late last night.", ko:"그는 어젯밤 늦게 떠났어요."},
+  {en:"The lake looks so calm today.", ko:"오늘 호수가 정말 잔잔해 보여요."},
+  {en:"I like learning new languages.", ko:"나는 새 언어를 배우는 걸 좋아해요."},
+  {en:"Let's live a long and happy life.", ko:"길고 행복한 삶을 살아요."},
+  {en:"She's lucky to live by the lake.", ko:"그녀는 호숫가에 살아서 운이 좋아요."},
+  {en:"The leaf landed on the lawn.", ko:"나뭇잎이 잔디밭에 내려앉았어요."},
+  {en:"A little love goes a long way.", ko:"작은 사랑이 큰 힘이 돼요."},
+  {en:"Level up your English skills!", ko:"영어 실력을 한 단계 올려요!"},
+];
+const EXWORDS = [
+  {en:"light", hi:"l", ipa:"/laɪt/"}, {en:"love", hi:"l", ipa:"/lʌv/"},
+  {en:"call", hi:"ll", ipa:"/kɔːl/"}, {en:"feel", hi:"l", ipa:"/fiːl/"},
+];
+
+/* ============ TTS ============ */
+let rate = 0.85, enVoice = null;
+function pickVoice(){
+  const vs = speechSynthesis.getVoices();
+  const pref = ["Samantha","Google US English","Microsoft Aria","Microsoft Jenny","Karen","Moira","Daniel"];
+  for(const name of pref){ const v = vs.find(x=>x.name===name); if(v){enVoice=v;return;} }
+  enVoice = vs.find(v=>/en[-_]US/i.test(v.lang)) || vs.find(v=>/^en/i.test(v.lang)) || null;
+}
+if('speechSynthesis' in window){ pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+let curBtn = null;
+function speak(text, btn){
+  if(!('speechSynthesis' in window)){ return; }
+  speechSynthesis.cancel();
+  if(curBtn){ curBtn.classList.remove('playing'); }
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = 'en-US'; u.rate = rate; u.pitch = 1;
+  if(enVoice) u.voice = enVoice;
+  if(btn){ btn.classList.add('playing'); curBtn = btn;
+    u.onend = u.onerror = ()=>{ btn.classList.remove('playing'); if(curBtn===btn) curBtn=null; }; }
+  speechSynthesis.speak(u);
+}
+
+/* 원어민 음성(mp3) 재생 — 없으면 브라우저 음성으로 대체 */
+const AUDIO_BASE = 'audio/l/';
+function slug(t){ return t.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,''); }
+let curAudio = null, curPlayBtn = null;
+function clearPlay(){ if(curPlayBtn){ curPlayBtn.classList.remove('playing'); curPlayBtn=null; } }
+function play(text, btn){
+  try{ if(curAudio){ curAudio.pause(); curAudio=null; } }catch(e){}
+  if('speechSynthesis' in window) speechSynthesis.cancel();
+  clearPlay();
+  const a = new Audio(AUDIO_BASE + slug(text) + '.mp3');
+  a.playbackRate = rate;
+  a.preservesPitch = a.mozPreservesPitch = a.webkitPreservesPitch = true;
+  if(btn){ btn.classList.add('playing'); curPlayBtn = btn; }
+  a.onended = ()=>{ if(curPlayBtn===btn) clearPlay(); };
+  a.onerror = ()=>{ if(curPlayBtn===btn) clearPlay(); speak(text, btn); };  // mp3 없으면 TTS
+  curAudio = a;
+  a.play().catch(()=>{});
+}
+
+/* 속도 토글 */
+document.getElementById('speed').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  document.querySelectorAll('#speed button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); rate = parseFloat(b.dataset.rate);
+});
+
+/* ============ 렌더 ============ */
+const PLAY_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+
+function hiWord(en, hi){
+  if(!hi) return en;
+  const i = en.toLowerCase().indexOf(hi.toLowerCase());
+  if(i<0) return en;
+  return en.slice(0,i)+'<span class="hi">'+en.slice(i,i+hi.length)+'</span>'+en.slice(i+hi.length);
+}
+
+// 단어
+const wc = document.getElementById('wordsCard');
+WORDS.forEach(g=>{
+  const grp = document.createElement('div'); grp.className='wgroup';
+  grp.innerHTML = `<p class="cap">${g.cap} <span class="ipa">${g.ipa}</span></p>
+    <div class="words">${g.items.map(w=>
+      `<button class="word" data-say="${w.en}">
+        <span class="pbtn">${PLAY_SVG}</span>
+        <span class="txt"><span class="en">${hiWord(w.en,w.hi)}</span><span class="ko">${w.ko}</span></span>
+      </button>`).join('')}</div>`;
+  wc.appendChild(grp);
+});
+
+// Step3 예시 단어
+document.getElementById('exWords').innerHTML = EXWORDS.map(w=>
+  `<button class="exw" data-say="${w.en}">
+    <span class="pi">${PLAY_SVG}</span>
+    <span class="en">${hiWord(w.en,w.hi)}</span>
+    <span class="ipa">${w.ipa}</span>
+  </button>`).join('');
+
+// 미니 페어
+function hiAll(word, letter, cls){
+  return word.replace(new RegExp(letter,'gi'), m=>`<span class="${cls}">${m}</span>`);
+}
+const koStyle = 'font-size:11px;color:var(--muted);font-weight:600';
+const txtCol = 'display:flex;flex-direction:column;line-height:1.25;gap:1px';
+document.getElementById('pairsBox').innerHTML = PAIRS.map(p=>`
+  <div class="pair">
+    <button class="side f" data-say="${p.l}">
+      <span style="${txtCol};align-items:flex-end"><span class="en">${hiAll(p.l,'l','hi')}</span><span style="${koStyle}">${p.lko}</span></span>
+      <span class="mini">${PLAY_SVG}</span>
+    </button>
+    <span class="vs">vs</span>
+    <button class="side p" data-say="${p.r}">
+      <span class="mini">${PLAY_SVG}</span>
+      <span style="${txtCol};align-items:flex-start"><span class="en">${hiAll(p.r,'r','lo')}</span><span style="${koStyle}">${p.rko}</span></span>
+    </button>
+  </div>`).join('');
+
+// 문장
+document.getElementById('sentBox').innerHTML = SENTS.map(s=>{
+  const html = hiAll(s.en,'l','hi');   // 문장 안 모든 l 자동 강조
+  return `<div class="sent">
+    <button class="play" data-say="${s.en.replace(/"/g,'&quot;')}">${PLAY_SVG}</button>
+    <div><div class="en">${html}</div><div class="ko">${s.ko}</div></div>
+  </div>`;
+}).join('');
+
+// 클릭 → 재생 (이벤트 위임)
+document.body.addEventListener('click', e=>{
+  const el = e.target.closest('[data-say]'); if(!el) return;
+  const hasBtn = el.classList.contains('word')||el.classList.contains('play')||el.classList.contains('exw');
+  play(el.dataset.say, hasBtn ? el : null);
+});
+
+/* ============ 녹음 비교 ============ */
+const modelBtn=document.getElementById('modelBtn'), recBtn=document.getElementById('recBtn'),
+      playBtn=document.getElementById('playBtn'), recHint=document.getElementById('recHint');
+const TARGET = "Lucy loves lemonade.";
+modelBtn.addEventListener('click', ()=> play(TARGET, null));
+
+let mediaRec=null, chunks=[], myUrl=null, myAudio=null;
+recBtn.addEventListener('click', async ()=>{
+  if(mediaRec && mediaRec.state==='recording'){ mediaRec.stop(); return; }
+  if(!navigator.mediaDevices || !window.MediaRecorder){
+    recHint.textContent='이 브라우저는 녹음을 지원하지 않아요. Safari나 Chrome 최신 버전을 써주세요.';
+    recHint.classList.add('err'); return;
+  }
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    chunks=[]; mediaRec = new MediaRecorder(stream);
+    mediaRec.ondataavailable = ev=>{ if(ev.data.size>0) chunks.push(ev.data); };
+    mediaRec.onstop = ()=>{
+      stream.getTracks().forEach(t=>t.stop());
+      if(myUrl) URL.revokeObjectURL(myUrl);
+      myUrl = URL.createObjectURL(new Blob(chunks,{type:mediaRec.mimeType||'audio/webm'}));
+      myAudio = new Audio(myUrl);
+      playBtn.disabled=false;
+      recBtn.textContent='🎤 다시 녹음'; recBtn.classList.remove('rec-on');
+      recHint.textContent='좋아요! "내 발음 듣기"로 모델 소리와 비교해 보세요.'; recHint.classList.remove('err');
+    };
+    mediaRec.start();
+    recBtn.innerHTML='<span class="dot"></span> 멈추기'; recBtn.classList.add('rec-on');
+    recHint.textContent='녹음 중… 문장을 소리 내어 읽고, 끝나면 멈추기를 누르세요.'; recHint.classList.remove('err');
+  }catch(err){
+    recHint.textContent='마이크를 사용할 수 없어요. 브라우저 설정에서 마이크 권한을 허용해 주세요.';
+    recHint.classList.add('err');
+  }
+});
+playBtn.addEventListener('click', ()=>{ if(myAudio){ myAudio.currentTime=0; myAudio.play(); } });
+</script>
+</body>
+</html>

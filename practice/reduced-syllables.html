@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="LJ ENGLISH · 강세 없는 음절의 축약(reduced syllable) 리스닝 학습">
+<meta name="theme-color" content="#4C56E0">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🗣️%3C/text%3E%3C/svg%3E">
+<title>강세 없는 음절의 축약 · 리스닝 랩</title>
+<style>
+  :root{
+    --bg:#F5F6F9; --panel:#FFFFFF; --ink:#191C24; --muted:#6B7180;
+    --line:#E4E7EE; --accent:#4C56E0; --accent-soft:#EEF0FF;
+    --warm:#E08A2B; --warm-soft:#FBF0DF; --good:#1F9E67; --bad:#DB5461;
+    --shadow:0 1px 2px rgba(25,28,36,.04),0 6px 20px rgba(25,28,36,.06);
+    --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
+    --sans:system-ui,-apple-system,"Apple SD Gothic Neo","Pretendard","Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);
+    line-height:1.5;letter-spacing:-.01em;padding-bottom:64px}
+  .wrap{max-width:760px;margin:0 auto;padding:0 18px}
+  a{color:inherit}
+
+  /* header */
+  header{padding:30px 0 20px}
+  .brand{display:inline-flex;align-items:center;gap:9px;font-weight:800;font-size:15px;
+    letter-spacing:.1em;color:var(--ink);margin-bottom:20px}
+  .brand .mark{background:var(--accent);color:#fff;width:32px;height:32px;border-radius:9px;
+    display:grid;place-items:center;font-size:14px;letter-spacing:.02em;
+    box-shadow:0 4px 12px rgba(76,86,224,.32)}
+  .lesson{display:flex;align-items:center;gap:14px;margin-bottom:4px}
+  .lesson .no{font-size:clamp(38px,10vw,58px);font-weight:900;color:var(--warm);
+    line-height:.9;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+  .lesson .eyebrow{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--accent);margin:0 0 4px}
+  h1{font-size:clamp(24px,5.5vw,34px);line-height:1.1;margin:0;font-weight:800;text-wrap:balance}
+  .lede{margin:14px 0 0;color:var(--muted);font-size:15px;max-width:54ch}
+  .lede b{color:var(--warm)}
+
+  /* theory details */
+  .theory{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    box-shadow:var(--shadow);margin-top:20px;overflow:hidden}
+  .theory summary{list-style:none;cursor:pointer;padding:15px 18px;font-weight:800;font-size:14.5px;
+    display:flex;align-items:center;gap:9px;user-select:none}
+  .theory summary::-webkit-details-marker{display:none}
+  .theory summary .chev{margin-left:auto;color:var(--muted);transition:transform .2s;font-size:13px}
+  .theory[open] summary .chev{transform:rotate(180deg)}
+  .theory .body{padding:2px 18px 18px;border-top:1px solid var(--line);margin-top:0}
+  .theory h4{font-size:13.5px;margin:16px 0 7px;color:var(--accent);letter-spacing:.02em}
+  .theory p{font-size:13.5px;color:var(--ink);margin:0 0 8px;line-height:1.6}
+  .theory ul{margin:0;padding-left:18px}
+  .theory li{font-size:13.5px;color:var(--muted);margin-bottom:6px;line-height:1.55}
+  .theory li b{color:var(--ink)}
+
+  /* toolbar */
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:var(--panel);
+    border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:var(--shadow);
+    margin-top:16px}
+  .toolbar .lbl{font-size:12.5px;font-weight:600;color:var(--muted)}
+  .seg{display:inline-flex;background:var(--bg);border:1px solid var(--line);border-radius:9px;
+    padding:3px;gap:2px}
+  .seg button{border:0;background:transparent;font:inherit;font-size:13px;font-weight:600;
+    color:var(--muted);padding:5px 12px;border-radius:6px;cursor:pointer}
+  .seg button.on{background:var(--panel);color:var(--accent);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+  .spacer{flex:1}
+  .warn{font-size:12px;color:var(--warm);font-weight:600;display:none}
+
+  /* tabs */
+  nav.tabs{display:flex;gap:6px;margin:22px 0 18px;border-bottom:1px solid var(--line)}
+  nav.tabs button{border:0;background:transparent;font:inherit;font-size:14.5px;font-weight:700;
+    color:var(--muted);padding:10px 4px;margin-right:18px;cursor:pointer;position:relative}
+  nav.tabs button.on{color:var(--ink)}
+  nav.tabs button.on::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2.5px;
+    background:var(--accent);border-radius:3px}
+  .panel-view{display:none}
+  .panel-view.on{display:block;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  /* study cards */
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:15px 16px;
+    box-shadow:var(--shadow);margin-bottom:11px;display:grid;grid-template-columns:1fr auto;
+    gap:7px 14px;align-items:center}
+  .word{grid-column:1;grid-row:1;font-size:20px;font-weight:800;letter-spacing:.01em}
+  .word .dot{color:var(--line);margin:0 1px;font-weight:400}
+  .word .dropsyl{color:var(--warm);text-decoration:line-through;text-decoration-color:var(--warm);
+    opacity:.85}
+  .phon{grid-column:1;grid-row:2;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .phon .respell{font-weight:700;color:var(--warm);font-size:13.5px;background:var(--warm-soft);
+    padding:2px 9px;border-radius:6px}
+  .phon .ipa{font-family:var(--mono);font-size:12.5px;color:var(--muted)}
+  .phon .pill{font-size:11.5px;font-weight:800;color:var(--accent);background:var(--accent-soft);
+    padding:2px 9px;border-radius:20px;letter-spacing:.02em}
+  .ex{grid-column:1 / -1;grid-row:3;font-size:14px;color:var(--muted);cursor:pointer;
+    display:flex;align-items:center;gap:8px;padding-top:3px;border-top:1px dashed var(--line);
+    margin-top:3px}
+  .ex b{color:var(--ink);font-weight:700}
+  .ex .mini{width:26px;height:26px;border-radius:50%;border:1px solid var(--line);flex:none;
+    display:grid;place-items:center;color:var(--accent);background:var(--panel)}
+  .ex .mini svg{width:12px;height:12px}
+  .ex:hover .mini{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .play{grid-column:2;grid-row:1 / span 2;align-self:center;width:48px;height:48px;border-radius:50%;
+    border:1px solid var(--line);background:var(--panel);cursor:pointer;display:grid;place-items:center;
+    color:var(--accent);transition:.15s;flex:none}
+  .play:hover,.play.playing{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .play svg{width:19px;height:19px}
+
+  /* shadowing */
+  .stage{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);
+    padding:30px 22px 26px;text-align:center;min-height:300px;display:flex;flex-direction:column;
+    justify-content:center;align-items:center;gap:12px}
+  .s-count{font-size:12.5px;font-weight:700;color:var(--muted);letter-spacing:.04em}
+  .s-word{font-size:clamp(30px,8vw,44px);font-weight:900;line-height:1.05;transition:filter .2s}
+  .s-word.hidden{filter:blur(11px);user-select:none}
+  .s-word .dot{color:var(--line);font-weight:400;margin:0 2px}
+  .s-word .dropsyl{color:var(--warm);text-decoration:line-through;opacity:.85}
+  .s-phon{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
+  .s-phon .respell{font-weight:700;color:var(--warm);background:var(--warm-soft);padding:2px 10px;
+    border-radius:7px;font-size:15px}
+  .s-phon .ipa{font-family:var(--mono);font-size:14px;color:var(--muted)}
+  .s-pill{font-size:12px;font-weight:800;color:var(--accent);background:var(--accent-soft);
+    padding:3px 11px;border-radius:20px}
+  .s-ex{font-size:16px;color:var(--ink);max-width:30ch;line-height:1.4}
+  .s-ex b{color:var(--warm)}
+  .s-progress{width:100%;max-width:420px;height:5px;background:var(--line);border-radius:4px;
+    margin:4px auto 0;overflow:hidden}
+  .s-progress i{display:block;height:100%;background:var(--accent);width:0;transition:width .3s}
+  .controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:8px}
+  .btn{border:1px solid var(--line);background:var(--panel);color:var(--ink);font:inherit;
+    font-weight:700;font-size:14px;padding:11px 17px;border-radius:11px;cursor:pointer;
+    display:inline-flex;align-items:center;gap:7px;transition:.15s}
+  .btn:hover{border-color:var(--accent);color:var(--accent)}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn.primary:hover{background:#3b44c9}
+  .btn svg{width:16px;height:16px}
+
+  /* quiz */
+  .quiz{background:var(--panel);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);
+    padding:24px 20px}
+  .q-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+  .q-score{font-size:13px;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+  .q-type{text-align:center;font-size:11.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--accent);background:var(--accent-soft);padding:4px 12px;border-radius:20px;
+    display:inline-block;margin:6px auto 0}
+  .q-center{text-align:center}
+  .q-prompt{font-size:15.5px;font-weight:700;margin:16px 0 6px}
+  .q-sub{font-size:13.5px;color:var(--muted);margin:0 0 16px}
+  .q-sub .blank{color:var(--warm);font-weight:800;letter-spacing:1px}
+  .q-bigplay{width:74px;height:74px;border-radius:50%;border:0;background:var(--accent);color:#fff;
+    cursor:pointer;display:grid;place-items:center;margin:0 auto 6px;
+    box-shadow:0 8px 22px rgba(76,86,224,.35);transition:.15s}
+  .q-bigplay:hover{transform:scale(1.05)}
+  .q-bigplay svg{width:28px;height:28px}
+  .q-hint{font-size:12px;color:var(--muted)}
+  .q-options{display:grid;gap:9px;margin-top:18px}
+  .q-options.nums{grid-template-columns:repeat(3,1fr)}
+  .opt{border:1px solid var(--line);background:var(--panel);border-radius:12px;padding:13px 15px;
+    font:inherit;font-size:15.5px;font-weight:700;text-align:center;cursor:pointer;transition:.12s}
+  .q-options:not(.nums) .opt{text-align:left}
+  .opt:hover:not(:disabled){border-color:var(--accent);background:var(--accent-soft)}
+  .opt.correct{border-color:var(--good);background:#E7F6EE;color:var(--good)}
+  .opt.wrong{border-color:var(--bad);background:#FBEBEC;color:var(--bad)}
+  .opt:disabled{cursor:default}
+  .q-reveal{margin-top:16px;padding:14px 16px;background:var(--bg);border:1px solid var(--line);
+    border-radius:12px;display:none}
+  .q-reveal.show{display:block;animation:fade .25s}
+  .q-reveal .rw{font-size:17px;font-weight:800;margin-bottom:5px}
+  .q-reveal .rw .dropsyl{color:var(--warm);text-decoration:line-through}
+  .q-reveal .rw .dot{color:var(--line);font-weight:400}
+  .q-reveal .rd{font-size:13px;color:var(--muted);line-height:1.6}
+  .q-reveal .rd .respell{color:var(--warm);font-weight:700}
+  .q-reveal .rd .ipa{font-family:var(--mono)}
+  .q-next{margin-top:14px;display:flex;justify-content:flex-end}
+
+  footer{margin-top:34px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);
+    font-size:12.5px;text-align:center;line-height:1.7}
+  footer kbd{font-family:var(--mono);background:var(--panel);border:1px solid var(--line);
+    border-radius:5px;padding:1px 6px;font-size:11.5px}
+  footer .cr{display:inline-block;margin-top:9px;font-weight:800;letter-spacing:.12em;color:var(--ink)}
+  .watermark{position:fixed;right:13px;bottom:11px;z-index:5;pointer-events:none;font-size:11px;
+    font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);opacity:.42;
+    user-select:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="javascript:history.back()" style="text-decoration:none;color:inherit;display:inline-block">
+      <div class="brand">‹ <span class="mark">LJ</span> ENGLISH <span style="font-weight:600;color:var(--muted);letter-spacing:0;font-size:13px">· 돌아가기</span></div>
+    </a>
+    <div class="lesson">
+      <div class="no">06</div>
+      <div>
+        <p class="eyebrow">Reduced Syllables</p>
+        <h1>강세 없는 음절의 축약</h1>
+      </div>
+    </div>
+    <p class="lede">긴 단어에서 강세가 없는 음절은 약해지거나 <b>아예 사라집니다</b>.
+      camera는 [kæm·ra], comfortable은 [kʌmf·ta·ble]로요. 철자대로 듣지 말고,
+      <b>실제로 들리는 소리</b>를 귀에 익혀보세요.</p>
+
+    <details class="theory">
+      <summary>📖 이론 — 왜 음절이 사라질까? <span class="chev">▾</span></summary>
+      <div class="body">
+        <p>강세가 없는 음절이 약해지거나 생략되는 소리 변화를 <b>약화된 음절(reduced syllable)</b>이라고 합니다.
+          영어는 <b>강세 박자 언어(stress-timed)</b>라, 강세 음절만 또렷하게 하고 나머지는 빠르게 지나갑니다.</p>
+        <h4>왜 이런 축약이 생기나요?</h4>
+        <ul>
+          <li><b>발음의 효율성</b> — 모든 음절을 또렷이 말하면 느리고 어색해요. 강세만 살리고 나머지는 빠르게.</li>
+          <li><b>소통의 흐름</b> — 강세 없는 부분은 리듬을 방해하지 않도록 약하게 처리합니다.</li>
+          <li><b>영어의 리듬</b> — 중요한 소리(강세)를 기준으로 리듬이 정해져, 비강세 음절은 줄어듭니다.</li>
+        </ul>
+        <h4>듣기 연습이 꼭 필요한 이유</h4>
+        <ul>
+          <li><b>원어민 소리를 더 잘 들어요</b> — 약화된 소리가 빠르게 지나가도 놓치지 않게 됩니다.</li>
+          <li><b>뜻을 오해하지 않아요</b> — comfortable을 [ˈkʌmf.tə.bəl]로 알아야 알아들어요.</li>
+          <li><b>영어 리듬을 익혀요</b> — 단어를 하나하나 끊어 듣지 않게 됩니다.</li>
+          <li><b>내 발음도 자연스러워져요</b> — 잘 들리면 자연스럽게 말할 수 있어요.</li>
+        </ul>
+      </div>
+    </details>
+  </header>
+
+  <div class="toolbar">
+    <span class="lbl">재생 속도</span>
+    <div class="seg" id="speed">
+      <button data-rate="0.7">느리게</button>
+      <button data-rate="0.9" class="on">보통</button>
+      <button data-rate="1">원어민</button>
+    </div>
+    <div class="spacer"></div>
+    <span class="warn" id="warn">⚠︎ 이 브라우저는 영어 음성이 없어요</span>
+  </div>
+
+  <nav class="tabs" id="tabs">
+    <button data-view="study" class="on">단어 리스트</button>
+    <button data-view="shadow">섀도잉</button>
+    <button data-view="quiz">듣기 퀴즈</button>
+  </nav>
+
+  <section class="panel-view on" id="view-study" aria-label="단어 리스트"></section>
+
+  <section class="panel-view" id="view-shadow" aria-label="섀도잉">
+    <div class="stage">
+      <div class="s-count" id="sCount"></div>
+      <div class="s-word" id="sWord"></div>
+      <div class="s-phon" id="sPhon"></div>
+      <div class="s-pill" id="sPill"></div>
+      <div class="s-ex" id="sEx"></div>
+      <div class="s-progress"><i id="sBar"></i></div>
+      <div class="controls">
+        <button class="btn" id="sPrev">‹ 이전</button>
+        <button class="btn primary" id="sPlayW">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg> 단어</button>
+        <button class="btn" id="sPlayS">문장 듣기</button>
+        <button class="btn" id="sReveal">단어 보기</button>
+        <button class="btn" id="sNext">다음 ›</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel-view" id="view-quiz" aria-label="듣기 퀴즈">
+    <div class="quiz">
+      <div class="q-head">
+        <span class="q-score" id="qScore">점수 0 / 0</span>
+        <span class="q-score" id="qStreak"></span>
+      </div>
+      <div class="q-center"><span class="q-type" id="qType"></span></div>
+      <div class="q-center">
+        <p class="q-prompt" id="qPrompt"></p>
+        <p class="q-sub" id="qSub"></p>
+        <button class="q-bigplay" id="qPlay" aria-label="다시 듣기">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <div class="q-hint">🔁 여러 번 들어도 됩니다</div>
+      </div>
+      <div class="q-options" id="qOptions"></div>
+      <div class="q-reveal" id="qReveal"></div>
+      <div class="q-next"><button class="btn primary" id="qNext" style="display:none">다음 문제 ›</button></div>
+    </div>
+  </section>
+
+  <footer>
+    브라우저 음성 합성(TTS)으로 재생됩니다 · 실제 원어민 발음의 근사치예요<br>
+    단축키 — <kbd>Space</kbd> 다시 듣기 · <kbd>→</kbd> 다음 · <kbd>H</kbd> 단어 보기<br>
+    <span class="cr">© LJ ENGLISH</span>
+  </footer>
+</div>
+<div class="watermark">LJ ENGLISH</div>
+
+<script>
+/* ---- data ---- (syls: 철자 음절, drop: 사라지는 음절 index, red: 실제 들리는 음절 수) */
+const WORDS=[
+  {w:"actually", syls:["ac","tu","al","ly"], drop:2, red:3, respell:"[æk•chully]", ipa:"ˈæk.ʃə.li", sent:"Actually, I didn't know that.", sform:"Actually"},
+  {w:"every", syls:["ev","er","y"], drop:1, red:2, respell:"[ɛvree]", ipa:"ˈɛv.ri", sent:"Every day feels the same.", sform:"Every"},
+  {w:"average", syls:["av","er","age"], drop:1, red:2, respell:"[æv'r'j]", ipa:"ˈæv.rɪdʒ", sent:"My grades are average.", sform:"average"},
+  {w:"aspirin", syls:["as","pi","rin"], drop:1, red:2, respell:"[æsprɪn]", ipa:"ˈæs.prɪn", sent:"Take an aspirin for the pain.", sform:"aspirin"},
+  {w:"broccoli", syls:["broc","co","li"], drop:1, red:2, respell:"[bräklee]", ipa:"ˈbrɑk.li", sent:"Do you like broccoli?", sform:"broccoli"},
+  {w:"business", syls:["bus","i","ness"], drop:1, red:2, respell:"[bizness]", ipa:"ˈbɪz.nəs", sent:"She runs her own business.", sform:"business"},
+  {w:"camera", syls:["cam","e","ra"], drop:1, red:2, respell:"[kæmruh]", ipa:"ˈkæm.rə", sent:"The camera is expensive.", sform:"camera"},
+  {w:"chocolate", syls:["choc","o","late"], drop:1, red:2, respell:"[chäkl't]", ipa:"ˈtʃɑk.lət", sent:"I love chocolate cake.", sform:"chocolate"},
+  {w:"comfortable", syls:["com","for","ta","ble"], drop:1, red:3, respell:"[kʌmf't't'bl]", ipa:"ˈkʌmf.tə.bəl", sent:"This chair is comfortable.", sform:"comfortable"},
+  {w:"desperate", syls:["des","per","ate"], drop:1, red:2, respell:"[despr't]", ipa:"ˈdɛs.prət", sent:"He was desperate for help.", sform:"desperate"},
+  {w:"diaper", syls:["di","a","per"], drop:1, red:2, respell:"[dï'pər]", ipa:"ˈdaɪ.pər", sent:"The baby needs a new diaper.", sform:"diaper"},
+  {w:"different", syls:["dif","fer","ent"], drop:1, red:2, respell:"[diff'r'nt]", ipa:"ˈdɪf.rənt", sent:"Everyone has a different opinion.", sform:"different"},
+  {w:"general", syls:["gen","er","al"], drop:1, red:2, respell:"[jenr'l]", ipa:"ˈdʒɛn.rəl", sent:"It's a general guideline.", sform:"general"},
+  {w:"groceries", syls:["gro","cer","ies"], drop:1, red:2, respell:"[grossreez]", ipa:"ˈɡroʊs.riz", sent:"I'm buying groceries today.", sform:"groceries"},
+  {w:"jewelry", syls:["jew","el","ry"], drop:1, red:2, respell:"[joolree]", ipa:"ˈdʒuːl.ri", sent:"She loves wearing jewelry.", sform:"jewelry"},
+  {w:"memory", syls:["mem","o","ry"], drop:1, red:2, respell:"[memree]", ipa:"ˈmɛm.ri", sent:"That's a great memory.", sform:"memory"},
+  {w:"restaurant", syls:["res","tau","rant"], drop:1, red:2, respell:"[restr'nt]", ipa:"ˈrɛs.trɑnt", sent:"Let's eat at that restaurant.", sform:"restaurant"},
+  {w:"separate", syls:["sep","a","rate"], drop:1, red:2, respell:"[sepr't]", ipa:"ˈsɛp.rət", sent:"Keep the books separate.", sform:"separate"},
+  {w:"history", syls:["his","to","ry"], drop:1, red:2, respell:"[hisstree]", ipa:"ˈhɪs.tri", sent:"I love studying history.", sform:"history"},
+  {w:"accidentally", syls:["ac","ci","den","tal","ly"], drop:3, red:4, respell:"[æk•sə•dent•lee]", ipa:"ˌæk.sɪˈdɛnt.li", sent:"I accidentally dropped it.", sform:"accidentally"},
+  {w:"catholic", syls:["cath","o","lic"], drop:1, red:2, respell:"[kæth-lik]", ipa:"ˈkæθ.lɪk", sent:"My Catholic friend goes to church.", sform:"Catholic"},
+  {w:"family", syls:["fam","i","ly"], drop:1, red:2, respell:"[fæm-lee]", ipa:"ˈfæm.li", sent:"Our family went on vacation last weekend.", sform:"family"},
+  {w:"vegetable", syls:["veg","e","ta","ble"], drop:1, red:3, respell:"[vej-tuh-bl]", ipa:"ˈvɛdʒ.tə.bəl", sent:"She bought fresh vegetables from the market.", sform:"vegetables"},
+  {w:"temperature", syls:["tem","per","a","ture"], drop:1, red:3, respell:"[temp-ruh-chur]", ipa:"ˈtɛm.prə.tʃər", sent:"What's the temperature today?", sform:"temperature"},
+  {w:"favorite", syls:["fa","vo","rite"], drop:1, red:2, respell:"[fay-vrit]", ipa:"ˈfeɪv.rɪt", sent:"Chocolate ice cream is my favorite dessert.", sform:"favorite"},
+];
+
+/* ---- TTS ---- */
+let rate=0.9, enVoice=null, playingBtn=null;
+const synth=window.speechSynthesis;
+function pickVoice(){
+  if(!synth){ document.getElementById('warn').style.display='inline'; return; }
+  const vs=synth.getVoices().filter(v=>/^en(-|_)/i.test(v.lang));
+  enVoice=vs.find(v=>/US/i.test(v.lang))||vs[0]||null;
+}
+if(synth){ pickVoice(); synth.onvoiceschanged=pickVoice; }
+else document.getElementById('warn').style.display='inline';
+
+function speak(text,btn){
+  if(!synth){ document.getElementById('warn').style.display='inline'; return; }
+  synth.cancel();
+  if(playingBtn) playingBtn.classList.remove('playing');
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang='en-US'; u.rate=rate; if(enVoice)u.voice=enVoice;
+  u.onstart=()=>{ if(btn){btn.classList.add('playing');playingBtn=btn;} };
+  const stop=()=>{ if(btn)btn.classList.remove('playing'); playingBtn=null; };
+  u.onend=stop; u.onerror=stop;
+  synth.speak(u);
+}
+document.getElementById('speed').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return;
+  rate=parseFloat(b.dataset.rate);
+  document.querySelectorAll('#speed button').forEach(x=>x.classList.toggle('on',x===b));
+});
+
+/* ---- helpers ---- */
+const PLAY='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>';
+function sylHTML(it){
+  return it.syls.map((s,i)=> i===it.drop?`<span class="dropsyl">${s}</span>`:`<span>${s}</span>`)
+    .join('<span class="dot">·</span>');
+}
+function exHTML(it){
+  return it.sent.replace(it.sform, `<b>${it.sform}</b>`);
+}
+
+/* ---- Tab 1: study list ---- */
+const study=document.getElementById('view-study');
+WORDS.forEach(it=>{
+  const el=document.createElement('article'); el.className='card';
+  el.innerHTML=`
+    <div class="word">${sylHTML(it)}</div>
+    <div class="phon"><span class="respell">${it.respell}</span>
+      <span class="ipa">/${it.ipa}/</span>
+      <span class="pill">${it.syls.length}→${it.red}음절</span></div>
+    <div class="ex"><span class="mini">${PLAY}</span> ${exHTML(it)}</div>
+    <button class="play" aria-label="${it.w} 듣기">${PLAY}</button>`;
+  el.querySelector('.play').addEventListener('click',function(){ speak(it.w,this); });
+  el.querySelector('.ex').addEventListener('click',()=>speak(it.sent,null));
+  study.appendChild(el);
+});
+
+/* ---- Tab 2: shadowing ---- */
+let sIdx=0, sHidden=false;
+const S={c:'sCount',w:'sWord',p:'sPhon',pill:'sPill',ex:'sEx',bar:'sBar'};
+for(const k in S) S[k]=document.getElementById(S[k]);
+function renderShadow(){
+  const it=WORDS[sIdx];
+  S.c.textContent=`${sIdx+1} / ${WORDS.length}`;
+  S.w.innerHTML=sylHTML(it);
+  S.w.classList.toggle('hidden',sHidden);
+  S.p.innerHTML=`<span class="respell">${it.respell}</span><span class="ipa">/${it.ipa}/</span>`;
+  S.pill.textContent=`철자 ${it.syls.length}음절 → 실제 ${it.red}음절`;
+  S.ex.innerHTML=exHTML(it);
+  S.bar.style.width=((sIdx+1)/WORDS.length*100)+'%';
+  document.getElementById('sReveal').textContent=sHidden?'단어 보기':'단어 가리기';
+}
+document.getElementById('sPlayW').addEventListener('click',()=>speak(WORDS[sIdx].w,null));
+document.getElementById('sPlayS').addEventListener('click',()=>speak(WORDS[sIdx].sent,null));
+document.getElementById('sPrev').addEventListener('click',()=>{ sIdx=(sIdx-1+WORDS.length)%WORDS.length; renderShadow(); speak(WORDS[sIdx].w,null); });
+document.getElementById('sNext').addEventListener('click',()=>{ sIdx=(sIdx+1)%WORDS.length; renderShadow(); speak(WORDS[sIdx].w,null); });
+document.getElementById('sReveal').addEventListener('click',()=>{ sHidden=!sHidden; renderShadow(); });
+renderShadow();
+
+/* ---- Tab 3: quiz (음절 세기 + 받아쓰기 혼합) ---- */
+let qItem=null, qType='syl', qDone=false, qRight=0, qTotal=0, qStreak=0;
+const qOptions=document.getElementById('qOptions'), qReveal=document.getElementById('qReveal'),
+  qNext=document.getElementById('qNext'), qType_el=document.getElementById('qType'),
+  qPrompt=document.getElementById('qPrompt'), qSub=document.getElementById('qSub');
+function pick(arr,n){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a.slice(0,n); }
+
+function newQuestion(){
+  qDone=false; qReveal.classList.remove('show'); qNext.style.display='none';
+  qItem=WORDS[Math.floor(Math.random()*WORDS.length)];
+  qType=Math.random()<0.5?'syl':'dict';
+  qOptions.innerHTML='';
+  if(qType==='syl'){
+    qType_el.textContent='몇 음절?';
+    qPrompt.textContent='실제로 몇 음절로 들리나요?';
+    qSub.innerHTML=`철자는 <b>${qItem.syls.length}음절</b>이에요`;
+    qOptions.className='q-options nums';
+    const correct=qItem.red;
+    const nums=[correct,correct+1,correct+2];
+    pick(nums,3).forEach(n=>{
+      const b=document.createElement('button'); b.className='opt'; b.textContent=n+'음절';
+      b.addEventListener('click',()=>answer(b,n===correct)); qOptions.appendChild(b);
+    });
+    setTimeout(()=>speak(qItem.w,null),160);
+  } else {
+    qType_el.textContent='받아쓰기';
+    qPrompt.textContent='빈칸에 들어갈 단어는?';
+    qSub.innerHTML=qItem.sent.replace(qItem.sform,'<span class="blank">____</span>');
+    qOptions.className='q-options';
+    const opts=pick(WORDS.filter(x=>x!==qItem),3).concat(qItem);
+    pick(opts,4).forEach(o=>{
+      const b=document.createElement('button'); b.className='opt'; b.textContent=o.w;
+      b.addEventListener('click',()=>answer(b,o===qItem)); qOptions.appendChild(b);
+    });
+    setTimeout(()=>speak(qItem.sent,null),160);
+  }
+}
+function answer(btn,correct){
+  if(qDone)return; qDone=true; qTotal++;
+  document.querySelectorAll('.opt').forEach(b=>b.disabled=true);
+  if(correct){ btn.classList.add('correct'); qRight++; qStreak++; }
+  else{
+    btn.classList.add('wrong'); qStreak=0;
+    const want = qType==='syl' ? qItem.red+'음절' : qItem.w;
+    document.querySelectorAll('.opt').forEach(b=>{ if(b.textContent===want) b.classList.add('correct'); });
+  }
+  qReveal.innerHTML=`<div class="rw">${sylHTML(qItem)} <span style="font-weight:600;color:var(--muted);font-size:14px">(${qItem.w})</span></div>
+    <div class="rd"><span class="respell">${qItem.respell}</span> · <span class="ipa">/${qItem.ipa}/</span><br>
+    철자는 <b>${qItem.syls.length}음절</b>이지만 강세 없는 '<b style="color:var(--warm)">${qItem.syls[qItem.drop]}</b>'가 사라져 <b>${qItem.red}음절</b>로 들려요.</div>`;
+  qReveal.classList.add('show'); qNext.style.display='inline-flex';
+  document.getElementById('qScore').textContent=`점수 ${qRight} / ${qTotal}`;
+  document.getElementById('qStreak').textContent=qStreak>=2?`🔥 연속 ${qStreak}`:'';
+}
+document.getElementById('qPlay').addEventListener('click',()=>{ if(qItem) speak(qType==='syl'?qItem.w:qItem.sent,null); });
+qNext.addEventListener('click',newQuestion);
+
+/* ---- tabs ---- */
+let curView='study';
+document.getElementById('tabs').addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return;
+  curView=b.dataset.view;
+  document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('.panel-view').forEach(v=>v.classList.remove('on'));
+  document.getElementById('view-'+curView).classList.add('on');
+  if(synth)synth.cancel();
+  if(curView==='quiz' && !qItem) newQuestion();
+});
+
+/* ---- keyboard ---- */
+document.addEventListener('keydown',e=>{
+  if(curView==='shadow'){
+    if(e.code==='Space'){e.preventDefault();speak(WORDS[sIdx].w,null);}
+    else if(e.key==='ArrowRight'){sIdx=(sIdx+1)%WORDS.length;renderShadow();speak(WORDS[sIdx].w,null);}
+    else if(e.key==='ArrowLeft'){sIdx=(sIdx-1+WORDS.length)%WORDS.length;renderShadow();speak(WORDS[sIdx].w,null);}
+    else if(e.key.toLowerCase()==='h'){sHidden=!sHidden;renderShadow();}
+  } else if(curView==='quiz'){
+    if(e.code==='Space'){e.preventDefault();if(qItem)speak(qType==='syl'?qItem.w:qItem.sent,null);}
+    else if(e.key==='ArrowRight'&&qDone)newQuestion();
+  }
+});
+</script>
+</body>
+</html>
