@@ -70,6 +70,74 @@
   <!-- 토스트 -->
   <div id="toast" class="hidden fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-gray-800 text-white text-sm font-medium px-5 py-3 rounded-full shadow-lg"></div>
 
+  <!-- 빠른 문구 편집 모달 -->
+  <div id="phraseModal" class="hidden fixed inset-0 z-40 bg-black/40 flex items-end sm:items-center justify-center p-3" onclick="if(event.target===this) closePhraseEditor()">
+    <div class="bg-white rounded-2xl w-full max-w-md max-h-[85vh] flex flex-col shadow-xl">
+      <div class="px-5 py-4 border-b flex items-center justify-between">
+        <div>
+          <h2 class="font-bold text-gray-900">빠른 문구 편집</h2>
+          <p class="text-xs text-gray-400">자주 쓰는 피드백 문구를 관리하세요</p>
+        </div>
+        <button onclick="closePhraseEditor()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
+      </div>
+      <div id="phraseEditList" class="px-5 py-3 space-y-2 overflow-y-auto flex-1"></div>
+      <div class="px-5 py-3 border-t space-y-2">
+        <div class="flex gap-2">
+          <input id="newPhraseInput" type="text" placeholder="새 문구 입력 후 Enter..."
+            class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+            onkeydown="if(event.key==='Enter') addPhrase()" />
+          <button onclick="addPhrase()" class="bg-blue-600 text-white text-sm font-semibold px-4 rounded-lg hover:bg-blue-700">추가</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 발음 처방 항목 편집 모달 -->
+  <div id="practiceModal" class="hidden fixed inset-0 z-40 bg-black/40 flex items-end sm:items-center justify-center p-3" onclick="if(event.target===this) closePracticeEditor()">
+    <div class="bg-white rounded-2xl w-full max-w-md max-h-[85vh] flex flex-col shadow-xl">
+      <div class="px-5 py-4 border-b flex items-center justify-between">
+        <div>
+          <h2 class="font-bold text-gray-900">🎯 발음 처방 항목 편집</h2>
+          <p class="text-xs text-gray-400">🔗 발음 노트(링크) · 🎯 집중 포인트(링크 없음)</p>
+        </div>
+        <button onclick="closePracticeEditor()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
+      </div>
+      <div id="practiceEditList" class="px-5 py-3 space-y-2 overflow-y-auto flex-1"></div>
+      <div class="px-5 py-3 border-t space-y-2">
+        <input id="newPracticeLabel" type="text" placeholder="항목 이름 (예: R/L 발음 · 호흡점)"
+          class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" />
+        <div class="flex gap-2">
+          <input id="newPracticeUrl" type="text" placeholder="링크 주소 (비우면 '집중 포인트')"
+            class="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300"
+            onkeydown="if(event.key==='Enter') addPractice()" />
+          <button onclick="addPractice()" class="bg-orange-500 text-white text-sm font-semibold px-4 rounded-lg hover:bg-orange-600">추가</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 발음 처방 고르기(검색형) 모달 -->
+  <div id="pickerModal" class="hidden fixed inset-0 z-40 bg-black/40 flex items-end sm:items-center justify-center p-3" onclick="if(event.target===this) closePracticePicker()">
+    <div class="bg-white rounded-2xl w-full max-w-md h-[80vh] sm:h-[70vh] flex flex-col shadow-xl">
+      <div class="px-5 py-4 border-b flex items-center justify-between">
+        <div>
+          <h2 class="font-bold text-gray-900">🎯 발음 노트 고르기</h2>
+          <p class="text-xs text-gray-400">연습이 필요한 발음을 탭하세요 (여러 개 가능)</p>
+        </div>
+        <button onclick="closePracticePicker()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
+      </div>
+      <div class="px-5 pt-3 pb-2">
+        <input id="pickerSearch" type="text" placeholder="🔍 발음 검색 (예: f, th, 모음...)" oninput="renderPickerList()"
+          class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" />
+      </div>
+      <div id="pickerList" class="px-5 py-1 space-y-1.5 overflow-y-auto flex-1"></div>
+      <div class="px-5 py-3 border-t flex items-center justify-between">
+        <button onclick="openPracticeEditor()" class="text-xs text-gray-400 hover:text-gray-600">✏️ 노트 목록 편집</button>
+        <button onclick="closePracticePicker()" class="bg-orange-500 text-white text-sm font-semibold px-5 py-2 rounded-lg hover:bg-orange-600">완료</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const today = todayStr();
     const [,tm, td] = today.split('-');
@@ -81,6 +149,240 @@
     let submissions = [];
     let selectedDate = today;
     let doneCount = 0;
+
+    // ============================================================
+    // ⚡ 빠른 문구 템플릿 + 🎯 발음 처방 (목록은 이 기기 localStorage에 저장)
+    // ============================================================
+    const DEFAULT_PHRASES = [
+      "오늘도 수고 많으셨어요! 👏",
+      "발음이 확실히 좋아지고 있어요 👍",
+      "억양이 자연스러워요!",
+      "끊어 읽기가 좋아졌어요",
+      "리듬감이 살아있어요 🎵",
+      "조금만 더 큰 소리로 연습해볼까요?",
+      "꾸준함이 최고예요! 🔥",
+    ];
+    // ⚠️ 노션 링크는 아직 app.notion.com(로그인 필요) 상태.
+    //    상위 페이지 "웹에 게시" 후 notion.site 공개주소로 교체 필요.
+    const NB = "https://app.notion.com/p/";
+    const DEFAULT_PRACTICE = [
+      // 🎯 집중 포인트 (링크 없음 — 학생에게 강조 태그로 표시)
+      { label: "단어 강세 확인",        url: "" },
+      { label: "문장 전체 인토네이션",  url: "" },
+      { label: "호흡점(끊어 읽기)",     url: "" },
+      { label: "감정 넣기",             url: "" },
+      { label: "음절 수 세기",          url: "" },
+      // 🔗 발음 노트 → 배포된 자체 연습 페이지 (본인 보이스 음원)
+      { label: "자음 F",              url: "practice/f.html" },
+      { label: "자음 V",              url: "practice/v.html" },
+      { label: "/f/ vs /v/",          url: "practice/v.html" },
+      { label: "자음 R",              url: "practice/r.html" },
+      { label: "자음 L",              url: "practice/l.html" },
+      { label: "/l/ vs /r/",          url: "practice/lr.html" },
+      { label: "자음 P",              url: "practice/p.html" },
+      { label: "자음 /b/",            url: "practice/pbv.html" },
+      { label: "/p/·/b/·/v/ 차이",    url: "practice/pbv.html" },
+      { label: "th /θ/ vs /ð/",       url: "practice/th.html" },
+      { label: "/th/ vs 'ㄷ'",        url: "practice/th.html" },
+      { label: "/ʃ/ (sh 소리)",       url: "practice/sh.html" },
+      { label: "/ʒ/",                 url: "practice/zh.html" },
+      { label: "자음 /z/",            url: "practice/z.html" },
+      { label: "/tʃ/ vs /dʒ/",        url: "practice/ch-j.html" },
+      { label: "모음 'o'",            url: NB + "o-2416a9fdb6dd8019b8b9ea9ac112bb0d" }, // 아직 페이지 없음(노션 유지)
+      { label: "모음 /æ/·/e/ (애·에)", url: "practice/ae-e.html" },
+      { label: "모음 /ɔː/·/ʌ/ (어)",  url: "practice/aw-uh.html" },
+      { label: "모음 /ʌ/·/ɜː/·/ɔː/·/ə/ (어)", url: "practice/uh.html" },
+      { label: "모음 /uː/·/ʊ/ (우)",  url: "practice/oo.html" },
+      { label: "모음 /iː/·/ɪ/ (이)",  url: "practice/ee.html" },
+    ];
+
+    let phrases = loadPhrases();
+    let practiceItems = loadPractice();
+
+    function loadPhrases() {
+      try { const r = localStorage.getItem('feedbackPhrases'); if (r) return JSON.parse(r); } catch(e){}
+      return [...DEFAULT_PHRASES];
+    }
+    function persistPhrases() { localStorage.setItem('feedbackPhrases', JSON.stringify(phrases)); }
+    function loadPractice() {
+      // v2: 처방 링크를 노션→연습 페이지로 교체하면서 키 갱신(기존 캐시 무시하고 새 기본목록 로드)
+      try { const r = localStorage.getItem('feedbackPractice_v2'); if (r) return JSON.parse(r); } catch(e){}
+      return DEFAULT_PRACTICE.map(x => ({ ...x }));
+    }
+    function persistPractice() { localStorage.setItem('feedbackPractice_v2', JSON.stringify(practiceItems)); }
+
+    function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+    // ---- 카드 내부: 빠른 문구 칩 ----
+    function chipsHtml(subId) {
+      const btns = phrases.map((p,i) =>
+        `<button type="button" onclick="insertPhrase('${subId}',${i})"
+          class="text-xs bg-blue-50 text-blue-700 border border-blue-100 rounded-full px-2.5 py-1 hover:bg-blue-100 active:scale-95 transition">${escapeHtml(p)}</button>`
+      ).join('');
+      return btns + `<button type="button" onclick="openPhraseEditor()"
+          class="text-xs text-gray-400 border border-dashed border-gray-200 rounded-full px-2 py-1 hover:text-gray-600 hover:border-gray-300">✏️ 문구</button>`;
+    }
+
+    // ---- 카드 내부: 선택된 발음 처방 칩 + [＋ 처방 추가] ----
+    function practiceHtml(subId) {
+      const sub = submissions.find(s => s.id === subId);
+      const selected = (sub && sub.practiceLinks) || [];
+      const chips = selected.map((l,i) =>
+        `<span class="inline-flex items-center gap-1 bg-orange-500 text-white text-xs rounded-full pl-2.5 pr-1 py-1">
+           ${escapeHtml(l.label)}
+           <button type="button" onclick="unselectPractice('${subId}',${i})"
+             class="w-4 h-4 flex items-center justify-center rounded-full hover:bg-orange-600 leading-none">×</button>
+         </span>`
+      ).join('');
+      return chips + `<button type="button" onclick="openPracticePicker('${subId}')"
+          class="text-xs text-orange-600 border border-dashed border-orange-300 rounded-full px-2.5 py-1 hover:bg-orange-50 active:scale-95 transition">＋ 처방 추가</button>`;
+    }
+
+    // 문구를 커서 위치에 삽입
+    function insertPhrase(subId, idx) {
+      const ta = document.getElementById(`fb-${subId}`);
+      if (!ta) return;
+      const phrase = phrases[idx];
+      if (phrase == null) return;
+      const start = ta.selectionStart ?? ta.value.length;
+      const end   = ta.selectionEnd   ?? ta.value.length;
+      const before = ta.value.slice(0, start);
+      const after  = ta.value.slice(end);
+      const sep = (before && !/\s$/.test(before)) ? ' ' : '';
+      ta.value = before + sep + phrase + after;
+      ta.focus();
+      const pos = (before + sep + phrase).length;
+      ta.setSelectionRange(pos, pos);
+    }
+
+    // 카드에서 선택된 처방 칩 제거
+    function unselectPractice(subId, idx) {
+      const sub = submissions.find(s => s.id === subId);
+      if (!sub || !Array.isArray(sub.practiceLinks)) return;
+      sub.practiceLinks.splice(idx, 1);
+      const box = document.getElementById(`rx-${subId}`);
+      if (box) box.innerHTML = practiceHtml(subId);
+      if (pickerSubId === subId) renderPickerList();
+    }
+
+    // 처방 항목 고유 키 (링크 있으면 url, 없으면 label 기준 — 링크 없는 포인트끼리 충돌 방지)
+    function keyOf(x){ return x.url ? 'u:' + x.url : 'l:' + x.label; }
+
+    // ---- 발음 처방 고르기(검색형) 모달 ----
+    let pickerSubId = null;
+    function openPracticePicker(subId) {
+      pickerSubId = subId;
+      const inp = document.getElementById('pickerSearch');
+      inp.value = '';
+      renderPickerList();
+      document.getElementById('pickerModal').classList.remove('hidden');
+      setTimeout(() => inp.focus(), 50);
+    }
+    function closePracticePicker() {
+      document.getElementById('pickerModal').classList.add('hidden');
+      pickerSubId = null;
+    }
+    function renderPickerList() {
+      const el = document.getElementById('pickerList');
+      const q = document.getElementById('pickerSearch').value.trim().toLowerCase();
+      const sub = submissions.find(s => s.id === pickerSubId);
+      const selected = (sub && sub.practiceLinks) || [];
+      const selKeys = new Set(selected.map(keyOf));
+      const items = practiceItems.map((p,i) => ({ p, i }))
+        .filter(({p}) => !q || p.label.toLowerCase().includes(q));
+      if (!items.length) { el.innerHTML = '<p class="text-sm text-gray-400 text-center py-6">검색 결과가 없어요</p>'; return; }
+      el.innerHTML = items.map(({p,i}) => {
+        const on = selKeys.has(keyOf(p));
+        const tag = p.url
+          ? '<span class="text-[10px] text-blue-400 flex-shrink-0">🔗 노트</span>'
+          : '<span class="text-[10px] text-gray-400 flex-shrink-0">🎯 포인트</span>';
+        return `<button type="button" onclick="pickPractice(${i})"
+          class="w-full flex items-center gap-2.5 text-left rounded-lg px-3 py-2.5 border transition ${on ? 'bg-orange-50 border-orange-300' : 'bg-white border-gray-100 hover:bg-gray-50'}">
+          <span class="w-5 h-5 flex-shrink-0 rounded-md flex items-center justify-center text-xs font-bold ${on ? 'bg-orange-500 text-white' : 'border border-gray-300 text-transparent'}">✓</span>
+          <span class="flex-1 text-sm ${on ? 'text-orange-700 font-semibold' : 'text-gray-700'}">${escapeHtml(p.label)}</span>
+          ${tag}
+        </button>`;
+      }).join('');
+    }
+    function pickPractice(idx) {
+      const sub = submissions.find(s => s.id === pickerSubId);
+      const item = practiceItems[idx];
+      if (!sub || !item) return;
+      if (!Array.isArray(sub.practiceLinks)) sub.practiceLinks = [];
+      const k = keyOf(item);
+      if (sub.practiceLinks.some(l => keyOf(l) === k))
+        sub.practiceLinks = sub.practiceLinks.filter(l => keyOf(l) !== k);
+      else
+        sub.practiceLinks.push({ label: item.label, url: item.url });
+      renderPickerList();
+      const box = document.getElementById(`rx-${pickerSubId}`);
+      if (box) box.innerHTML = practiceHtml(pickerSubId);
+    }
+
+    // 목록 편집 후 모든 카드의 칩·처방 새로고침 (입력 중인 텍스트 유지)
+    function refreshAllChips() {
+      submissions.forEach(sub => {
+        const c = document.getElementById(`chips-${sub.id}`); if (c) c.innerHTML = chipsHtml(sub.id);
+        const r = document.getElementById(`rx-${sub.id}`);    if (r) r.innerHTML = practiceHtml(sub.id);
+      });
+    }
+
+    // ---- 빠른 문구 편집 모달 ----
+    function openPhraseEditor(){ renderPhraseEditList(); document.getElementById('phraseModal').classList.remove('hidden'); }
+    function closePhraseEditor(){ document.getElementById('phraseModal').classList.add('hidden'); refreshAllChips(); }
+    function renderPhraseEditList(){
+      const el = document.getElementById('phraseEditList');
+      if (!phrases.length){ el.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">문구가 없습니다. 아래에서 추가하세요.</p>'; return; }
+      el.innerHTML = phrases.map((p,i)=>`
+        <div class="flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2">
+          <span class="flex-1 text-sm text-gray-700 break-words">${escapeHtml(p)}</span>
+          <button onclick="movePhrase(${i},-1)" class="text-gray-400 hover:text-gray-700 px-1">▲</button>
+          <button onclick="movePhrase(${i},1)" class="text-gray-400 hover:text-gray-700 px-1">▼</button>
+          <button onclick="removePhrase(${i})" class="text-red-400 hover:text-red-600 px-1">🗑</button>
+        </div>`).join('');
+    }
+    function addPhrase(){
+      const inp = document.getElementById('newPhraseInput');
+      const v = inp.value.trim(); if (!v) return;
+      phrases.push(v); persistPhrases(); inp.value=''; renderPhraseEditList();
+    }
+    function removePhrase(i){ phrases.splice(i,1); persistPhrases(); renderPhraseEditList(); }
+    function movePhrase(i,dir){
+      const j=i+dir; if (j<0||j>=phrases.length) return;
+      [phrases[i],phrases[j]]=[phrases[j],phrases[i]]; persistPhrases(); renderPhraseEditList();
+    }
+
+    // ---- 발음 처방 항목 편집 모달 ----
+    function openPracticeEditor(){ renderPracticeEditList(); document.getElementById('practiceModal').classList.remove('hidden'); }
+    function closePracticeEditor(){ document.getElementById('practiceModal').classList.add('hidden'); refreshAllChips(); if (pickerSubId) renderPickerList(); }
+    function renderPracticeEditList(){
+      const el = document.getElementById('practiceEditList');
+      if (!practiceItems.length){ el.innerHTML = '<p class="text-sm text-gray-400 text-center py-4">항목이 없습니다. 아래에서 추가하세요.</p>'; return; }
+      el.innerHTML = practiceItems.map((p,i)=>`
+        <div class="flex items-center gap-2 bg-orange-50 rounded-lg px-3 py-2">
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-medium text-gray-800">${escapeHtml(p.label)}</p>
+            <p class="text-xs text-gray-400 truncate">${p.url ? '🔗 ' + escapeHtml(p.url) : '🎯 집중 포인트 (링크 없음)'}</p>
+          </div>
+          <button onclick="movePractice(${i},-1)" class="text-gray-400 hover:text-gray-700 px-1">▲</button>
+          <button onclick="movePractice(${i},1)" class="text-gray-400 hover:text-gray-700 px-1">▼</button>
+          <button onclick="removePractice(${i})" class="text-red-400 hover:text-red-600 px-1">🗑</button>
+        </div>`).join('');
+    }
+    function addPractice(){
+      const l = document.getElementById('newPracticeLabel').value.trim();
+      const u = document.getElementById('newPracticeUrl').value.trim();
+      if (!l){ showToast('항목 이름을 입력해주세요'); return; }
+      practiceItems.push({ label:l, url:u }); persistPractice();  // url 비워두면 '집중 포인트'
+      document.getElementById('newPracticeLabel').value='';
+      document.getElementById('newPracticeUrl').value='';
+      renderPracticeEditList();
+    }
+    function removePractice(i){ practiceItems.splice(i,1); persistPractice(); renderPracticeEditList(); }
+    function movePractice(i,dir){
+      const j=i+dir; if (j<0||j>=practiceItems.length) return;
+      [practiceItems[i],practiceItems[j]]=[practiceItems[j],practiceItems[i]]; persistPractice(); renderPracticeEditList();
+    }
 
     function updateProgress() {
       doneCount = submissions.filter(s => s.teacherFeedback && s.teacherFeedback.trim()).length;
@@ -145,12 +447,25 @@
 
           <div class="px-4 pb-4 space-y-2">
             <label class="text-xs font-semibold text-gray-600">선생님 피드백</label>
+
+            <!-- ⚡ 빠른 문구 -->
+            <div class="flex flex-wrap items-center gap-1.5" id="chips-${sub.id}">${chipsHtml(sub.id)}</div>
+
             <textarea
               id="fb-${sub.id}"
               rows="3"
               placeholder="학생에게 전달할 피드백을 입력하세요..."
               class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none leading-relaxed"
             >${hasFb ? sub.teacherFeedback : ''}</textarea>
+
+            <!-- 🎯 발음 처방 -->
+            <div class="pt-1">
+              <div class="flex items-center gap-1.5 mb-1.5">
+                <span class="text-xs font-semibold text-gray-600">🎯 발음 처방</span>
+              </div>
+              <div class="flex flex-wrap items-center gap-1.5" id="rx-${sub.id}">${practiceHtml(sub.id)}</div>
+            </div>
+
             <button onclick="saveFb('${sub.id}')"
               class="w-full bg-blue-600 text-white text-sm font-semibold py-2.5 rounded-xl hover:bg-blue-700 transition-colors">
               저장
@@ -163,11 +478,12 @@
 
     async function saveFb(subId) {
       const val = document.getElementById(`fb-${subId}`).value.trim();
+      const sub = submissions.find(s => s.id === subId);
+      const links = (sub && sub.practiceLinks) || [];
       if (!val) { showToast('피드백 내용을 입력해주세요'); return; }
 
-      await saveFeedback(subId, val);
+      await saveFeedback(subId, val, links);
 
-      const sub = submissions.find(s => s.id === subId);
       if (sub) sub.teacherFeedback = val;
 
       const card = document.getElementById(`card-${subId}`);

@@ -157,10 +157,11 @@ async function saveSubmission(studentName, week, day, fileUrls, feeling) {
   });
 }
 
-// 피드백 저장
-async function saveFeedback(submissionId, feedback) {
+// 피드백 저장 (practiceLinks = [{label, url}, ...] 발음 처방 링크, 선택)
+async function saveFeedback(submissionId, feedback, practiceLinks) {
   await db.collection('submissions').doc(submissionId).update({
     teacherFeedback: feedback,
+    practiceLinks: Array.isArray(practiceLinks) ? practiceLinks : [],
     feedbackAt: firebase.firestore.FieldValue.serverTimestamp()
   });
 }

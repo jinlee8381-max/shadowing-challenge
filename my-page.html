@@ -471,10 +471,34 @@
       }
       fbEl.innerHTML = '';
       withFb.forEach(s => {
+        const all = Array.isArray(s.practiceLinks) ? s.practiceLinks : [];
+        const points = all.filter(l => !l.url);   // 링크 없는 집중 포인트
+        const linked = all.filter(l => l.url);     // 노션 발음 노트 등 링크
+        const pointsHtml = points.length ? `
+              <div class="flex flex-wrap gap-1.5 mb-1.5">
+                ${points.map(l => `
+                  <span class="inline-flex items-center gap-1 bg-orange-100 text-orange-700 text-xs font-medium rounded-full px-3 py-1.5">
+                    🎯 ${l.label}
+                  </span>`).join('')}
+              </div>` : '';
+        const linkedHtml = linked.length ? `
+              <div class="flex flex-wrap gap-1.5">
+                ${linked.map(l => `
+                  <a href="${l.url}"${/^practice\//.test(l.url) ? '' : ' target="_blank"'}
+                    class="inline-flex items-center gap-1 bg-white border border-orange-300 text-orange-600 text-xs font-medium rounded-full px-3 py-1.5 hover:bg-orange-500 hover:text-white transition-colors">
+                    🔗 ${l.label} 연습하러 가기
+                  </a>`).join('')}
+              </div>` : '';
+        const practiceHtml = all.length ? `
+            <div class="mt-2 pt-2 border-t border-orange-100">
+              <p class="text-xs text-orange-500 font-semibold mb-1.5">🎯 이 부분에 집중해요</p>
+              ${pointsHtml}${linkedHtml}
+            </div>` : '';
         fbEl.innerHTML += `
           <div class="bg-orange-50 border border-orange-100 rounded-xl p-3">
             <p class="text-xs text-orange-500 font-medium mb-1">${tsToMD(s.submittedAt)} · W${s.week} D${s.day}</p>
             <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">${s.teacherFeedback}</p>
+            ${practiceHtml}
           </div>`;
       });
     }
