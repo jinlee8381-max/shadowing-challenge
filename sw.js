@@ -1,6 +1,6 @@
 importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js");
 
-const CACHE = 'shadowing-v3';
+const CACHE = 'shadowing-v4';
 
 const PRECACHE = [
   '/firebase-config.js',
@@ -39,8 +39,11 @@ self.addEventListener('fetch', e => {
     url.includes('onesignal.com')
   ) return;
 
-  // HTML 파일 — 항상 최신 버전 (네트워크 우선)
-  if (url.endsWith('.html') || url.endsWith('/')) {
+  // 페이지(HTML/네비게이션) — 항상 최신 버전 (네트워크 우선)
+  // ⚠️ my-page.html?name=... 처럼 쿼리스트링이 붙으면 endsWith('.html')이 false라
+  //    예전엔 캐시 우선으로 옛 페이지가 떴음 → pathname/네비게이션으로 판정하도록 수정
+  const path = new URL(url).pathname;
+  if (e.request.mode === 'navigate' || path.endsWith('.html') || path.endsWith('/')) {
     e.respondWith(
       fetch(e.request).catch(() => caches.match(e.request))
     );
