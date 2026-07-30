@@ -4,9 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>쉐도잉 챌린지 신청 | LJ CLASS</title>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <script src="./firebase-config.js"></script>
   <style>
     :root {
       --bg: #FAF8F5;
@@ -530,6 +527,63 @@
     .success-title { font-size: 1.3rem; font-weight: 800; color: var(--text); margin-bottom: 10px; }
     .success-desc { font-size: .9rem; color: var(--text-mid); line-height: 1.85; word-break: keep-all; }
 
+
+    /* ── 신청 섹션 (구글폼 링크) ── */
+    .apply-link {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      transition: opacity .2s;
+    }
+    .apply-link:hover { opacity: .72; }
+
+
+    /* ── 맨 아래 대형 신청 버튼 ── */
+    @keyframes applyPulse {
+      0%, 100% { box-shadow: 0 8px 28px rgba(231,76,60,.38), 0 0 0 0 rgba(231,76,60,.34); }
+      50%      { box-shadow: 0 8px 28px rgba(231,76,60,.38), 0 0 0 14px rgba(231,76,60,0); }
+    }
+
+    .btn-apply-big {
+      display: block;
+      width: 100%;
+      margin-top: 28px;
+      padding: 26px 20px;
+      border: none;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #FF5A3C 0%, #FF7A18 55%, #FFA028 100%);
+      color: #fff;
+      font-family: inherit;
+      font-size: 1.32rem;
+      font-weight: 900;
+      letter-spacing: -.02em;
+      line-height: 1.4;
+      text-align: center;
+      text-decoration: none;
+      word-break: keep-all;
+      cursor: pointer;
+      animation: applyPulse 2.2s ease-in-out infinite;
+      transition: transform .2s;
+    }
+
+    .btn-apply-big:hover {
+      transform: translateY(-3px) scale(1.015);
+      color: #fff;
+    }
+
+    .btn-apply-big .sub {
+      display: block;
+      margin-top: 8px;
+      font-size: .88rem;
+      font-weight: 700;
+      opacity: .92;
+      letter-spacing: 0;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .btn-apply-big { animation: none; }
+    }
+
     /* ── Floating CTA ── */
     .float-cta {
       position: fixed;
@@ -568,7 +622,7 @@
     <div class="next-date-card">
       🗓&nbsp; 다음 기수&ensp;<span class="hl" id="nextDate">—</span>&ensp;시작
     </div>
-    <a href="#apply" class="btn btn-wine" style="margin-bottom:12px;">지금 신청하기 →</a>
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLSdSAz2ruWVqU3JwM5eZ1rooTL5BIVFf_zMdVlcgCYQ-63-Irg/viewform?usp=header" target="_blank" rel="noopener" class="btn btn-wine" style="margin-bottom:12px;">지금 신청하기 →</a>
     <a href="https://blog.naver.com/lj_english/224324600661" target="_blank" rel="noopener" class="btn btn-outline">📋 챌린지 내용 미리보기</a>
   </div>
 </section>
@@ -804,155 +858,24 @@
   </div>
 </section>
 
-<!-- ════════ 신청 폼 ════════ -->
+<!-- ════════ 신청 (구글폼 연결) ════════ -->
 <section id="apply" class="section" style="background: var(--card); border-top: 1px solid var(--border);">
   <div class="wrap">
-    <p class="sec-badge">Apply Now</p>
-    <h2 class="sec-title">쉐도잉 챌린지<br>신청하기</h2>
-    <p class="sec-desc">신청 후 카카오톡으로 안내를 보내드려요 :)</p>
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLSdSAz2ruWVqU3JwM5eZ1rooTL5BIVFf_zMdVlcgCYQ-63-Irg/viewform?usp=header" target="_blank" rel="noopener" class="apply-link">
+      <p class="sec-badge">Apply Now</p>
+      <h2 class="sec-title" style="margin-bottom:0;">쉐도잉 챌린지<br>신청하기</h2>
+    </a>
 
-    <div id="formWrap">
-      <form id="applyForm" novalidate>
-
-        <div class="form-group">
-          <label class="form-label">이름<span class="req">*</span></label>
-          <input type="text" class="form-input" id="name" placeholder="이름을 입력해 주세요" required>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">카카오톡 ID<span class="req">*</span></label>
-          <p class="form-hint">오카방 링크, 팀채팅방 초대, 필수 안내사항 발송에 사용됩니다</p>
-          <input type="text" class="form-input" id="kakaoId" placeholder="카카오톡 ID를 입력해 주세요" required>
-        </div>
-
-        <div class="form-divider"></div>
-
-        <div class="form-group">
-          <label class="form-label">쉐도잉 챌린지를 통해 가장 기대하는 변화는?<span class="req">*</span></label>
-          <div class="radio-opts">
-            <label class="radio-opt"><input type="radio" name="expectedChange" value="긴 문장도 호흡과 리듬으로 자연스럽게 의미 이해하며 듣기"><span class="radio-opt-text">긴 문장도 호흡과 리듬으로 자연스럽게 의미 이해하며 듣기</span></label>
-            <label class="radio-opt"><input type="radio" name="expectedChange" value="자연스럽고 원어민에 가까운 발음, 억양"><span class="radio-opt-text">자연스럽고 원어민에 가까운 발음, 억양</span></label>
-            <label class="radio-opt"><input type="radio" name="expectedChange" value="작은 소리 디테일까지 잡아내어 모두 듣기"><span class="radio-opt-text">작은 소리 디테일까지 잡아내어 모두 듣기</span></label>
-            <label class="radio-opt"><input type="radio" name="expectedChange" value="매일 짧게라도 꾸준히 연습하는 습관"><span class="radio-opt-text">매일 짧게라도 꾸준히 연습하는 습관</span></label>
-            <label class="radio-opt"><input type="radio" name="expectedChange" value="짧은 시간 안에 리스닝·스피킹 감각 빠르게 키우기"><span class="radio-opt-text">짧은 시간 안에 리스닝·스피킹 감각 빠르게 키우기</span></label>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">멤버 전용 혜택 중 가장 기대되는 것은?<span class="req">*</span></label>
-          <div class="radio-opts">
-            <label class="radio-opt"><input type="radio" name="expectedBenefit" value="평생 소장 쉐도잉 키트, 영상 클립, 음성 녹음 파일"><span class="radio-opt-text">평생 소장 쉐도잉 키트, 영상 클립, 음성 녹음 파일</span></label>
-            <label class="radio-opt"><input type="radio" name="expectedBenefit" value="매일 학습 설계 & 관리로 공부 습관 형성"><span class="radio-opt-text">매일 학습 설계 &amp; 관리로 공부 습관 형성</span></label>
-            <label class="radio-opt"><input type="radio" name="expectedBenefit" value="모든 영어 관련 무제한 Q&A"><span class="radio-opt-text">모든 영어 관련 무제한 Q&amp;A</span></label>
-            <label class="radio-opt"><input type="radio" name="expectedBenefit" value="모든 컨텐츠 리스닝 꿀팁 (영화, 애니, 광고 등)"><span class="radio-opt-text">모든 컨텐츠 리스닝 꿀팁 (영화, 애니, 광고, 인터뷰, 강연 등)</span></label>
-            <label class="radio-opt"><input type="radio" name="expectedBenefit" value="발음 연습 맞춤형 1:1 피드백"><span class="radio-opt-text">발음 연습 맞춤형 1:1 피드백</span></label>
-          </div>
-        </div>
-
-        <div class="form-divider"></div>
-
-        <div class="form-group">
-          <label class="form-label">옵션 선택<span class="req">*</span></label>
-          <div class="radio-opts">
-            <label class="radio-opt">
-              <input type="radio" name="option" value="옵션 1 - 월 12만원">
-              <span class="radio-opt-text"><strong style="color:var(--text)">옵션 1</strong>&emsp;쉐도잉 챌린지 참여비 — 월 12만원</span>
-            </label>
-            <label class="radio-opt">
-              <input type="radio" name="option" value="옵션 2 - 월 15만원 (VOD 강의 포함)">
-              <span class="radio-opt-text">
-                <strong style="color:var(--text)">옵션 2</strong>&emsp;VOD 강의 추가 — 월 15만원<br>
-                <span style="font-size:.81rem;color:var(--wine-dark);font-weight:600;">발음·억양·연음을 미리 익히고 쉐도잉하면 효과가 완전히 달라요.</span><br>
-                <span style="font-size:.79rem;color:var(--text-mute)">준비된 상태로 연습하니까 같은 시간에 두 배 흡수 💡</span>
-              </span>
-            </label>
-            <label class="radio-opt">
-              <input type="radio" name="option" value="옵션 3 - 리스닝 클래스 참여자 (환급 보증금 4만원)">
-              <span class="radio-opt-text">
-                <strong style="color:var(--text)">옵션 3</strong>&emsp;리스닝 클래스 참여자 — 환급 보증금 4만원<br>
-                <span style="font-size:.81rem;color:var(--text-mute)">참여비 무료 · 보증금만 입금 (성실 인증 시 전액 환급)</span>
-              </span>
-            </label>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">입금 확인<span class="req">*</span></label>
-          <p class="form-hint">카카오뱅크 3333-19-4033339 (이진)</p>
-          <div class="radio-opts">
-            <label class="radio-opt"><input type="radio" name="payment" value="입금 완료"><span class="radio-opt-text">입금 완료하였습니다</span></label>
-            <label class="radio-opt"><input type="radio" name="payment" value="기타"><span class="radio-opt-text">기타 (입금자명이 다른 경우 아래에 입력해 주세요)</span></label>
-          </div>
-          <input type="text" class="form-input" id="paymentNote" placeholder="입금자명이 다를 경우 여기에 입력해 주세요" style="margin-top:8px;display:none;">
-        </div>
-
-        <div class="form-divider"></div>
-
-        <!-- 환급 조건 확인 -->
-        <div class="form-group">
-          <div style="background:var(--bg);border:1.5px solid var(--border);border-radius:var(--r-sm);padding:16px;margin-bottom:12px;">
-            <p style="font-size:.85rem;font-weight:700;color:var(--text);margin-bottom:8px;">결제 및 환급 안내</p>
-            <p style="font-size:.83rem;color:var(--text-mid);line-height:1.8;word-break:keep-all;">
-              참여비: 월 8만원 (리스닝 클래스 참여자 무료)<br>
-              챌린지비: 월 4만원 (100% 환급 가능)<br>
-              <span style="font-size:.8rem;color:var(--text-mute)">(챌린지만 참여 시 12만원, 수업 등록자 4만원)</span>
-            </p>
-            <div style="height:1px;background:var(--border);margin:10px 0;"></div>
-            <p style="font-size:.83rem;color:var(--text-mid);line-height:1.75;word-break:keep-all;">
-              환급 조건: <strong style="color:var(--text)">매주 5회 이상 참여 시 1만원씩 환급</strong><br>
-              (4주 모두 성공 시 전액 환불)
-            </p>
-          </div>
-          <label class="checkbox-wrap">
-            <input type="checkbox" id="refundConfirm" required>
-            <span class="checkbox-text">
-              <strong style="color:var(--text)">환급 조건을 확인했습니다 (필수)</strong>
-            </span>
-          </label>
-        </div>
-
-        <div class="form-group">
-          <label class="checkbox-wrap">
-            <input type="checkbox" id="privacy" required>
-            <span class="checkbox-text">
-              <strong style="color:var(--text)">개인정보 수집 및 이용 동의 (필수)</strong><br>
-              수강 신청과 관련된 연락 및 안내에 개인정보를 사용하는 데 동의합니다.
-              수집 항목: 이름, 카카오톡 ID / 보유 기간: 수강 종료 후 1년
-            </span>
-          </label>
-        </div>
-
-        <div style="background:#FFF3F3;border:1px solid #F0C0C0;border-radius:var(--r-sm);padding:14px 16px;margin-bottom:20px;">
-          <p style="font-size:.84rem;color:#8A3030;line-height:1.7;word-break:keep-all;">
-            ⚠️ 참여자마다 매일 피드백 수정을 해 드리는 관계로,<br>
-            <strong>챌린지 인원 제한, 조기 마감</strong>될 수 있습니다.
-          </p>
-        </div>
-
-        <button type="submit" class="btn btn-wine" id="submitBtn">신청 완료하기</button>
-        <p id="formError"></p>
-
-      </form>
-
-      <div id="successMsg">
-        <div class="success-icon">🎉</div>
-        <h3 class="success-title">신청이 완료되었어요!</h3>
-        <p class="success-desc">
-          LJ쌤이 카카오톡으로 곧 연락드릴게요.<br>
-          그 전에 먼저 오픈채팅방에 입장해 주세요!
-        </p>
-        <a href="https://invite.kakao.com/tc/KBq0gup2ta" target="_blank" rel="noopener"
-           class="btn btn-wine" style="margin-top:24px;">
-          💬 오픈채팅방 바로 입장하기
-        </a>
-      </div>
-    </div>
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLSdSAz2ruWVqU3JwM5eZ1rooTL5BIVFf_zMdVlcgCYQ-63-Irg/viewform?usp=header" target="_blank" rel="noopener" class="btn-apply-big">
+      🔥 지금 바로 신청하기
+      <span class="sub">버튼을 누르면 신청서로 이동해요 →</span>
+    </a>
   </div>
 </section>
 
 <!-- ════════ Floating CTA ════════ -->
 <div class="float-cta" id="floatCta">
-  <a href="#apply" class="btn btn-wine">🔥 쉐도잉 챌린지 신청하기</a>
+  <a href="https://docs.google.com/forms/d/e/1FAIpQLSdSAz2ruWVqU3JwM5eZ1rooTL5BIVFf_zMdVlcgCYQ-63-Irg/viewform?usp=header" target="_blank" rel="noopener" class="btn btn-wine">🔥 쉐도잉 챌린지 신청하기</a>
 </div>
 
 <script>
@@ -982,24 +905,6 @@
   document.getElementById('nextDate').textContent =
     nd.toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' });
 
-  // ── 라디오 선택 스타일 ──
-  document.querySelectorAll('.radio-opts').forEach(group => {
-    group.querySelectorAll('input[type="radio"]').forEach(r => {
-      r.addEventListener('change', () => {
-        group.querySelectorAll('.radio-opt').forEach(o => o.classList.remove('selected'));
-        r.closest('.radio-opt').classList.add('selected');
-      });
-    });
-  });
-
-  // ── 입금자명 다를 경우 필드 토글 ──
-  document.querySelectorAll('input[name="payment"]').forEach(r => {
-    r.addEventListener('change', () => {
-      document.getElementById('paymentNote').style.display =
-        r.value === '기타' ? 'block' : 'none';
-    });
-  });
-
   // ── 계좌 복사 ──
   function copyAccount(btn) {
     navigator.clipboard.writeText('3333-19-4033339').then(() => {
@@ -1015,82 +920,7 @@
     floatCta.classList.toggle('hidden', entries[0].isIntersecting);
   }, { threshold: 0.05 }).observe(document.getElementById('apply'));
 
-  // ── 폼 제출 (Firebase Firestore) ──
-  const applyForm = document.getElementById('applyForm');
-  const submitBtn = document.getElementById('submitBtn');
-  const formError = document.getElementById('formError');
-  const successMsg = document.getElementById('successMsg');
-
-  applyForm.addEventListener('submit', async e => {
-    e.preventDefault();
-    formError.style.display = 'none';
-
-    const name            = document.getElementById('name').value.trim();
-    const kakaoId         = document.getElementById('kakaoId').value.trim();
-    const expectedChange  = applyForm.querySelector('input[name="expectedChange"]:checked')?.value;
-    const expectedBenefit = applyForm.querySelector('input[name="expectedBenefit"]:checked')?.value;
-    const option          = applyForm.querySelector('input[name="option"]:checked')?.value;
-    const payment         = applyForm.querySelector('input[name="payment"]:checked')?.value;
-    const paymentNote     = document.getElementById('paymentNote').value.trim();
-    const refundConfirm   = document.getElementById('refundConfirm').checked;
-    const privacy         = document.getElementById('privacy').checked;
-
-    if (!name)            return showError('이름을 입력해 주세요');
-    if (!kakaoId)         return showError('카카오톡 ID를 입력해 주세요');
-    if (!expectedChange)  return showError('기대하는 변화를 선택해 주세요');
-    if (!expectedBenefit) return showError('기대되는 혜택을 선택해 주세요');
-    if (!option)          return showError('옵션을 선택해 주세요');
-    if (!payment)         return showError('입금 확인 여부를 선택해 주세요');
-    if (!refundConfirm)   return showError('환급 조건을 확인해 주세요');
-    if (!privacy)         return showError('개인정보 수집 및 이용에 동의해 주세요');
-
-    submitBtn.textContent = '신청 중...';
-    submitBtn.disabled = true;
-
-    try {
-      await db.collection('applications').add({
-        name, kakaoId, expectedChange, expectedBenefit,
-        option, payment,
-        paymentNote: paymentNote || '',
-        refundConfirm: true,
-        privacyConsent: true,
-        status: 'new',
-        submittedAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
-
-      // 관리자 이메일 알림
-      fetch('https://api.emailjs.com/api/v1.0/email/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          service_id: 'service_2428u4f',
-          template_id: 'template_q7j2iii',
-          user_id: 'nqLPvWJexb3PLr_uc',
-          template_params: {
-            name, kakaoId, option, payment,
-            paymentNote: paymentNote || '없음',
-            expectedChange, expectedBenefit
-          }
-        })
-      }).catch(() => {});
-
-      applyForm.style.display = 'none';
-      successMsg.style.display = 'block';
-      floatCta.classList.add('hidden');
-      document.getElementById('apply').scrollIntoView({ behavior: 'smooth' });
-    } catch (err) {
-      showError('오류가 발생했어요. 잠시 후 다시 시도해 주세요.');
-      submitBtn.textContent = '신청 완료하기';
-      submitBtn.disabled = false;
-      console.error(err);
-    }
-  });
-
-  function showError(msg) {
-    formError.textContent = msg;
-    formError.style.display = 'block';
-    formError.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }
+  // 신청 접수는 구글폼에서 처리합니다.
 </script>
 </body>
 </html>

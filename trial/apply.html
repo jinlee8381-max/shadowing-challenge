@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>5일 무료 체험 신청 | LJ CLASS 쉐도잉 챌린지</title>
+  <meta name="description" content="10년을 배웠는데 왜 아직도 안 들릴까요? 재능이 없어서가 아니에요. 하루 10분, 5일 무료 쉐도잉 체험.">
+  <meta property="og:title" content="10년을 배웠는데 왜 아직도 안 들릴까요 | LJ CLASS">
+  <meta property="og:description" content="재능이 없어서가 아니에요. 원어민이 소리를 어떻게 뭉개는지 아무도 안 알려줬을 뿐. 하루 10분, 5일 무료 쉐도잉 체험.">
+  <meta property="og:type" content="website">
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+  <script src="./trial-config.js"></script>
+  <style>
+    :root {
+      --bg: #FAF8F5;
+      --card: #FFFFFF;
+      --text: #3A2A24;
+      --text-mid: #7A6054;
+      --text-mute: #B09A90;
+      --wine: #9A6070;
+      --wine-dark: #7A4A5A;
+      --wine-light: #C49AAA;
+      --wine-pale: #F2E4E9;
+      --border: #E8D4DA;
+      --shadow: 0 4px 24px rgba(154,96,112,.09);
+      --shadow-lg: 0 10px 48px rgba(154,96,112,.14);
+      --r: 20px;
+      --r-sm: 13px;
+    }
+
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .wrap { max-width: 480px; margin: 0 auto; padding: 0 20px; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Hero ── */
+    #hero {
+      padding: 56px 0 52px;
+      background:
+        radial-gradient(ellipse 70% 40% at 80% 10%, rgba(194,154,170,.22) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 35% at 10% 80%, rgba(194,154,170,.14) 0%, transparent 55%),
+        var(--bg);
+      text-align: center;
+      animation: fadeUp .6s ease both;
+    }
+
+    .brand-pill {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--wine);
+      background: var(--wine-pale);
+      padding: 5px 15px;
+      border-radius: 100px;
+      margin-bottom: 22px;
+    }
+
+    .hero-title {
+      font-size: clamp(1.65rem, 7.5vw, 2.3rem);
+      font-weight: 900;
+      line-height: 1.28;
+      letter-spacing: -.04em;
+      margin-bottom: 16px;
+      word-break: keep-all;
+    }
+
+    .hero-title em { font-style: normal; color: var(--wine); }
+
+    .hero-sub {
+      font-size: .95rem;
+      color: var(--text-mid);
+      line-height: 1.85;
+      word-break: keep-all;
+    }
+
+    .hero-cta {
+      display: inline-block;
+      margin-top: 28px;
+      background: var(--wine);
+      color: #fff;
+      text-decoration: none;
+      font-size: .97rem;
+      font-weight: 800;
+      letter-spacing: -.01em;
+      padding: 16px 32px;
+      border-radius: 100px;
+      box-shadow: 0 8px 26px rgba(154,96,112,.3);
+      transition: background .2s, transform .1s;
+    }
+
+    .hero-cta:hover  { background: var(--wine-dark); }
+    .hero-cta:active { transform: scale(.98); }
+    .hero-cta:focus-visible { outline: 3px solid var(--wine-light); outline-offset: 3px; }
+
+    .hero-note {
+      margin-top: 13px;
+      font-size: .79rem;
+      font-weight: 600;
+      color: var(--text-mute);
+    }
+
+    /* ── Sections ── */
+    section { padding: 44px 0; }
+
+    .sec-label {
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      color: var(--wine-light);
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .sec-title {
+      font-size: 1.3rem;
+      font-weight: 800;
+      letter-spacing: -.03em;
+      text-align: center;
+      margin-bottom: 28px;
+      word-break: keep-all;
+    }
+
+    /* ── WHY · 공감 카드 ── */
+    #why { background: var(--card); }
+
+    .pain-grid { display: flex; flex-direction: column; gap: 14px; }
+
+    .pain-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 20px 18px 19px;
+      box-shadow: var(--shadow);
+    }
+
+    .pain-head { display: flex; align-items: flex-start; gap: 13px; }
+
+    .pain-emoji {
+      flex-shrink: 0;
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: var(--wine-pale);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      line-height: 1;
+    }
+
+    .pain-q {
+      padding-top: 3px;
+      font-size: 1.02rem;
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.52;
+      letter-spacing: -.025em;
+      word-break: keep-all;
+    }
+
+    .pain-a {
+      margin-top: 16px;
+      padding-top: 15px;
+      border-top: 1px dashed var(--border);
+    }
+
+    .pain-why {
+      display: inline-block;
+      font-size: .68rem;
+      font-weight: 800;
+      letter-spacing: .08em;
+      color: var(--wine);
+      background: var(--wine-pale);
+      padding: 4px 11px;
+      border-radius: 100px;
+      margin-bottom: 10px;
+    }
+
+    .pain-key {
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--wine-dark);
+      line-height: 1.68;
+      letter-spacing: -.015em;
+      word-break: keep-all;
+      margin-bottom: 8px;
+    }
+
+    .pain-sub {
+      font-size: .86rem;
+      color: var(--text-mid);
+      line-height: 1.78;
+      word-break: keep-all;
+    }
+
+    .pain-sub b { color: var(--text); font-weight: 700; }
+
+    .why-close {
+      text-align: center;
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.8;
+      margin-top: 28px;
+      word-break: keep-all;
+    }
+
+    .why-close em { font-style: normal; color: var(--wine); }
+
+    /* ── PROOF · 후기 ── */
+    #proof { background: var(--wine-pale); }
+
+    .quote-list { display: flex; flex-direction: column; gap: 9px; margin-bottom: 22px; }
+
+    .quote-card {
+      background: var(--card);
+      border-radius: var(--r-sm);
+      padding: 14px 16px 14px 15px;
+      box-shadow: var(--shadow);
+      border-left: 3px solid var(--wine-light);
+      font-size: .93rem;
+      font-weight: 700;
+      line-height: 1.6;
+      color: var(--wine-dark);
+      letter-spacing: -.02em;
+      word-break: keep-all;
+    }
+
+    /* ── 스크린샷 공통 ── */
+    /* 가로 원본(1920×1080)을 세로 상자에 꽉 채워 확대 — 양옆은 잘림 */
+    .shot {
+      display: block;
+      width: 100%;
+      aspect-ratio: 4 / 5;
+      object-fit: cover;
+      object-position: 50% 50%;
+      border-radius: var(--r);
+      border: 1px solid var(--border);
+      background: var(--card);
+      box-shadow: var(--shadow-lg);
+    }
+
+    /* 이미지별 확대 비율 · 보여줄 위치 조절
+       aspect-ratio 를 세로로 길게 할수록 더 확대됩니다 (16/9 = 원본 전체)
+       object-position 의 첫 값(%)이 좌우 어느 쪽을 보여줄지 정합니다 */
+    /* 후기 콜라주 — 가운데 70% */
+    .shot--reviews { aspect-ratio: 5 / 4;  object-position: 50% 50%; }
+    /* 앱 화면 — 좌우 흰 여백만 잘라내고 폰 2개는 온전히 */
+    .shot--app     { aspect-ratio: 6 / 5;  object-position: 39% 50%; }
+    /* 진행 모습 — 원본이 1:1 정사각형이라 크롭 없이 전체 표시 */
+    .shot--how     { aspect-ratio: 1 / 1;  object-position: 50% 50%; }
+
+    .shot-link { display: block; position: relative; }
+
+    .shot-zoom {
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+      background: rgba(58,42,36,.72);
+      color: #fff;
+      font-size: .72rem;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 100px;
+      backdrop-filter: blur(4px);
+      pointer-events: none;
+    }
+
+    .shot-cap {
+      text-align: center;
+      font-size: .78rem;
+      color: var(--text-mute);
+      line-height: 1.65;
+      margin-top: 11px;
+      word-break: keep-all;
+    }
+
+    /* ── 3열 미니 특징 ── */
+    .feat-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .feat {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 13px 8px;
+      text-align: center;
+    }
+
+    .feat-t { font-size: .81rem; font-weight: 800; margin-bottom: 4px; letter-spacing: -.02em; }
+    .feat-d { font-size: .71rem; color: var(--text-mute); line-height: 1.5; word-break: keep-all; }
+
+    /* ── 섹션 리드 문장 ── */
+    .sec-lead {
+      text-align: center;
+      font-size: .9rem;
+      color: var(--text-mid);
+      line-height: 1.8;
+      margin-bottom: 26px;
+      word-break: keep-all;
+    }
+
+    /* ── 정직 고지 박스 ── */
+    .honest {
+      background: var(--bg);
+      border: 1px dashed var(--wine-light);
+      border-radius: var(--r-sm);
+      padding: 17px 18px;
+      margin-top: 22px;
+      font-size: .87rem;
+      color: var(--text-mid);
+      line-height: 1.82;
+      word-break: keep-all;
+    }
+
+    .honest strong { color: var(--wine-dark); font-weight: 700; }
+
+    /* ── HOW · 하루 루틴 ── */
+    .loop {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 30px;
+    }
+
+    .loop-step {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 14px 12px;
+      text-align: center;
+    }
+
+    .loop-n {
+      font-size: .62rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      color: var(--wine-light);
+      margin-bottom: 5px;
+    }
+
+    .loop-t { font-size: .85rem; font-weight: 700; margin-bottom: 3px; }
+    .loop-d { font-size: .74rem; color: var(--text-mute); line-height: 1.5; word-break: keep-all; }
+
+    .how-note {
+      text-align: center;
+      font-size: .84rem;
+      color: var(--text-mute);
+      margin-top: 22px;
+      line-height: 1.75;
+      word-break: keep-all;
+    }
+
+    /* ── 5일 타임라인 ── */
+    #how { background: var(--bg); }
+
+    .day-list { display: flex; flex-direction: column; gap: 2px; }
+
+    .day-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 4px;
+    }
+
+    .day-num {
+      flex-shrink: 0;
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: var(--wine-pale);
+      color: var(--wine-dark);
+      font-size: .78rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .day-row:last-child .day-num { background: var(--wine); color: #fff; }
+
+    .day-text { font-size: .9rem; color: var(--text-mid); word-break: keep-all; line-height: 1.55; }
+    .day-text strong { color: var(--text); font-weight: 700; }
+
+    /* ── 포함 항목 ── */
+    .incl-grid { display: flex; flex-direction: column; gap: 10px; }
+
+    .incl-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 15px 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .incl-emoji { font-size: 1.3rem; flex-shrink: 0; line-height: 1.3; }
+    .incl-title { font-size: .92rem; font-weight: 700; margin-bottom: 3px; }
+    .incl-desc { font-size: .83rem; color: var(--text-mid); line-height: 1.65; word-break: keep-all; }
+
+    /* ── Form ── */
+    #apply { background: var(--card); scroll-margin-top: 20px; }
+
+    .form-group { margin-bottom: 22px; }
+
+    .form-label { display: block; font-size: .88rem; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+    .form-label .req { color: var(--wine); margin-left: 2px; }
+
+    .form-hint { font-size: .78rem; color: var(--text-mute); margin-bottom: 8px; line-height: 1.65; word-break: keep-all; }
+
+    .form-input {
+      display: block;
+      width: 100%;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 13px 15px;
+      font-size: .95rem;
+      font-family: inherit;
+      color: var(--text);
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    .form-input:focus {
+      border-color: var(--wine-light);
+      box-shadow: 0 0 0 3px rgba(154,96,112,.1);
+    }
+
+    .radio-opts { display: flex; flex-direction: column; gap: 8px; }
+
+    .radio-opt {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 12px 14px;
+      cursor: pointer;
+      transition: all .22s;
+    }
+
+    .radio-opt:hover { border-color: var(--wine-light); background: var(--wine-pale); }
+    .radio-opt.selected { border-color: var(--wine); background: var(--wine-pale); }
+    .radio-opt input[type="radio"] { flex-shrink: 0; margin-top: 3px; accent-color: var(--wine); }
+    .radio-opt-text { font-size: .88rem; line-height: 1.6; color: var(--text-mid); word-break: keep-all; }
+    .radio-opt.selected .radio-opt-text { color: var(--wine-dark); font-weight: 600; }
+
+    .checkbox-wrap {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: var(--wine-pale);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 14px;
+      cursor: pointer;
+    }
+
+    .checkbox-wrap input[type="checkbox"] { flex-shrink: 0; margin-top: 3px; accent-color: var(--wine); }
+    .checkbox-text { font-size: .85rem; color: var(--text-mid); line-height: 1.75; word-break: keep-all; }
+
+    .btn-primary {
+      display: block;
+      width: 100%;
+      background: var(--wine);
+      color: #fff;
+      border: none;
+      border-radius: var(--r-sm);
+      padding: 16px;
+      font-size: 1rem;
+      font-weight: 800;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background .2s, transform .1s;
+      text-align: center;
+      text-decoration: none;
+    }
+
+    .btn-primary:hover { background: var(--wine-dark); }
+    .btn-primary:active { transform: scale(.99); }
+    .btn-primary:disabled { background: var(--text-mute); cursor: not-allowed; }
+
+    #formError { color: var(--wine-dark); font-size: .84rem; text-align: center; margin-top: 12px; display: none; }
+
+    /* ── Success ── */
+    #successMsg { display: none; text-align: center; padding: 30px 0 10px; animation: fadeUp .5s ease both; }
+    .success-icon { font-size: 3.2rem; margin-bottom: 16px; }
+    .success-title { font-size: 1.3rem; font-weight: 800; color: var(--text); margin-bottom: 10px; word-break: keep-all; }
+    .success-desc { font-size: .9rem; color: var(--text-mid); line-height: 1.85; word-break: keep-all; margin-bottom: 24px; }
+    .success-desc strong { color: var(--wine-dark); }
+
+    .mail-note {
+      background: var(--bg);
+      border: 1px dashed var(--border);
+      border-radius: var(--r-sm);
+      padding: 13px;
+      font-size: .8rem;
+      color: var(--text-mute);
+      line-height: 1.7;
+      margin-top: 18px;
+      word-break: keep-all;
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 32px 0 40px;
+      font-size: .78rem;
+      color: var(--text-mute);
+      line-height: 1.8;
+    }
+
+    footer a { color: var(--wine); text-decoration: none; font-weight: 600; }
+  </style>
+</head>
+<body>
+
+<!-- ════════ HERO · WHY ════════ -->
+<section id="hero">
+  <div class="wrap">
+    <div class="brand-pill">LJ CLASS</div>
+    <h1 class="hero-title">
+      10년을 배웠는데<br><em>왜 아직도 안 들릴까요</em>
+    </h1>
+    <p class="hero-sub">
+      상황에 따라 바뀌는 원어민 소리를<br>
+      <strong>아무도 제대로 안 알려줬을 뿐입니다.</strong>
+    </p>
+    <p class="hero-sub" style="margin-top:15px;">
+      하루 10분 쉐도잉으로<br>
+      안 들리던 소리를 듣고,<br>
+      머뭇거리던 문장을 입으로 꺼내보세요.
+    </p>
+    <a href="#apply" class="hero-cta">쉐도잉 챌린지 무료 체험 시작하기</a>
+    <p class="hero-note">100% 무료 · 결제 정보 필요 없음</p>
+  </div>
+</section>
+
+<!-- ════════ WHY · 왜 매번 실패했나 ════════ -->
+<section id="why">
+  <div class="wrap">
+    <h2 class="sec-title">이런 경험,<br>한 번쯤 있으셨죠?</h2>
+    <div class="pain-grid">
+
+      <div class="pain-card">
+        <div class="pain-head">
+          <div class="pain-emoji">👂</div>
+          <p class="pain-q">“아는 단어인데<br>왜 하나도 안 들리지?”</p>
+        </div>
+        <div class="pain-a">
+          <span class="pain-why">이유</span>
+          <p class="pain-key">원어민은 우리가 배운 단어를<br>그대로 끊어서 말하지 않아요.</p>
+          <p class="pain-sub">
+            소리가 <b>연결되고, 줄어들고, 강세가 달라지기</b> 때문에
+            아는 문장도 전혀 다르게 들릴 수 있어요.
+          </p>
+        </div>
+      </div>
+
+      <div class="pain-card">
+        <div class="pain-head">
+          <div class="pain-emoji">🥲</div>
+          <p class="pain-q">“쉐도잉이 좋다길래 시작했는데<br>며칠 만에 그만뒀어요.”</p>
+        </div>
+        <div class="pain-a">
+          <span class="pain-why">이유</span>
+          <p class="pain-key">그냥 듣고 따라 하는 것만으로는<br>내가 어디를 틀렸는지 알기 어려워요.</p>
+          <p class="pain-sub">
+            <b>강세, 리듬, 소리의 흐름</b>을 정확히 짚어주는 기준이 필요합니다.
+          </p>
+        </div>
+      </div>
+
+      <div class="pain-card">
+        <div class="pain-head">
+          <div class="pain-emoji">🤷</div>
+          <p class="pain-q">“하루 10분은 할 수 있는데<br>매일 뭘 해야 할지 모르겠어요.”</p>
+        </div>
+        <div class="pain-a">
+          <span class="pain-why">이유</span>
+          <p class="pain-key">꾸준함은 의지만으로<br>만들어지지 않아요.</p>
+          <p class="pain-sub">
+            <b>오늘 들을 문장과 연습할 포인트</b>가 매일 명확하게 정해져 있어야 합니다.
+          </p>
+        </div>
+      </div>
+
+    </div>
+
+    <p class="why-close">
+      이 모든 고민, <em>바로 해결할 쉐도잉 챌린지</em>를 준비했어요.
+    </p>
+  </div>
+</section>
+
+<!-- ════════ PROOF · 후기 (공감 → "그래서 됐대?" 해소) ════════ -->
+<section id="proof">
+  <div class="wrap">
+    <p class="sec-label">Real Voices</p>
+    <h2 class="sec-title">똑같이 포기했던 분들이<br>남긴 말이에요</h2>
+
+    <div class="quote-list">
+      <div class="quote-card">“소리 법칙을 알고 쉐도잉하니까 훨씬 좋아요.”</div>
+      <div class="quote-card">“혼자였으면 포기했을 텐데, 같이 가니까 버텼어요.”</div>
+      <div class="quote-card">“이렇게 안 했으면 꾸준히 못 했을 거예요.”</div>
+    </div>
+
+    <a href="../images/reviews.png" target="_blank" rel="noopener" class="shot-link">
+      <img src="../images/reviews.png" alt="쉐도잉 챌린지 참여자들이 남긴 실제 후기 모음" class="shot shot--reviews" loading="lazy">
+      <span class="shot-zoom">🔍 크게 보기</span>
+    </a>
+    <p class="shot-cap">매달 챌린지를 마친 분들이 직접 남겨주신 후기예요</p>
+  </div>
+</section>
+
+<!-- ════════ WHAT · 무엇을 드리나 ════════ -->
+<section>
+  <div class="wrap">
+    <p class="sec-label">What</p>
+    <h2 class="sec-title">쉐도잉 챌린지 5일 무료 체험</h2>
+    <div class="incl-grid">
+      <div class="incl-item">
+        <span class="incl-emoji">🎬</span>
+        <div>
+          <p class="incl-title">쉐도잉 하는 방법부터 알려드려요</p>
+          <p class="incl-desc">무작정 따라하지 않도록, LJ쌤이 직접 시범 보이는 강의 영상이 붙어 있어요</p>
+        </div>
+      </div>
+      <div class="incl-item">
+        <span class="incl-emoji">📅</span>
+        <div>
+          <p class="incl-title">오늘 뭘 공부할지 고민할 필요 없어요</p>
+          <p class="incl-desc">앱을 열면 그날 것만 딱 떠요. 정해진 10분치만 연습하면 오늘은 끝입니다</p>
+        </div>
+      </div>
+      <div class="incl-item">
+        <span class="incl-emoji">📱</span>
+        <div>
+          <p class="incl-title">의지가 없어도 해내게 만드는 시스템</p>
+          <p class="incl-desc">앱이 매일 인증을 체크하고 연속 기록을 쌓아줘요. 빼먹으면 티가 나니까 하게 돼요</p>
+        </div>
+      </div>
+      <div class="incl-item">
+        <span class="incl-emoji">📚</span>
+        <div>
+          <p class="incl-title">문장마다 어디가 뭉개지는지 짚어드려요</p>
+          <p class="incl-desc">“read your mind → 뤼죨” 처럼 한 줄씩. 어려운 소리는 LJ쌤 목소리 클리닉으로 바로 연결돼요</p>
+        </div>
+      </div>
+      <div class="incl-item">
+        <span class="incl-emoji">📊</span>
+        <div>
+          <p class="incl-title">5일 완주 리포트</p>
+          <p class="incl-desc">며칠 해냈는지, 어떤 소리가 약한지 마지막 날 한눈에 정리해드려요</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ PREVIEW · 앱 실물 (→ "실체가 있어?" 해소) ════════ -->
+<section id="preview">
+  <div class="wrap">
+    <p class="sec-label">Preview</p>
+    <h2 class="sec-title">5일 동안 이렇게 연습해요</h2>
+
+    <img src="../images/app-preview.png" alt="쉐도잉 챌린지 앱 화면 — 학습 현황, 오늘의 미션, 소리 복습" class="shot shot--app" loading="lazy">
+
+    <div class="feat-row">
+      <div class="feat">
+        <p class="feat-t">학습 현황</p>
+        <p class="feat-d">내가 얼마나<br>꾸준히 했는지 확인</p>
+      </div>
+      <div class="feat">
+        <p class="feat-t">오늘의 미션</p>
+        <p class="feat-d">하루 10분 분량으로<br>간단하게</p>
+      </div>
+      <div class="feat">
+        <p class="feat-t">소리 복습</p>
+        <p class="feat-d">어려웠던 소리만<br>다시 연습</p>
+      </div>
+    </div>
+
+    <p class="shot-cap">앱 설치 없이 링크 하나로 바로 시작하세요</p>
+  </div>
+</section>
+
+<!-- ════════ HOW · 어떻게 진행되나 ════════ -->
+<section id="how">
+  <div class="wrap">
+    <p class="sec-label">How</p>
+    <h2 class="sec-title">하루 10분, 이 세 가지만</h2>
+
+    <div class="loop">
+      <div class="loop-step">
+        <p class="loop-n">STEP 1</p>
+        <p class="loop-t">확인</p>
+        <p class="loop-d">오늘 대사와<br>발음 포인트 읽기</p>
+      </div>
+      <div class="loop-step">
+        <p class="loop-n">STEP 2</p>
+        <p class="loop-t">따라 말하기</p>
+        <p class="loop-d">반복 영상 보며<br>쉐도잉</p>
+      </div>
+      <div class="loop-step">
+        <p class="loop-n">STEP 3</p>
+        <p class="loop-t">녹음 · 인증</p>
+        <p class="loop-d">앱에서 바로<br>녹음하고 끝</p>
+      </div>
+    </div>
+
+    <h2 class="sec-title">5일 동안 몰입 실전 리스닝 훈련</h2>
+    <div class="day-list">
+      <div class="day-row">
+        <div class="day-num">1</div>
+        <p class="day-text"><strong>알렉사, 게임 데이</strong><br>“check this out”이 왜 뭉개지는지 알게 되는 첫 구간</p>
+      </div>
+      <div class="day-row">
+        <div class="day-num">2</div>
+        <p class="day-text"><strong>알렉사의 엉뚱한 오해</strong><br>무심한 대화 톤과 로봇 톤을 번갈아 연기해요</p>
+      </div>
+      <div class="day-row">
+        <div class="day-num">3</div>
+        <p class="day-text"><strong>Tell Me Lies · 티키타카</strong><br>주고받는 대화의 리듬과 감정선을 살려요</p>
+      </div>
+      <div class="day-row">
+        <div class="day-num">4</div>
+        <p class="day-text"><strong>Announcement · AI 톤 대결</strong><br>알렉사의 무표정 낭독톤 vs 진짜 사람의 대화 톤</p>
+      </div>
+      <div class="day-row">
+        <div class="day-num">5</div>
+        <p class="day-text"><strong>전체 통으로</strong><br>대본 없이 처음부터 끝까지 한 번에 도전해요</p>
+      </div>
+    </div>
+
+    <p class="how-note">
+      스칼렛 요한슨이 나오는 <strong>30초 슈퍼볼 광고</strong> 하나를<br>
+      5일 동안 제대로 뜯어봅니다.
+    </p>
+  </div>
+</section>
+
+<!-- ════════ ABOUT · 정체 밝히기 (→ "공짜라니 뭔가 있나?" 해소) ════════ -->
+<section id="about" style="background: var(--card);">
+  <div class="wrap">
+    <p class="sec-label">About</p>
+    <h2 class="sec-title" style="margin-bottom:12px;">실제 챌린지를<br>5일로 담았습니다</h2>
+    <p class="sec-lead">
+      매달 운영하는 LJ 쉐도잉 챌린지의<br>
+      학습 방식과 진행 구조를 그대로 경험할 수 있어요.
+    </p>
+
+    <img src="../images/how-it-works.png" alt="LJ 쉐도잉 챌린지 실제 진행 모습 — 의지 말고 루틴이 먼저 움직이게, 하루 10분·즉시 피드백·개인별 학습 전략" class="shot shot--how" loading="lazy">
+    <p class="shot-cap">매달 운영 중인 LJ 쉐도잉 챌린지의 실제 진행 모습이에요</p>
+
+    <div class="honest">
+      하루 10분 미션부터<br>
+      인증, 학습 기록, 소리 복습까지<br>
+      <strong>실제 챌린지와 같은 방식</strong>으로 진행됩니다.<br><br>
+      5일 동안 직접 해본 뒤<br>
+      나와 잘 맞는 학습 방식인지 결정하세요.<br><br>
+      <strong>체험은 5일 후 자동으로 종료됩니다.</strong>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ 신청 폼 ════════ -->
+<section id="apply">
+  <div class="wrap">
+
+    <form id="applyForm">
+      <p class="sec-label">Apply</p>
+      <h2 class="sec-title">5일 체험 시작하기</h2>
+
+      <div class="form-group">
+        <label class="form-label" for="name">이름<span class="req">*</span></label>
+        <p class="form-hint">앱에서 불러드릴 이름이에요</p>
+        <input type="text" id="name" class="form-input" placeholder="예) 이지은" autocomplete="name" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="email">이메일<span class="req">*</span></label>
+        <p class="form-hint">이 주소로 체험 링크를 바로 보내드려요</p>
+        <input type="email" id="email" class="form-input" placeholder="example@gmail.com" autocomplete="email" inputmode="email" required>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">지금 가장 답답한 건 뭔가요?<span class="req">*</span></label>
+        <p class="form-hint">골라주신 걸로 5일 동안 어디에 집중할지 잡아드려요</p>
+        <div class="radio-opts" id="struggleOpts">
+          <label class="radio-opt">
+            <input type="radio" name="struggle" value="듣기 — 아는 단어인데 귀에 안 꽂혀요">
+            <span class="radio-opt-text">아는 단어인데 귀에 안 꽂혀요</span>
+          </label>
+          <label class="radio-opt">
+            <input type="radio" name="struggle" value="말하기 — 입이 안 떨어져요">
+            <span class="radio-opt-text">머리로는 아는데 입이 안 떨어져요</span>
+          </label>
+          <label class="radio-opt">
+            <input type="radio" name="struggle" value="방법 — 쉐도잉을 어떻게 하는 건지 모르겠어요">
+            <span class="radio-opt-text">쉐도잉을 제대로 하는 방법을 모르겠어요</span>
+          </label>
+          <label class="radio-opt">
+            <input type="radio" name="struggle" value="습관 — 매일 하는 습관이 안 잡혀요">
+            <span class="radio-opt-text">매일 하고 싶은데 습관이 안 잡혀요</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="checkbox-wrap">
+          <input type="checkbox" id="privacy">
+          <span class="checkbox-text">
+            개인정보(이름·이메일) 수집 및 이용에 동의합니다.
+            수집한 정보는 체험 진행과 안내 목적으로만 사용하며, 언제든 삭제를 요청하실 수 있어요.
+          </span>
+        </label>
+      </div>
+
+      <button type="submit" class="btn-primary" id="submitBtn">5일 체험 무료로 시작하기</button>
+      <p id="formError"></p>
+    </form>
+
+    <!-- 신청 완료 -->
+    <div id="successMsg">
+      <div class="success-icon">🎉</div>
+      <h2 class="success-title" id="successTitle">신청이 완료됐어요!</h2>
+      <p class="success-desc" id="successDesc">
+        <strong id="successName">회원</strong>님, 지금 바로 Day 1을 시작할 수 있어요.
+      </p>
+      <a href="#" class="btn-primary" id="startBtn">🎙️ 바로 Day 1 시작하기 →</a>
+      <!-- ⚠️ EmailJS welcomeTemplateId 를 실제 값으로 넣은 뒤, 아래 style="display:none" 만 지우면 다시 표시됩니다 -->
+      <p class="mail-note" id="mailNote" style="display:none">
+        입력하신 이메일로도 체험 링크를 보내드렸어요.<br>
+        메일이 안 보이면 <strong>스팸함</strong>도 확인해주세요!
+      </p>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    LJ CLASS · 쉐도잉 챌린지<br>
+    이미 체험 중이신가요? <a href="index.html">내 체험 현황 보기 →</a>
+  </div>
+</footer>
+
+<script>
+  const applyForm  = document.getElementById('applyForm');
+  const submitBtn  = document.getElementById('submitBtn');
+  const formError  = document.getElementById('formError');
+  const successMsg = document.getElementById('successMsg');
+
+  // 라디오 선택 하이라이트
+  document.querySelectorAll('.radio-opt input[type="radio"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      document.querySelectorAll(`.radio-opt input[name="${radio.name}"]`).forEach(r => {
+        r.closest('.radio-opt').classList.toggle('selected', r.checked);
+      });
+    });
+  });
+
+  function showError(msg) {
+    formError.textContent = msg;
+    formError.style.display = 'block';
+  }
+
+  applyForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    formError.style.display = 'none';
+
+    const name     = document.getElementById('name').value.trim();
+    const email    = document.getElementById('email').value.trim();
+    const struggle = applyForm.querySelector('input[name="struggle"]:checked')?.value;
+    const privacy  = document.getElementById('privacy').checked;
+
+    if (!name)                return showError('이름을 입력해 주세요');
+    if (!isValidEmail(email)) return showError('이메일 주소를 다시 확인해 주세요');
+    if (!struggle)            return showError('가장 답답한 점을 선택해 주세요');
+    if (!privacy)             return showError('개인정보 수집 및 이용에 동의해 주세요');
+
+    submitBtn.textContent = '신청 중...';
+    submitBtn.disabled = true;
+
+    try {
+      // 1) 체험자 등록 (이미 신청한 이메일이면 기존 시작일 유지)
+      const user = await createTrialUser({ name, email, struggle, source: 'apply' });
+
+      // 2) 이 기기에 로그인 상태 저장 → 링크 없이도 바로 입장 가능
+      saveMyTrialEmail(email);
+
+      // 3) 본인에게 체험 링크 이메일 발송 (실패해도 체험은 시작 가능 — 화면에는 알리지 않음)
+      try {
+        await sendTrialLinkEmail({ name: user.name || name, email });
+      } catch (mailErr) {
+        console.error('이메일 발송 실패:', mailErr);
+      }
+
+      // 4) 완료 화면
+      const enc = encodeURIComponent(normEmail(email));
+      document.getElementById('startBtn').href = `index.html?e=${enc}`;
+      document.getElementById('successName').textContent = user.name || name;
+
+      if (user.alreadyExisted) {
+        const info = trialDayInfo(user.startDate);
+        document.getElementById('successTitle').textContent = '이미 체험 중이시네요!';
+        document.getElementById('successDesc').innerHTML = info.ended
+          ? `<strong>${user.name || name}</strong>님의 5일 체험은 이미 끝났어요.<br>기록은 그대로 남아있으니 확인해보세요.`
+          : `<strong>${user.name || name}</strong>님은 지금 <strong>Day ${info.day}</strong> 진행 중이에요.<br>이어서 계속 하시면 돼요!`;
+        document.getElementById('startBtn').textContent = info.ended ? '📊 내 체험 기록 보기 →' : '🎙️ 이어서 하러 가기 →';
+      }
+
+      applyForm.style.display = 'none';
+      successMsg.style.display = 'block';
+      window.scrollTo({ top: document.getElementById('apply').offsetTop - 20, behavior: 'smooth' });
+
+    } catch (err) {
+      console.error(err);
+      showError('오류가 발생했어요. 잠시 후 다시 시도해 주세요.');
+      submitBtn.textContent = '5일 체험 무료로 시작하기';
+      submitBtn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

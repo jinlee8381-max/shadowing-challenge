@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#3b82f6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="5일 체험">
+  <link rel="apple-touch-icon" href="../icons/icon-192.png">
+  <title>내 5일 리포트 · 쉐도잉 체험</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+  <script src="trial-config.js"></script>
+  <style>
+    body { font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; }
+    @keyframes pop { from { opacity:0; transform:scale(.9) } to { opacity:1; transform:scale(1) } }
+    .pop { animation: pop .5s ease both; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen pb-24">
+
+  <div id="loadScreen" class="min-h-screen flex items-center justify-center">
+    <div class="text-center text-gray-400">
+      <div class="text-3xl mb-2 animate-pulse">📊</div>
+      <p class="text-sm">리포트를 만드는 중...</p>
+    </div>
+  </div>
+
+  <div id="pageWrap" class="hidden">
+
+    <header class="bg-white border-b px-4 py-3 sticky top-0 z-20 shadow-sm">
+      <div class="max-w-lg mx-auto flex items-center gap-3">
+        <a href="index.html" class="text-sm text-gray-400 hover:text-gray-600">← 내 현황</a>
+        <div class="flex-1 text-center">
+          <h1 class="text-base font-bold text-gray-900">5일 체험 리포트</h1>
+          <p class="text-xs text-gray-400" id="periodLabel">-</p>
+        </div>
+        <div class="w-16"></div>
+      </div>
+    </header>
+
+    <main class="max-w-lg mx-auto px-3 py-5 space-y-4">
+
+      <!-- 진행 중 안내 -->
+      <div id="inProgressNote" class="hidden bg-blue-50 border border-blue-200 rounded-2xl p-3.5 text-center">
+        <p class="text-sm text-blue-800 font-semibold" id="inProgressTitle">아직 체험 진행 중이에요</p>
+        <p class="text-xs text-blue-600 mt-1" id="inProgressBody">-</p>
+      </div>
+
+      <!-- 히어로 요약 -->
+      <div class="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl p-6 text-white text-center pop">
+        <p class="text-5xl mb-2" id="heroEmoji">🏆</p>
+        <p class="text-xs opacity-80" id="heroName">-</p>
+        <h2 class="text-2xl font-bold mt-1 leading-snug" id="heroTitle">-</h2>
+        <p class="text-sm opacity-85 mt-2 leading-relaxed" id="heroBody">-</p>
+      </div>
+
+      <!-- 숫자 요약 -->
+      <div class="grid grid-cols-3 gap-2">
+        <div class="bg-white rounded-2xl shadow-sm p-3 text-center">
+          <p class="text-xs text-gray-400 mb-1">인증한 날</p>
+          <p class="text-2xl font-bold text-blue-600"><span id="statDays">0</span><span class="text-sm text-gray-300">/5</span></p>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm p-3 text-center">
+          <p class="text-xs text-gray-400 mb-1">최고 연속</p>
+          <p class="text-2xl font-bold text-orange-500"><span id="statStreak">0</span><span class="text-sm text-gray-300">일</span></p>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm p-3 text-center">
+          <p class="text-xs text-gray-400 mb-1">남긴 기록</p>
+          <p class="text-2xl font-bold text-green-600"><span id="statFiles">0</span><span class="text-sm text-gray-300">개</span></p>
+        </div>
+      </div>
+
+      <!-- 5일 캘린더 -->
+      <div class="bg-white rounded-2xl shadow-sm p-4">
+        <p class="text-sm font-bold text-gray-800 mb-3">내 5일 발자국</p>
+        <div class="flex gap-1.5" id="dayDots"></div>
+      </div>
+
+      <!-- 약한 소리 -->
+      <div id="weakSection" class="hidden bg-white rounded-2xl shadow-sm p-4 space-y-3">
+        <div>
+          <p class="text-sm font-bold text-gray-800">🎯 내가 어려워한 소리 TOP</p>
+          <p class="text-xs text-gray-400 mt-0.5">체험 중 체크하신 소리예요. 계속 연습해보세요</p>
+        </div>
+        <div class="space-y-2" id="weakList"></div>
+      </div>
+
+      <!-- 느낀점 타임라인 -->
+      <div id="notesSection" class="hidden bg-white rounded-2xl shadow-sm p-4 space-y-3">
+        <p class="text-sm font-bold text-gray-800">📝 내가 남긴 기록</p>
+        <div class="space-y-2" id="notesList"></div>
+      </div>
+
+      <!-- 뱃지 -->
+      <div class="bg-white rounded-2xl shadow-sm p-4">
+        <p class="text-sm font-bold text-gray-800 mb-3">획득한 뱃지</p>
+        <div class="flex gap-3 overflow-x-auto pb-1" id="myBadges"></div>
+      </div>
+
+      <!-- 본 챌린지 CTA -->
+      <div class="bg-gradient-to-br from-[#9A6070] to-[#7A4A5A] rounded-2xl p-6 text-white">
+        <p class="text-xs font-semibold opacity-80 tracking-wider">NEXT STEP</p>
+        <p class="text-xl font-bold mt-2 leading-snug">5일로 감을 잡았다면,<br>이제 진짜 바뀔 차례예요</p>
+
+        <div class="mt-4 space-y-2.5">
+          <div class="flex items-start gap-2.5">
+            <span class="text-base flex-shrink-0">💬</span>
+            <p class="text-xs opacity-90 leading-relaxed"><b>매일 1:1 맞춤 피드백</b> — 선생님이 직접 듣고 내 발음에서 뭘 고쳐야 하는지 짚어드려요</p>
+          </div>
+          <div class="flex items-start gap-2.5">
+            <span class="text-base flex-shrink-0">🎯</span>
+            <p class="text-xs opacity-90 leading-relaxed"><b>발음 처방</b> — 내가 틀린 소리에 맞는 연습 페이지를 매번 골라드려요</p>
+          </div>
+          <div class="flex items-start gap-2.5">
+            <span class="text-base flex-shrink-0">💰</span>
+            <p class="text-xs opacity-90 leading-relaxed"><b>주 5일 인증하면 환급</b> — 4주 다 성공하면 최대 40,000원 돌려받아요</p>
+          </div>
+          <div class="flex items-start gap-2.5">
+            <span class="text-base flex-shrink-0">🤝</span>
+            <p class="text-xs opacity-90 leading-relaxed"><b>같이 하는 사람들</b> — 혼자면 3일, 같이면 한 달이 가요</p>
+          </div>
+        </div>
+
+        <a href="https://ljenglish-listeningshadowingchallenge.netlify.app/apply.html#apply"
+          class="mt-5 w-full bg-white text-[#7A4A5A] font-bold text-sm py-3.5 rounded-xl hover:bg-rose-50 transition-colors block text-center">
+          1달 챌린지 신청하기 →
+        </a>
+      </div>
+
+      <p class="text-center text-xs text-gray-400 pb-2">
+        5일 동안 함께해주셔서 고마워요 🙏<br>LJ CLASS
+      </p>
+
+    </main>
+
+    <nav class="fixed bottom-0 inset-x-0 bg-white border-t border-gray-100 shadow-lg z-30">
+      <div class="max-w-lg mx-auto grid grid-cols-3">
+        <a href="index.html" class="flex flex-col items-center py-2.5 gap-0.5 text-gray-400 hover:text-gray-600 transition-colors">
+          <span class="text-xl leading-none">🏠</span>
+          <span class="text-xs font-medium">내 현황</span>
+        </a>
+        <a href="today.html" class="flex flex-col items-center py-2.5 gap-0.5 text-gray-400 hover:text-gray-600 transition-colors">
+          <span class="text-xl leading-none">📚</span>
+          <span class="text-xs font-medium">오늘 과제</span>
+        </a>
+        <a href="result.html" class="flex flex-col items-center py-2.5 gap-0.5 text-blue-600">
+          <span class="text-xl leading-none">🏆</span>
+          <span class="text-xs font-semibold">결과</span>
+        </a>
+      </div>
+    </nav>
+  </div>
+
+  <script>
+    function heroFor(doneCount, ended) {
+      if (!ended) {
+        return { emoji:'🌤️', title:'아직 진행 중이에요',
+                 body:'5일이 끝나면 완성된 리포트를 보여드릴게요. 지금까지의 기록이에요!' };
+      }
+      if (doneCount >= TRIAL_DAYS) return { emoji:'🏆', title:`${TRIAL_DAYS}일 완주!`, body:'단 한 번도 빠지지 않았어요. 이건 의지가 아니라 실력이에요.' };
+      if (doneCount >= 4) return { emoji:'🔥', title:`${TRIAL_DAYS}일 중 ${doneCount}일 완주!`, body:'대부분 3일을 못 넘겨요. 충분히 잘하신 거예요.' };
+      if (doneCount >= 3) return { emoji:'💪', title:`${doneCount}일 해내셨어요`, body:'시작이 반이에요. 혼자 하려니 힘드셨죠? 그래서 같이 하는 거예요.' };
+      if (doneCount >= 1) return { emoji:'🌱', title:`${doneCount}일 인증하셨어요`, body:'바쁜 중에도 시작하셨다는 게 중요해요. 다음엔 끝까지 같이 가봐요.' };
+      return { emoji:'🫧', title:'이번엔 시작을 못 하셨네요', body:'괜찮아요. 혼자서는 원래 어려워요. 같이 하면 달라집니다.' };
+    }
+
+    async function init() {
+      const email = resolveTrialEmail();
+      if (!email) return location.replace('index.html');
+
+      const ME = await loadTrialUser(email);
+      if (!ME) return location.replace('index.html');
+
+      const SUBS  = await loadTrialSubmissions(email);
+      const INFO  = trialDayInfo(ME.startDate);
+      const dates = trialDates(ME.startDate);
+      const doneDates = [...new Set(SUBS.map(s => s.dateKey || tsToDateKey(s.submittedAt)))];
+      const doneCount = doneDates.length;
+      const { best }  = calcTrialStreak(SUBS);
+      const fileCount = SUBS.reduce((n, s) => n + (s.fileUrls?.length || 0), 0);
+
+      // 헤더 기간
+      const [,sm,sd] = dates[0].split('-');
+      const [,em,ed] = dates[dates.length - 1].split('-');
+      document.getElementById('periodLabel').textContent =
+        `${parseInt(sm)}/${parseInt(sd)} – ${parseInt(em)}/${parseInt(ed)}`;
+
+      // 진행 중 안내
+      if (!INFO.ended) {
+        document.getElementById('inProgressNote').classList.remove('hidden');
+        document.getElementById('inProgressBody').textContent =
+          `지금 Day ${INFO.day}. ${TRIAL_DAYS - INFO.day + 1}일 더 남았어요!`;
+      }
+
+      // 히어로
+      const hero = heroFor(doneCount, INFO.ended);
+      document.getElementById('heroEmoji').textContent = hero.emoji;
+      document.getElementById('heroName').textContent  = `${ME.name || ''}님의 5일`;
+      document.getElementById('heroTitle').textContent = hero.title;
+      document.getElementById('heroBody').textContent  = hero.body;
+
+      // 숫자
+      document.getElementById('statDays').textContent   = doneCount;
+      document.getElementById('statStreak').textContent = best;
+      document.getElementById('statFiles').textContent  = fileCount;
+
+      // 캘린더
+      const dotsEl = document.getElementById('dayDots');
+      const today  = todayStr();
+      dotsEl.innerHTML = '';
+      dates.forEach((dateStr, i) => {
+        const ok = doneDates.includes(dateStr);
+        let cls, sym;
+        if (dateStr > today) { cls = 'bg-gray-50 text-gray-300 border border-dashed border-gray-200'; sym = '·'; }
+        else                 { cls = ok ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-400'; sym = ok ? '●' : '○'; }
+        const [,dm,dd] = dateStr.split('-');
+        dotsEl.innerHTML += `
+          <div class="flex-1 text-center">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full ${cls} text-xs font-bold">${sym}</span>
+            <p class="text-[10px] text-gray-400 mt-1 leading-tight">D${i+1}<br>${parseInt(dm)}/${parseInt(dd)}</p>
+          </div>`;
+      });
+
+      // 약한 소리
+      const counts = {};
+      SUBS.forEach(s => (s.selfCheck || []).forEach(k => { counts[k] = (counts[k] || 0) + 1; }));
+      const weakKeys = Object.keys(counts).sort((a,b) => counts[b] - counts[a]).slice(0, 5);
+      if (weakKeys.length) {
+        const el = document.getElementById('weakList');
+        el.innerHTML = '';
+        weakKeys.forEach(k => {
+          const item = SELF_CHECK_ITEMS.find(i => i.key === k);
+          if (!item) return;
+          el.innerHTML += `
+            <a href="${item.url}" class="flex items-center gap-3 bg-orange-50 border border-orange-100 rounded-xl p-3 hover:bg-orange-100 transition-colors">
+              <span class="flex-shrink-0 w-9 h-9 bg-orange-500 text-white rounded-xl flex items-center justify-center text-sm font-bold">${counts[k]}</span>
+              <div class="flex-1">
+                <p class="text-sm font-semibold text-orange-800">${item.label}</p>
+                <p class="text-xs text-orange-500">${item.ex} · ${counts[k]}번 체크</p>
+              </div>
+              <span class="text-orange-400 text-sm">연습 →</span>
+            </a>`;
+        });
+        document.getElementById('weakSection').classList.remove('hidden');
+      }
+
+      // 느낀점
+      const notes = SUBS.filter(s => s.feeling && s.feeling.trim());
+      if (notes.length) {
+        const el = document.getElementById('notesList');
+        el.innerHTML = '';
+        notes.forEach(s => {
+          el.innerHTML += `
+            <div class="border-l-2 border-blue-200 pl-3 py-1">
+              <p class="text-xs text-blue-500 font-semibold">Day ${s.day} · ${tsToMD(s.submittedAt)}</p>
+              <p class="text-sm text-gray-600 mt-0.5 leading-relaxed whitespace-pre-wrap">${s.feeling}</p>
+            </div>`;
+        });
+        document.getElementById('notesSection').classList.remove('hidden');
+      }
+
+      // 뱃지
+      const checked = SUBS.some(s => (s.selfCheck || []).length > 0);
+      const badges = [
+        { emoji:'🌱', name:'첫 발걸음', earned: doneCount >= 1 },
+        { emoji:'🔥', name:'3일 연속',  earned: best >= 3 },
+        { emoji:'⭐', name:'4일 인증',  earned: doneCount >= 4 },
+        { emoji:'🏆', name:'5일 완주',  earned: doneCount >= TRIAL_DAYS },
+        { emoji:'🎯', name:'약점 파악', earned: checked }
+      ];
+      const bEl = document.getElementById('myBadges');
+      bEl.innerHTML = '';
+      badges.forEach(b => {
+        bEl.innerHTML += b.earned
+          ? `<div class="flex-shrink-0 text-center w-16">
+               <div class="w-12 h-12 mx-auto bg-yellow-100 rounded-2xl flex items-center justify-center text-2xl shadow-sm">${b.emoji}</div>
+               <p class="text-xs font-medium text-gray-700 mt-1 leading-tight">${b.name}</p>
+             </div>`
+          : `<div class="flex-shrink-0 text-center w-16 opacity-30">
+               <div class="w-12 h-12 mx-auto bg-gray-100 rounded-2xl flex items-center justify-center text-2xl">🔒</div>
+               <p class="text-xs font-medium text-gray-400 mt-1 leading-tight">${b.name}</p>
+             </div>`;
+      });
+
+      document.getElementById('loadScreen').classList.add('hidden');
+      document.getElementById('pageWrap').classList.remove('hidden');
+    }
+
+    init();
+  </script>
+</body>
+</html>

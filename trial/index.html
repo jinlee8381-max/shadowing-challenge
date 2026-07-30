@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#3b82f6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="5일 체험">
+  <link rel="apple-touch-icon" href="../icons/icon-192.png">
+  <title>내 체험 현황 · 5일 쉐도잉 체험</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+  <script src="trial-config.js"></script>
+  <style>
+    body { font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; }
+    .dot-done   { background:#22c55e; color:#fff; }
+    .dot-miss   { background:#e5e7eb; color:#9ca3af; }
+    .dot-today  { background:#3b82f6; color:#fff; }
+    .dot-future { background:#f9fafb; color:#d1d5db; border:1px dashed #d1d5db; }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <!-- ════════ 입장 화면 ════════ -->
+  <div id="gateScreen" class="hidden min-h-screen flex flex-col items-center justify-center px-4 py-10">
+    <div class="w-full max-w-xs space-y-5 text-center">
+      <div>
+        <span class="text-4xl">🎁</span>
+        <h1 class="text-xl font-bold text-gray-900 mt-2">5일 쉐도잉 체험</h1>
+        <p class="text-sm text-gray-400 mt-1.5 leading-relaxed">
+          신청할 때 쓰신 <b>이메일</b>을 입력하면<br>내 체험 현황으로 들어가요
+        </p>
+      </div>
+
+      <div class="bg-white rounded-2xl shadow-sm p-4 space-y-3">
+        <input type="email" id="gateEmail" inputmode="email" autocomplete="email"
+          placeholder="example@gmail.com"
+          class="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-300" />
+        <button onclick="enterTrial()" id="gateBtn"
+          class="w-full bg-blue-600 text-white font-bold py-3 rounded-xl text-sm hover:bg-blue-700 transition-colors">
+          내 체험 현황 열기
+        </button>
+        <p id="gateError" class="hidden text-xs text-red-500 leading-relaxed"></p>
+      </div>
+
+      <div class="pt-1">
+        <p class="text-xs text-gray-400">아직 체험 신청을 안 하셨나요?</p>
+        <a href="apply.html" class="inline-block mt-2 text-sm font-semibold text-blue-600 hover:underline">
+          5일 무료 체험 신청하기 →
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ 로딩 ════════ -->
+  <div id="loadScreen" class="min-h-screen flex items-center justify-center">
+    <div class="text-center text-gray-400">
+      <div class="text-3xl mb-2 animate-pulse">🎙️</div>
+      <p class="text-sm">불러오는 중...</p>
+    </div>
+  </div>
+
+  <!-- ════════ 메인 화면 ════════ -->
+  <div id="mainScreen" class="hidden min-h-screen">
+
+    <header class="bg-white border-b px-4 py-3 sticky top-0 z-20 shadow-sm">
+      <div class="max-w-lg mx-auto flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🎙️</span>
+          <div>
+            <h1 class="text-base font-bold text-gray-900" id="myName">-</h1>
+            <p class="text-xs text-gray-400">
+              <span class="bg-blue-50 text-blue-600 font-semibold px-1.5 py-0.5 rounded">5일 체험</span>
+              <span id="myDayLabel" class="ml-1">-</span>
+            </p>
+          </div>
+        </div>
+        <button onclick="logout()" class="text-xs text-gray-400 hover:text-gray-600 px-2 py-1 rounded-lg hover:bg-gray-100 transition-colors">
+          나가기
+        </button>
+      </div>
+    </header>
+
+    <main class="max-w-lg mx-auto px-3 py-5 pb-24 space-y-4">
+
+      <!-- 오늘의 과제 배너 -->
+      <div id="todayBanner" class="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-4 text-white">
+        <div class="flex items-start justify-between">
+          <div class="flex-1">
+            <p class="text-xs font-medium opacity-80 mb-1" id="todayDateLabel">-</p>
+            <p class="text-base font-bold leading-snug" id="todayLessonTitle">로딩 중...</p>
+            <p class="text-xs opacity-75 mt-1" id="todayMission">-</p>
+          </div>
+          <span class="text-3xl ml-2">🎬</span>
+        </div>
+        <a id="todayBtn" href="today.html"
+          class="mt-3 w-full bg-white text-blue-600 font-bold text-sm py-2.5 rounded-xl hover:bg-blue-50 transition-colors block text-center">
+          오늘의 과제 보기 &amp; 인증하기 →
+        </a>
+      </div>
+
+      <!-- 체험 종료 배너 -->
+      <div id="endedBanner" class="hidden bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl p-4 text-white">
+        <div class="flex items-start justify-between">
+          <div class="flex-1">
+            <p class="text-xs font-medium opacity-80 mb-1">5일 체험 종료</p>
+            <p class="text-base font-bold">체험이 모두 끝났어요!</p>
+            <p class="text-xs opacity-75 mt-1">결과 리포트에서 내 5일을 확인해보세요</p>
+          </div>
+          <span class="text-3xl ml-2">🏁</span>
+        </div>
+        <a href="result.html" class="mt-3 w-full bg-white text-orange-600 font-bold text-sm py-2.5 rounded-xl hover:bg-orange-50 transition-colors block text-center">
+          📊 내 5일 결과 리포트 보기 →
+        </a>
+      </div>
+
+      <!-- 5일 현황 -->
+      <div class="bg-white rounded-2xl shadow-sm p-4 space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="font-bold text-gray-800 text-sm">내 5일 체험</h2>
+          <span class="text-xs text-gray-400" id="progressCount">-</span>
+        </div>
+        <div class="flex gap-1" id="dayDots"></div>
+        <div class="pt-1">
+          <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div id="progressBar" class="h-full bg-blue-500 rounded-full transition-all duration-500" style="width:0%"></div>
+          </div>
+          <p class="text-xs text-gray-400 mt-2" id="progressMsg">-</p>
+        </div>
+      </div>
+
+      <!-- 자동 응원 (선생님 피드백 자리) -->
+      <div class="bg-white rounded-2xl shadow-sm p-4">
+        <div class="flex items-start gap-3">
+          <div class="flex-shrink-0 w-11 h-11 bg-green-100 rounded-2xl flex items-center justify-center text-2xl" id="encEmoji">🌱</div>
+          <div class="flex-1">
+            <p class="font-bold text-gray-800 text-sm" id="encTitle">-</p>
+            <p class="text-xs text-gray-500 mt-1 leading-relaxed" id="encBody">-</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 연속 인증 -->
+      <div class="bg-white rounded-2xl shadow-sm p-4">
+        <div class="flex items-center gap-3">
+          <div class="flex-shrink-0 w-12 h-12 bg-orange-100 rounded-2xl flex items-center justify-center text-2xl">🔥</div>
+          <div class="flex-1">
+            <p class="font-bold text-gray-800"><span id="streakCount">0</span>일 연속 인증 중!</p>
+            <p class="text-xs text-gray-400 mt-0.5">최고 기록: <span id="bestStreak">0</span>일</p>
+          </div>
+          <div class="text-right flex-shrink-0">
+            <p class="text-xs text-gray-400 mb-0.5">총 인증</p>
+            <p class="text-2xl font-bold text-blue-600" id="totalCount">0</p>
+            <p class="text-xs text-gray-400">일</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 뱃지 -->
+      <div class="bg-white rounded-2xl shadow-sm p-4">
+        <h2 class="font-bold text-gray-800 text-sm mb-3">획득한 뱃지</h2>
+        <div class="flex gap-3 overflow-x-auto pb-1" id="myBadges"></div>
+        <p class="text-xs text-gray-400 mt-2" id="badgeMsg"></p>
+      </div>
+
+      <!-- 집중 연습이 필요한 소리 -->
+      <div id="weakSection" class="hidden bg-white rounded-2xl shadow-sm p-4 space-y-3">
+        <div>
+          <h2 class="font-bold text-gray-800 text-sm">집중 연습이 필요한 소리</h2>
+          <p class="text-xs text-gray-400 mt-0.5">헷갈렸던 부분만 골라 다시 잡아보세요.</p>
+        </div>
+        <div class="flex flex-wrap gap-2" id="weakList"></div>
+      </div>
+
+      <!-- 피드백 자리 고정 카드 -->
+      <div class="bg-orange-50 border border-orange-200 rounded-2xl p-4">
+        <div class="flex items-start gap-3">
+          <span class="text-xl flex-shrink-0">💬</span>
+          <div class="flex-1">
+            <p class="text-sm font-bold text-orange-800">선생님의 1:1 피드백도 함께 받아보세요</p>
+            <p class="text-xs text-orange-700 mt-1.5 leading-relaxed">
+              체험판에서는 피드백이 제공되지 않아요.<br>
+              <b>본 챌린지에 참여하면 매일 인증 음성을 선생님이 직접 듣고,
+              내 발음에서 지금 가장 필요한 부분을 1:1로 짚어드려요.</b>
+            </p>
+            <a href="https://ljenglish-listeningshadowingchallenge.netlify.app/apply.html#apply" class="inline-flex items-center gap-1 mt-3 bg-orange-500 text-white text-xs font-bold px-3.5 py-2 rounded-full hover:bg-orange-600 transition-colors">
+              피드백 받으며 챌린지 시작하기 →
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- 하단 탭바 -->
+    <nav class="fixed bottom-0 inset-x-0 bg-white border-t border-gray-100 shadow-lg z-30">
+      <div class="max-w-lg mx-auto grid grid-cols-3">
+        <a href="index.html" class="flex flex-col items-center py-2.5 gap-0.5 text-blue-600">
+          <span class="text-xl leading-none">🏠</span>
+          <span class="text-xs font-semibold">내 현황</span>
+        </a>
+        <a href="today.html" class="flex flex-col items-center py-2.5 gap-0.5 text-gray-400 hover:text-gray-600 transition-colors">
+          <span class="text-xl leading-none">📚</span>
+          <span class="text-xs font-medium">오늘 과제</span>
+        </a>
+        <a href="result.html" class="flex flex-col items-center py-2.5 gap-0.5 text-gray-400 hover:text-gray-600 transition-colors">
+          <span class="text-xl leading-none">🏆</span>
+          <span class="text-xs font-medium">결과</span>
+        </a>
+      </div>
+    </nav>
+  </div>
+
+  <script>
+    let ME   = null;   // trialUser
+    let SUBS = [];
+
+    function showGate(msg) {
+      document.getElementById('loadScreen').classList.add('hidden');
+      document.getElementById('mainScreen').classList.add('hidden');
+      document.getElementById('gateScreen').classList.remove('hidden');
+      if (msg) {
+        const el = document.getElementById('gateError');
+        el.innerHTML = msg;
+        el.classList.remove('hidden');
+      }
+    }
+
+    async function enterTrial() {
+      const email = document.getElementById('gateEmail').value.trim();
+      const errEl = document.getElementById('gateError');
+      errEl.classList.add('hidden');
+
+      if (!isValidEmail(email)) {
+        errEl.textContent = '이메일 주소를 다시 확인해 주세요';
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      const btn = document.getElementById('gateBtn');
+      btn.textContent = '확인 중...';
+      btn.disabled = true;
+
+      const user = await loadTrialUser(email);
+      if (!user) {
+        errEl.innerHTML = '이 이메일로 신청한 기록이 없어요.<br>아래에서 먼저 체험을 신청해주세요!';
+        errEl.classList.remove('hidden');
+        btn.textContent = '내 체험 현황 열기';
+        btn.disabled = false;
+        return;
+      }
+
+      saveMyTrialEmail(email);
+      location.href = `index.html?e=${encodeURIComponent(normEmail(email))}`;
+    }
+
+    document.getElementById('gateEmail')?.addEventListener('keydown', e => {
+      if (e.key === 'Enter') enterTrial();
+    });
+
+    function logout() {
+      clearMyTrialEmail();
+      location.href = 'index.html';
+    }
+
+    function renderDayDots(dates, info) {
+      const el = document.getElementById('dayDots');
+      const today = todayStr();
+      el.innerHTML = '';
+      dates.forEach((dateStr, i) => {
+        const done = SUBS.some(s => (s.dateKey || tsToDateKey(s.submittedAt)) === dateStr);
+        let cls, sym;
+        if (dateStr > today)        { cls = 'dot-future'; sym = '·'; }
+        else if (dateStr === today) { cls = done ? 'dot-done' : 'dot-today'; sym = done ? '●' : '▶'; }
+        else                        { cls = done ? 'dot-done' : 'dot-miss';  sym = done ? '●' : '○'; }
+        const [,dm,dd] = dateStr.split('-');
+        el.innerHTML += `
+          <div class="flex-1 text-center">
+            <p class="text-xs text-gray-400 mb-1">D${i+1}</p>
+            <span class="${cls} inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold mx-auto">${sym}</span>
+            <p class="text-[10px] text-gray-400 mt-1">${parseInt(dm)}/${parseInt(dd)}</p>
+          </div>`;
+      });
+    }
+
+    function renderProgress(doneCount) {
+      document.getElementById('progressCount').textContent = `${doneCount}/${TRIAL_DAYS}일 인증`;
+      document.getElementById('progressBar').style.width = `${(doneCount / TRIAL_DAYS) * 100}%`;
+      const left = TRIAL_DAYS - doneCount;
+      document.getElementById('progressMsg').textContent =
+        left <= 0 ? '5일 전부 인증 완료! 완벽해요 🎉' : `${left}일 더 하면 5일 완주예요`;
+    }
+
+    function renderStreak() {
+      const { streak, best } = calcTrialStreak(SUBS);
+      document.getElementById('streakCount').textContent = streak;
+      document.getElementById('bestStreak').textContent  = best;
+      document.getElementById('totalCount').textContent  = new Set(SUBS.map(s => s.dateKey || tsToDateKey(s.submittedAt))).size;
+    }
+
+    function renderBadges(doneCount) {
+      const { best } = calcTrialStreak(SUBS);
+      const checked = SUBS.some(s => (s.selfCheck || []).length > 0);
+      const all = [
+        { emoji:'🌱', name:'첫 발걸음',   earned: doneCount >= 1 },
+        { emoji:'🔥', name:'3일 연속',    earned: best >= 3 },
+        { emoji:'⭐', name:'4일 인증',    earned: doneCount >= 4 },
+        { emoji:'🏆', name:'5일 완주',    earned: doneCount >= TRIAL_DAYS },
+        { emoji:'🎯', name:'약점 파악',   earned: checked }
+      ];
+      const earned = all.filter(b => b.earned);
+      const locked = all.filter(b => !b.earned);
+      const el = document.getElementById('myBadges');
+      el.innerHTML = '';
+      earned.forEach(b => {
+        el.innerHTML += `
+          <div class="flex-shrink-0 text-center w-16">
+            <div class="w-12 h-12 mx-auto bg-yellow-100 rounded-2xl flex items-center justify-center text-2xl shadow-sm">${b.emoji}</div>
+            <p class="text-xs font-medium text-gray-700 mt-1 leading-tight">${b.name}</p>
+          </div>`;
+      });
+      locked.forEach(b => {
+        el.innerHTML += `
+          <div class="flex-shrink-0 text-center w-16 opacity-35">
+            <div class="w-12 h-12 mx-auto bg-gray-100 rounded-2xl flex items-center justify-center text-2xl">🔒</div>
+            <p class="text-xs font-medium text-gray-400 mt-1 leading-tight">${b.name}</p>
+          </div>`;
+      });
+      document.getElementById('badgeMsg').textContent = `${earned.length}개 획득 · ${locked.length}개 도전 중`;
+    }
+
+    function renderWeakSounds() {
+      const counts = {};
+      SUBS.forEach(s => (s.selfCheck || []).forEach(k => { counts[k] = (counts[k] || 0) + 1; }));
+      const keys = Object.keys(counts).sort((a,b) => counts[b] - counts[a]);
+      if (keys.length === 0) return;
+
+      const el = document.getElementById('weakList');
+      el.innerHTML = '';
+      keys.forEach(k => {
+        const item = SELF_CHECK_ITEMS.find(i => i.key === k);
+        if (!item) return;
+        el.innerHTML += `
+          <a href="${item.url}"
+             class="inline-flex items-center gap-1.5 bg-white border border-orange-300 text-orange-600 text-xs font-semibold rounded-full px-3 py-2 hover:bg-orange-500 hover:text-white transition-colors">
+            🔗 ${item.label} 연습하기
+            <span class="bg-orange-100 text-orange-500 rounded-full px-1.5 text-[10px]">${counts[k]}</span>
+          </a>`;
+      });
+      document.getElementById('weakSection').classList.remove('hidden');
+    }
+
+    async function init() {
+      const email = resolveTrialEmail();
+      if (!email) return showGate();
+
+      ME = await loadTrialUser(email);
+      if (!ME) {
+        clearMyTrialEmail();
+        return showGate('이 이메일로 신청한 기록이 없어요.<br>아래에서 먼저 체험을 신청해주세요!');
+      }
+
+      const [subs, curriculum] = await Promise.all([
+        loadTrialSubmissions(email),
+        loadTrialCurriculum()
+      ]);
+      SUBS = subs;
+
+      const info      = trialDayInfo(ME.startDate);
+      const dates     = trialDates(ME.startDate);
+      const doneCount = new Set(SUBS.map(s => s.dateKey || tsToDateKey(s.submittedAt))).size;
+
+      document.getElementById('myName').textContent = ME.name || '체험 중';
+      document.getElementById('myDayLabel').textContent = info.ended ? '체험 종료' : `Day ${info.day} / ${TRIAL_DAYS}`;
+
+      if (info.ended) {
+        document.getElementById('todayBanner').classList.add('hidden');
+        document.getElementById('endedBanner').classList.remove('hidden');
+      } else {
+        const lesson = curriculum.find(l => l.day === info.day);
+        const [,m,d] = todayStr().split('-');
+        const dayName = ['일','월','화','수','목','금','토'][new Date().getDay()];
+        document.getElementById('todayDateLabel').textContent = `Day ${info.day} · ${dayName} ${parseInt(m)}/${parseInt(d)}`;
+        document.getElementById('todayLessonTitle').textContent = lesson?.title   || `Day ${info.day} 과제`;
+        document.getElementById('todayMission').textContent     = lesson?.mission || '음성 또는 사진으로 인증해 주세요';
+
+        const todayDone = SUBS.some(s => (s.dateKey || tsToDateKey(s.submittedAt)) === todayStr());
+        if (todayDone) {
+          const btn = document.getElementById('todayBtn');
+          btn.textContent = '✓ 오늘 인증 완료! 과제 다시 보기 →';
+        }
+      }
+
+      renderDayDots(dates, info);
+      renderProgress(doneCount);
+      renderStreak();
+      renderBadges(doneCount);
+      renderWeakSounds();
+
+      const { streak } = calcTrialStreak(SUBS);
+      const enc = encourageMessage(info.day, doneCount, streak);
+      document.getElementById('encEmoji').textContent = enc.emoji;
+      document.getElementById('encTitle').textContent = enc.title;
+      document.getElementById('encBody').textContent  = enc.body;
+
+      document.getElementById('loadScreen').classList.add('hidden');
+      document.getElementById('mainScreen').classList.remove('hidden');
+    }
+
+    init();
+  </script>
+</body>
+</html>
