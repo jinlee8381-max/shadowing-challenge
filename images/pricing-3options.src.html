@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<style>
+  :root{
+    --bg:#FAF8F5; --card:#FFFFFF; --text:#3A2A24; --text-mid:#7A6054; --text-mute:#B09A90;
+    --wine:#9A6070; --wine-dark:#7A4A5A; --wine-light:#C49AAA; --wine-pale:#F2E4E9; --border:#E8D4DA;
+    --shadow:0 4px 24px rgba(154,96,112,.09); --r:20px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;
+    background:var(--bg); color:var(--text); width:860px; padding:44px 40px 40px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .label{font-size:.78rem;font-weight:700;letter-spacing:.14em;color:var(--wine-light);text-transform:uppercase;text-align:center;margin-bottom:8px}
+  h1{font-size:1.7rem;font-weight:800;letter-spacing:-.03em;text-align:center;margin-bottom:30px}
+
+  .cards{display:flex;flex-direction:column;gap:13px;margin-bottom:20px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:22px 24px;box-shadow:var(--shadow);position:relative}
+  .card.hi{border:2px solid var(--wine);box-shadow:0 8px 30px rgba(154,96,112,.16)}
+
+  .badge{
+    position:absolute;top:-12px;left:24px;background:var(--wine);color:#fff;
+    font-size:.72rem;font-weight:800;letter-spacing:.06em;padding:5px 14px;border-radius:100px;
+  }
+  .badge.soft{background:var(--wine-dark)}
+
+  .cap{font-size:.76rem;font-weight:700;letter-spacing:.09em;color:var(--wine-light);text-transform:uppercase;margin-bottom:5px}
+  .name{font-size:1.06rem;font-weight:800;letter-spacing:-.02em;margin-bottom:12px}
+
+  .calc{display:flex;align-items:baseline;flex-wrap:wrap;gap:7px;font-size:.92rem;color:var(--text-mid);margin-bottom:11px}
+  .calc b{color:var(--text);font-weight:700}
+  .calc .op{color:var(--wine-light);font-weight:800}
+  .total{font-size:1.85rem;font-weight:900;color:var(--wine);letter-spacing:-.03em;line-height:1}
+  .won{font-size:.9rem;font-weight:700;color:var(--text-mute);margin-left:2px}
+
+  .real{
+    display:inline-flex;align-items:baseline;gap:6px;background:var(--wine-pale);
+    border-radius:11px;padding:9px 14px;font-size:.88rem;color:var(--wine-dark);font-weight:700;
+  }
+  .real strong{font-size:1.05rem;font-weight:900;color:var(--wine-dark)}
+
+  .note{font-size:.84rem;color:var(--text-mute);margin-top:9px;line-height:1.7}
+
+  .refund{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px 24px;box-shadow:var(--shadow);margin-bottom:14px}
+  .refund h2{font-size:.95rem;font-weight:800;margin-bottom:11px}
+  .refund p{font-size:.88rem;color:var(--text-mid);line-height:1.95}
+  .refund b{color:var(--wine-dark);font-weight:800}
+
+  .warn{background:#FEF9E7;border:1px solid #F3E4B0;border-radius:14px;padding:15px 20px;font-size:.87rem;font-weight:700;color:#8A6A2A;line-height:1.6}
+</style>
+</head>
+<body>
+  <p class="label">Pricing &amp; Refund</p>
+  <h1>결제 및 환급 안내</h1>
+
+  <div class="cards">
+
+    <!-- ① 챌린지만 -->
+    <div class="card">
+      <p class="cap">Option 1</p>
+      <p class="name">쉐도잉 챌린지</p>
+      <div class="calc">
+        참여비 <b>8만원</b> <span class="op">+</span> 보증금 <b>4만원</b> <span class="op">=</span>
+        <span class="total">12만원</span><span class="won">/월</span>
+      </div>
+      <span class="real">성실 참여 시 4만원 환급 → 실제 <strong>월 8만원</strong></span>
+    </div>
+
+    <!-- ② VOD 추가 -->
+    <div class="card hi">
+      <span class="badge">발음까지 잡고 싶다면</span>
+      <p class="cap">Option 2</p>
+      <p class="name">쉐도잉 챌린지 + VOD 강의</p>
+      <div class="calc">
+        챌린지 <b>12만원</b> <span class="op">+</span> VOD <b>4만원</b> <span class="op">=</span>
+        <span class="total">16만원</span><span class="won">/월</span>
+      </div>
+      <span class="real">성실 참여 시 4만원 환급 → 실제 <strong>월 12만원</strong></span>
+      <p class="note">발음 · 억양 · 연음을 미리 익히는 VOD 강의가 함께 제공돼요.<br>소리 규칙을 먼저 알고 쉐도잉하면 훨씬 빨리 들립니다.</p>
+    </div>
+
+    <!-- ③ 리스닝 클래스 수강생 -->
+    <div class="card">
+      <span class="badge soft">리스닝 클래스 수강생</span>
+      <p class="cap">Option 3</p>
+      <p class="name">참여비 무료</p>
+      <div class="calc">
+        참여비 <b>0원</b> <span class="op">+</span> 보증금 <b>4만원</b> <span class="op">=</span>
+        <span class="total">4만원</span><span class="won">/월</span>
+      </div>
+      <span class="real">성실 참여 시 4만원 환급 → 실제 <strong>0원</strong></span>
+    </div>
+
+  </div>
+
+  <div class="refund">
+    <h2>환급 조건</h2>
+    <p>
+      📌 매주 <b>5회 이상</b> 참여 시 <b>1만원씩</b> 환급<br>
+      📌 <b>4주 모두</b> 성공 시 보증금 전액(<b>4만원</b>) 환불<br>
+      📌 챌린지 기준: 매주 5일 이상 주어진 진도 &amp; 자율 진도 쉐도잉
+    </p>
+  </div>
+
+  <div class="warn">⚠️ 리스닝 클래스 수강생도 첫 등록 시 보증금 4만원은 입금하셔야 합니다.</div>
+</body>
+</html>
