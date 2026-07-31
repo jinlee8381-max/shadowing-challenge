@@ -59,27 +59,27 @@ const DEFAULT_TRIAL_LESSONS = [
   { day: 1,
     title:   '알렉사, 게임 데이',
     mission: '',
-    notionUrl: 'https://app.notion.com/p/W1-D1-_-_-_-2006a9fdb6dd80b5b9d6c01a2d78f612?source=copy_link' },
+    notionUrl: 'https://app.notion.com/p/W1-D1-_-_-_-3ae6a9fdb6dd8013a531e519178badc7?source=copy_link' },
 
   { day: 2,
     title:   '알렉사의 엉뚱한 오해',
     mission: '무심한 대화 톤과 로봇 톤을 번갈아 연기해보세요',
-    notionUrl: 'https://app.notion.com/p/W1-D2-_-_-_-2006a9fdb6dd80b0b757d8e13bda3710?source=copy_link' },
+    notionUrl: 'https://app.notion.com/p/W1-D2-_-_-_-3ae6a9fdb6dd80b2b712c64f3bac64d0?source=copy_link' },
 
   { day: 3,
     title:   'Tell Me Lies · 티키타카',
     mission: '주고받는 대화의 리듬과 감정선을 살리는 날',
-    notionUrl: 'https://app.notion.com/p/W1-D3-_-_-_-2006a9fdb6dd80d1bd2eca582846008a?source=copy_link' },
+    notionUrl: 'https://app.notion.com/p/W1-D3-_-_-_-3ae6a9fdb6dd8091b1dbd95053f071c6?source=copy_link' },
 
   { day: 4,
     title:   'Announcement · AI 톤 대결',
     mission: '알렉사의 무표정 낭독톤 vs 진짜 사람의 대화 톤',
-    notionUrl: 'https://app.notion.com/p/W1-D4-_-_-_-2006a9fdb6dd800d9219db3411977e17?source=copy_link' },
+    notionUrl: 'https://app.notion.com/p/W1-D4-_-_-_-3ae6a9fdb6dd80b9b2e8e854784e9568?source=copy_link' },
 
   { day: 5,
     title:   '마지막 날 · 전체 통으로',
     mission: '대본 없이 처음부터 끝까지 한 번에! 5일간 쪼갠 대사를 하나로 합쳐보세요',
-    notionUrl: 'https://app.notion.com/p/W1-D5-_-_-_-2006a9fdb6dd8061b25cfcd10e992d46?source=copy_link' }
+    notionUrl: 'https://app.notion.com/p/W1-D5-_-_-_-3ae6a9fdb6dd805d837ae9547df319af?source=copy_link' }
 ];
 
 // ===================================================
