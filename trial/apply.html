@@ -8,6 +8,9 @@
   <meta property="og:title" content="10년을 배웠는데 왜 아직도 안 들릴까요 | LJ CLASS">
   <meta property="og:description" content="재능이 없어서가 아니에요. 원어민이 소리를 어떻게 뭉개는지 아무도 안 알려줬을 뿐. 하루 10분, 5일 무료 쉐도잉 체험.">
   <meta property="og:type" content="website">
+  <meta name="theme-color" content="#9A6070">
+  <meta name="apple-mobile-web-app-title" content="5일 체험">
+  <link rel="apple-touch-icon" href="../icons/icon-192.png">
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
@@ -918,7 +921,7 @@
 
       // 3) 본인에게 체험 링크 이메일 발송 (실패해도 체험은 시작 가능 — 화면에는 알리지 않음)
       try {
-        await sendTrialLinkEmail({ name: user.name || name, email });
+        await sendTrialLinkEmail({ name: user.name || name, email, startDate: user.startDate });
       } catch (mailErr) {
         console.error('이메일 발송 실패:', mailErr);
       }

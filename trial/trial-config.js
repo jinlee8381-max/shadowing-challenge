@@ -38,16 +38,13 @@ const FULL_APPLY_URL = 'https://ljenglish-listeningshadowingchallenge.netlify.ap
 // ===================================================
 // service_id / user_id 는 본 신청서(apply.html)에서 쓰던 값 그대로입니다.
 //
-// ⚠️ welcomeTemplateId 만 새로 만들어서 넣어주세요:
-//   1. https://dashboard.emailjs.com → Email Templates → Create New Template
-//   2. To Email 칸에 {{to_email}} 입력
-//   3. 제목/본문에 {{to_name}}, {{trial_link}} 사용
-//      예) 안녕하세요 {{to_name}}님! 5일 체험 시작하기 → {{trial_link}}
-//   4. 저장하면 나오는 template_xxxxxxx 를 아래에 붙여넣기
+// welcomeTemplateId = 체험 신청자에게 나가는 환영 메일 (2026-07-31 연결 완료)
+//   템플릿 원본: trial/_emailjs-welcome-template.html
+//   쓰는 변수: {{to_email}} {{to_name}} {{trial_link}} {{start_date}} {{end_date}} {{trial_days}}
 const EMAILJS = {
   serviceId:         'service_2428u4f',
   userId:            'nqLPvWJexb3PLr_uc',
-  welcomeTemplateId: 'template_TRIAL_WELCOME',  // ⚠️ 여기를 바꿔주세요
+  welcomeTemplateId: 'template_7fesa8n',
   adminTemplateId:   'template_q7j2iii'         // 신청 들어오면 선생님께 알림 (기존 템플릿 재사용)
 };
 
@@ -202,9 +199,20 @@ async function createTrialUser({ name, email, source, struggle }) {
   return { id: key, ...user };
 }
 
+// 'YYYY-MM-DD' → '8월 1일 (금)' 처럼 읽기 쉬운 형태로
+function prettyDate(dateStr) {
+  const d = new Date(dateStr + 'T00:00:00');
+  const dow = ['일','월','화','수','목','금','토'][d.getDay()];
+  return `${d.getMonth() + 1}월 ${d.getDate()}일 (${dow})`;
+}
+
 // 체험 링크 이메일 발송 (EmailJS)
-async function sendTrialLinkEmail({ name, email }) {
-  const link = `${TRIAL_BASE_URL}?e=${encodeURIComponent(normEmail(email))}`;
+// startDate 를 넘기면 메일 템플릿에서 {{start_date}} / {{end_date}} 를 쓸 수 있음
+async function sendTrialLinkEmail({ name, email, startDate }) {
+  const link  = `${TRIAL_BASE_URL}?e=${encodeURIComponent(normEmail(email))}`;
+  const start = startDate || todayStr();
+  const end   = dateAfter(start, TRIAL_DAYS - 1);
+
   const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -215,7 +223,10 @@ async function sendTrialLinkEmail({ name, email }) {
       template_params: {
         to_email:   normEmail(email),
         to_name:    name || '',
-        trial_link: link
+        trial_link: link,
+        start_date: prettyDate(start),
+        end_date:   prettyDate(end),
+        trial_days: String(TRIAL_DAYS)
       }
     })
   });
