@@ -82,20 +82,10 @@
 
     <main class="max-w-lg mx-auto px-3 py-5 pb-24 space-y-4">
 
-      <!-- 오늘의 과제 배너 -->
-      <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-4 text-white">
-        <div class="flex items-start justify-between">
-          <div>
-            <p class="text-xs font-medium opacity-80 mb-1" id="todayDateLabel">오늘의 과제</p>
-            <p class="text-base font-bold" id="todayLessonTitle">로딩 중...</p>
-            <p class="text-xs opacity-75 mt-1">음성 또는 사진으로 인증해 주세요</p>
-          </div>
-          <span class="text-3xl">🎬</span>
-        </div>
-        <a id="todayBtn" href="today.html"
-          class="mt-3 w-full bg-white text-blue-600 font-bold text-sm py-2 rounded-xl hover:bg-blue-50 transition-colors block text-center">
-          오늘의 과제 보기 &amp; 인증하기 →
-        </a>
+      <!-- 오늘 인증 여부 -->
+      <div id="todayStatus" class="hidden rounded-2xl px-4 py-3 flex items-center justify-between gap-3">
+        <p id="todayStatusText" class="text-sm font-bold"></p>
+        <a id="todayStatusLink" href="today.html" class="hidden text-xs font-bold whitespace-nowrap px-3 py-1.5 rounded-full">인증하러 가기 →</a>
       </div>
 
       <!-- 주차별 현황 -->
@@ -108,6 +98,26 @@
           <p class="text-xs text-gray-400 mb-2" id="weekDetailLabel">이번 주 · 7일 중 5일 인증</p>
           <div class="flex gap-1" id="myWeek3Days"></div>
         </div>
+      </div>
+
+      <!-- 함께하는 사람들 -->
+      <div id="communityCard" class="hidden bg-white rounded-2xl shadow-sm p-4">
+        <h2 class="font-bold text-gray-800 text-sm mb-3">👥 함께하는 사람들</h2>
+        <div class="grid grid-cols-3 gap-2">
+          <div class="bg-orange-50 rounded-xl py-3 text-center">
+            <p class="text-xl font-bold text-orange-500" id="comToday">-</p>
+            <p class="text-xs text-gray-500 mt-0.5">오늘 인증</p>
+          </div>
+          <div class="bg-green-50 rounded-xl py-3 text-center">
+            <p class="text-xl font-bold text-green-600" id="comWeek">-</p>
+            <p class="text-xs text-gray-500 mt-0.5">이번 주 완주</p>
+          </div>
+          <div class="bg-blue-50 rounded-xl py-3 text-center">
+            <p class="text-xl font-bold text-blue-600" id="comRank">-</p>
+            <p class="text-xs text-gray-500 mt-0.5" id="comRankLabel">내 위치</p>
+          </div>
+        </div>
+        <p class="text-xs text-gray-400 mt-2.5 text-center" id="comMsg"></p>
       </div>
 
       <!-- 환급 현황 -->
@@ -252,7 +262,6 @@
       document.getElementById('mainScreen').classList.remove('hidden');
       document.getElementById('myName').textContent = name;
       document.getElementById('fullRecordBtn').href = `student.html?name=${encodeURIComponent(name)}&mode=student`;
-      document.getElementById('todayBtn').href = `today.html?name=${encodeURIComponent(name)}`;
       document.getElementById('resultBtn').href = `result.html?name=${encodeURIComponent(name)}`;
 
       const [,ym] = CHALLENGE_START.split('-');
@@ -272,11 +281,6 @@
     }
 
     async function renderMainScreen(name) {
-      // 오늘 날짜 표시
-      const [,m, d] = todayStr().split('-');
-      const dayName = ['일','월','화','수','목','금','토'][new Date().getDay()];
-      document.getElementById('todayDateLabel').textContent = `오늘의 과제 · ${dayName} ${parseInt(m)}/${parseInt(d)}`;
-
       // 학생 인증 기록 + 커리큘럼 + 결과 동시 로드
       const [subs, curriculum, resultSnap] = await Promise.all([
         loadSubmissions(name),
@@ -285,16 +289,14 @@
       ]);
       const hasReflection = !!resultSnap?.data()?.reflection;
 
-      // 오늘 과제 제목 설정
-      const todayLesson = curriculum.find(l => l.week === currentWeek && l.day === weekInfo.lessonDay);
-      if (todayLesson) {
-        document.getElementById('todayLessonTitle').textContent = todayLesson.title;
-      } else {
-        document.getElementById('todayLessonTitle').textContent = `W${currentWeek} D${weekInfo.lessonDay} 오늘의 과제`;
-      }
-
       // 주차 요약
       renderWeekSummary(subs);
+
+      // 오늘 인증 여부
+      renderTodayStatus(subs);
+
+      // 함께하는 사람들 (실패해도 나머지 화면에 영향 없음)
+      renderCommunity(name);
 
       // 이번 주 요일 도트
       renderWeekDots(subs);
@@ -348,6 +350,87 @@
           </div>
         `;
       });
+    }
+
+    // 함께하는 사람들 — 오늘 인증자 수 / 이번 주 완주자 수 / 내 위치
+    async function renderCommunity(myName) {
+      try {
+        const all = await loadAllSubmissions();
+        if (!all.length) return;
+
+        // 학생별 인증 날짜 집합 (하루 여러 번 올려도 1일로)
+        const byStudent = {};
+        all.forEach(s => {
+          const n = s.studentName, d = tsToDateKey(s.submittedAt);
+          if (!n || !d) return;
+          (byStudent[n] = byStudent[n] || new Set()).add(d);
+        });
+
+        // ① 오늘 인증한 사람 수
+        const today = todayStr();
+        const todayCount = Object.values(byStudent).filter(set => set.has(today)).length;
+
+        // ② 이번 주 5일 이상 채운 사람 수
+        const weekDates = getWeekDates(currentWeek);
+        const weekDone = Object.values(byStudent)
+          .filter(set => weekDates.filter(d => set.has(d)).length >= 5).length;
+
+        // ③ 내 위치 (총 인증일수 기준)
+        const counts = Object.entries(byStudent)
+          .map(([n, set]) => ({ n, c: set.size }))
+          .sort((a, b) => b.c - a.c);
+        const total = counts.length;
+        const mine  = byStudent[myName] ? byStudent[myName].size : 0;
+        const rank  = counts.findIndex(x => x.n === myName) + 1;
+        const pct   = rank > 0 ? Math.ceil(rank / total * 100) : 100;
+
+        document.getElementById('comToday').textContent = todayCount + '명';
+        document.getElementById('comWeek').textContent  = weekDone + '명';
+
+        // 상위권이면 순위를, 아니면 본인 기록을 보여줌 (뒤처진 느낌 주지 않기)
+        if (rank > 0 && pct <= 50) {
+          document.getElementById('comRank').textContent      = '상위 ' + pct + '%';
+          document.getElementById('comRankLabel').textContent = '내 위치';
+        } else {
+          document.getElementById('comRank').textContent      = mine + '일';
+          document.getElementById('comRankLabel').textContent = '내 인증';
+        }
+
+        // 0으로 비어 보이지 않게, 상황에 맞는 한마디
+        let msg;
+        if (todayCount === 0)     msg = '오늘 첫 인증의 주인공이 되어보세요';
+        else if (weekDone === 0)  msg = '오늘 ' + todayCount + '명 인증 · 이번 주 완주 1호가 되어보세요';
+        else                      msg = '오늘 ' + todayCount + '명이 이미 인증했어요';
+        document.getElementById('comMsg').textContent = msg;
+
+        document.getElementById('communityCard').classList.remove('hidden');
+      } catch (e) {
+        console.error('renderCommunity:', e);   // 실패해도 페이지는 정상 동작
+      }
+    }
+
+    // 오늘 인증했는지 한 줄로 표시
+    function renderTodayStatus(subs) {
+      const today = todayStr();
+      const done  = subs.some(s => tsToDateKey(s.submittedAt) === today);
+
+      const box  = document.getElementById('todayStatus');
+      const text = document.getElementById('todayStatusText');
+      const link = document.getElementById('todayStatusLink');
+
+      if (done) {
+        box.className  = 'rounded-2xl px-4 py-3 flex items-center justify-between gap-3 bg-green-50 border border-green-200';
+        text.className = 'text-sm font-bold text-green-700';
+        text.textContent = '✅ 오늘 인증 완료! 잘하셨어요';
+        link.classList.add('hidden');
+      } else {
+        box.className  = 'rounded-2xl px-4 py-3 flex items-center justify-between gap-3 bg-amber-50 border border-amber-200';
+        text.className = 'text-sm font-bold text-amber-800';
+        text.textContent = '⏳ 오늘 아직 인증 전이에요';
+        link.className = 'text-xs font-bold whitespace-nowrap px-3 py-1.5 rounded-full bg-amber-500 text-white hover:bg-amber-600 transition-colors';
+        link.classList.remove('hidden');
+      }
+      box.classList.remove('hidden');
     }
 
     function renderWeekDots(subs) {
