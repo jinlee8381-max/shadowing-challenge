@@ -457,8 +457,8 @@
     OneSignalDeferred.push(async function (OneSignal) {
       await OneSignal.init({
         appId: "c7ec5930-ba5f-4eec-9613-d2dc1a499751",
-        serviceWorkerParam: { scope: "/" },
-        serviceWorkerPath: "/sw.js",      // trial/ 하위이므로 절대경로여야 함
+        serviceWorkerParam: { scope: "../" },
+        serviceWorkerPath: "../sw.js",    // trial/ 하위이므로 상위로 올라감
         notifyButton: { enable: false },
       });
       // 이미 구독했거나 사용자가 닫았으면 배너를 띄우지 않음
