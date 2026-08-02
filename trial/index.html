@@ -83,6 +83,18 @@
       </div>
     </header>
 
+    <!-- 알림 설정 배너 -->
+    <div id="notifBanner" class="hidden bg-blue-50 border-b border-blue-100 px-4 py-3 flex items-center justify-between gap-3">
+      <p class="text-sm text-blue-700 leading-snug">🔔 매일 미션 알림을 받아보세요!</p>
+      <div class="flex items-center gap-2 flex-shrink-0">
+        <button onclick="subscribeNotif()"
+          class="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-full font-semibold whitespace-nowrap">
+          알림 받기
+        </button>
+        <button onclick="dismissNotifBanner()" class="text-gray-300 hover:text-gray-500 text-lg leading-none">×</button>
+      </div>
+    </div>
+
     <main class="max-w-lg mx-auto px-3 py-5 pb-24 space-y-4">
 
       <!-- 오늘의 과제 배너 -->
@@ -410,6 +422,52 @@
     }
 
     init();
+    // ── 알림(푸시) ──
+    const NOTIF_HIDE_KEY = 'trial_notif_dismissed';
+
+    function dismissNotifBanner() {
+      localStorage.setItem(NOTIF_HIDE_KEY, '1');   // 한 번 닫으면 다시 안 뜸
+      document.getElementById('notifBanner').classList.add('hidden');
+    }
+
+    async function subscribeNotif() {
+      try {
+        if (window.OneSignal) {
+          await window.OneSignal.Notifications.requestPermission();
+        } else {
+          window.OneSignalDeferred = window.OneSignalDeferred || [];
+          await new Promise(resolve => {
+            OneSignalDeferred.push(async function (OneSignal) {
+              await OneSignal.Notifications.requestPermission();
+              resolve();
+            });
+          });
+        }
+      } catch (e) {
+        alert('알림 설정에 실패했어요.\n아이폰은 iOS 16.4 이상이고, 홈 화면에 추가한 앱에서만 가능해요.');
+      }
+      document.getElementById('notifBanner').classList.add('hidden');
+    }
+  </script>
+
+  <!-- OneSignal 웹 푸시 (본 챌린지와 같은 앱 사용) -->
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  <script>
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function (OneSignal) {
+      await OneSignal.init({
+        appId: "c7ec5930-ba5f-4eec-9613-d2dc1a499751",
+        serviceWorkerParam: { scope: "/" },
+        serviceWorkerPath: "/sw.js",      // trial/ 하위이므로 절대경로여야 함
+        notifyButton: { enable: false },
+      });
+      // 이미 구독했거나 사용자가 닫았으면 배너를 띄우지 않음
+      const optedIn   = OneSignal.User.PushSubscription.optedIn;
+      const dismissed = localStorage.getItem('trial_notif_dismissed') === '1';
+      if (!optedIn && !dismissed) {
+        document.getElementById('notifBanner').classList.remove('hidden');
+      }
+    });
   </script>
 </body>
 </html>
