@@ -135,6 +135,34 @@ async function loadSubmissions(studentName) {
   } catch(e) { console.error('loadSubmissions:', e); return []; }
 }
 
+// 이 학생의 모든 월 인증 기록 (지난 챌린지 보기용)
+async function loadSubmissionsAllMonths(studentName) {
+  try {
+    const snap = await db.collection('submissions')
+      .where('studentName', '==', studentName).get();
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .sort((a,b) => (a.submittedAt?.toMillis?.() || 0) - (b.submittedAt?.toMillis?.() || 0));
+  } catch(e) { console.error('loadSubmissionsAllMonths:', e); return []; }
+}
+
+// 특정 월의 챌린지 시작일 ('YYYY-MM-DD') — 지난 달 주차 날짜 계산용
+async function loadChallengeStart(month) {
+  try {
+    const doc = await db.collection('challenges').doc(month).get();
+    return doc.exists ? (doc.data().startDate || null) : null;
+  } catch(e) { console.error('loadChallengeStart:', e); return null; }
+}
+
+// 시작일을 직접 받아 N주차 날짜 7개를 만드는 버전
+function getWeekDatesFrom(startDate, weekNum) {
+  const s = new Date(startDate + 'T00:00:00');
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(s);
+    d.setDate(s.getDate() + (weekNum-1)*7 + i);
+    return toLocalDateStr(d);
+  });
+}
+
 // 전체 학생 인증 기록 불러오기 (관리자 대시보드용)
 async function loadAllSubmissions() {
   try {

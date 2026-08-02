@@ -28,7 +28,11 @@
       <a id="backBtn" href="admin.html" class="text-gray-400 hover:text-gray-600 text-sm font-medium">← 대시보드</a>
       <div class="flex-1">
         <h1 class="text-base font-bold text-gray-900" id="pageTitle">학생 상세</h1>
-        <p class="text-xs text-gray-400">개인 학습 기록 · <span id="monthLabel">-</span></p>
+        <p class="text-xs text-gray-400">개인 학습 기록 ·
+          <select id="monthSelect" onchange="applyMonth(this.value)"
+            class="text-xs text-gray-600 bg-transparent border-0 font-semibold focus:outline-none cursor-pointer">
+          </select>
+        </p>
       </div>
       <a id="studentPageBtn" href="#"
          class="text-xs bg-green-600 text-white px-3 py-1.5 rounded-full font-medium hover:bg-green-700 transition-colors admin-only">
@@ -151,11 +155,19 @@
     document.getElementById('studentPageBtn').href = `my-page.html?name=${encodeURIComponent(studentName)}`;
     document.getElementById('nav-result').href = `result.html?name=${encodeURIComponent(studentName)}`;
 
-    const [,ym] = CHALLENGE_START.split('-');
-    document.getElementById('monthLabel').textContent = `${parseInt(ym)}월 챌린지`;
-
-    let submissions = [];
+    let submissions = [];      // 현재 보고 있는 월의 기록
+    let ALL_SUBS   = [];       // 이 학생의 전체 월 기록
+    let VIEW_MONTH = CHALLENGE_MONTH;
+    let VIEW_START = CHALLENGE_START;
     let editingSubId = null;
+
+    // 지난 달을 볼 때는 "4주 모두 종료" 상태로 취급 (week 5)
+    function viewWeekInfo() {
+      return VIEW_MONTH === CHALLENGE_MONTH
+        ? getWeekInfo()
+        : { week: 5, dayOfWeek: 6, lessonDay: 5 };
+    }
+    function viewWeekDates(w) { return getWeekDatesFrom(VIEW_START, w); }
 
     // 주차 성공 여부 (해당 주 제출 5개 이상)
     function weekSuccess(weekNum) {
@@ -163,7 +175,7 @@
     }
 
     function renderWeekSummary() {
-      const weekInfo = getWeekInfo();
+      const weekInfo = viewWeekInfo();
       const el = document.getElementById('weekSummary');
       el.innerHTML = '';
       [1,2,3,4].forEach(w => {
@@ -176,7 +188,7 @@
         else if (weekSuccess(w)) { color='border-green-200 bg-green-50'; badge=`<span class="text-2xl font-bold text-green-600">O</span>`; }
         else                { color='border-red-200 bg-red-50';     badge=`<span class="text-2xl font-bold text-red-500">X</span>`; }
 
-        const weekDates = getWeekDates(w);
+        const weekDates = viewWeekDates(w);
         const [,wm, wd1] = weekDates[0].split('-');
         const [,, wd7] = weekDates[6].split('-');
         el.innerHTML += `
@@ -190,14 +202,14 @@
     }
 
     function renderRefund() {
-      const weekInfo = getWeekInfo();
+      const weekInfo = viewWeekInfo();
       const successWeeks = [1,2,3,4].filter(w => w < weekInfo.week && weekSuccess(w)).length;
       const amount = successWeeks * 10000;
       const el = document.getElementById('refundAmount');
       el.textContent = amount.toLocaleString() + '원';
       el.className = `text-2xl font-bold ${amount === 0 ? 'text-gray-400' : amount >= 40000 ? 'text-blue-600' : 'text-green-600'}`;
 
-      const weekInfo2 = getWeekInfo();
+      const weekInfo2 = viewWeekInfo();
       const parts = [1,2,3,4].map(w => {
         if (w > weekInfo2.week) return `${w}주 미시작`;
         if (w === weekInfo2.week) return `${w}주 진행중`;
@@ -304,7 +316,33 @@
         return;
       }
 
-      submissions = await loadSubmissions(studentName);
+      // 전체 월 기록을 한 번에 불러와 월 선택지를 만든다
+      ALL_SUBS = await loadSubmissionsAllMonths(studentName);
+
+      const months = [...new Set(ALL_SUBS.map(s => s.challengeMonth).filter(Boolean))];
+      if (!months.includes(CHALLENGE_MONTH)) months.push(CHALLENGE_MONTH);
+      months.sort().reverse();                       // 최신 월이 위로
+
+      const sel = document.getElementById('monthSelect');
+      sel.innerHTML = months.map(m => {
+        const [y, mm] = m.split('-');
+        const cnt = ALL_SUBS.filter(s => s.challengeMonth === m).length;
+        const cur = m === CHALLENGE_MONTH ? ' (진행 중)' : '';
+        return `<option value="${m}">${parseInt(mm)}월 챌린지${cur} · ${cnt}회</option>`;
+      }).join('');
+      sel.value = CHALLENGE_MONTH;
+
+      await applyMonth(CHALLENGE_MONTH);
+    }
+
+    // 선택한 월로 화면 전환
+    async function applyMonth(month) {
+      VIEW_MONTH  = month;
+      VIEW_START  = month === CHALLENGE_MONTH
+        ? CHALLENGE_START
+        : (await loadChallengeStart(month)) || (month + '-01');
+      submissions = ALL_SUBS.filter(s => s.challengeMonth === month);
+
       renderWeekSummary();
       renderRefund();
       renderEntries();
