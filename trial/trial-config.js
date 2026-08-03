@@ -28,10 +28,10 @@ const storage = firebase.storage();
 const TRIAL_DAYS = 5;                    // 체험 기간 (일) — 과제 개수와 반드시 같아야 함
 
 // 체험판 주소 — 이메일에 넣을 링크를 만들 때 사용
-const TRIAL_BASE_URL = 'https://ljenglish-listeningshadowingchallenge.netlify.app/trial/';
+const TRIAL_BASE_URL = 'https://jinlee8381-max.github.io/shadowing-challenge/trial/';
 
 // 본 챌린지 신청서 주소 (모든 페이지 하단 CTA 버튼이 여기로 감)
-const FULL_APPLY_URL = 'https://ljenglish-listeningshadowingchallenge.netlify.app/apply.html#apply';
+const FULL_APPLY_URL = 'https://jinlee8381-max.github.io/shadowing-challenge/apply.html#apply';
 
 // ===================================================
 // ✉️ EmailJS 설정

@@ -25,7 +25,7 @@ const CONFIG = {
   bankName      : '카카오뱅크',
   bankAccount   : '3333-19-4033339',
   bankHolder    : '이진',
-  appUrl        : 'https://ljenglish-listeningshadowingchallenge.netlify.app',
+  appUrl        : 'https://jinlee8381-max.github.io/shadowing-challenge',
   inquiryUrl    : 'https://pf.kakao.com/_lvxoLxj/chat',             // 카카오톡 채널 문의
   adminEmail    : 'jinlee8381@gmail.com',                           // 신청 알림 받을 주소
   notifyAdmin   : true                                              // 선생님 알림 메일 on/off
