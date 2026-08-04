@@ -406,10 +406,7 @@
 
       await OneSignal.init({
         appId: "c7ec5930-ba5f-4eec-9613-d2dc1a499751",
-        // 이 사이트는 하위경로(/shadowing-challenge/)에 있음.
-        // integration.kind 가 'typical' 이면 SDK 가 커스텀 경로를 무시하고
-        // 최상위에서 워커를 찾으므로 아래 override 플래그가 반드시 필요함.
-        serviceWorkerOverrideForTypical: true,
+        // 이 사이트는 하위경로(/shadowing-challenge/)에 있음 — Custom Code 설정에서만 적용됨
         serviceWorkerParam: { scope: SW_BASE },
         serviceWorkerPath: SW_BASE.replace(/^\//, "") + "sw.js",
         notifyButton: { enable: false },
