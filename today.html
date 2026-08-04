@@ -124,6 +124,11 @@
         <p class="text-2xl mb-1">✅</p>
         <p class="text-sm font-semibold text-green-700">오늘 인증 완료!</p>
         <p class="text-xs text-green-600 mt-1">오늘의 과제를 제출했어요. 내일도 화이팅!</p>
+        <button onclick="shareToday(this)"
+          class="mt-3 w-full bg-yellow-300 hover:bg-yellow-400 text-yellow-900 font-bold text-sm py-2.5 rounded-xl transition-colors">
+          📤 오늘 인증 자랑하기
+        </button>
+        <p class="text-[11px] text-green-600/70 mt-1.5">카톡방에 공유하고 같이 달려요 🔥</p>
       </div>
 
       <!-- 브라우저 내 녹음 -->
@@ -450,6 +455,58 @@
         btn.textContent = '✓ 인증 제출하기';
         btn.disabled = false;
         btn.className = btn.className.replace('bg-gray-400 cursor-not-allowed', 'bg-blue-600 hover:bg-blue-700');
+      }
+    }
+
+    // ── 오늘 인증 자랑하기 (카톡 등으로 공유) ──
+    async function shareToday(btn) {
+      let line2 = '';
+      try {
+        const subs  = await loadSubmissions(studentName);
+        const days  = new Set(subs.map(s => tsToDateKey(s.submittedAt)).filter(Boolean));
+        const total = days.size;
+        const wk    = getWeekDates(getWeekInfo().week).filter(d => days.has(d)).length;
+
+        // 연속 인증일
+        const sorted = [...days].sort();
+        let streak = 0;
+        if (sorted.length) {
+          streak = 1;
+          for (let i = sorted.length - 1; i > 0; i--) {
+            const gap = Math.round((new Date(sorted[i]) - new Date(sorted[i-1])) / 86400000);
+            if (gap === 1) streak++; else break;
+          }
+        }
+        const bits = [`이번 주 ${wk}/5일`, `총 ${total}번째 인증`];
+        if (streak >= 2) bits.push(`${streak}일 연속 🔥`);
+        line2 = bits.join(' · ');
+      } catch (e) { console.error('shareToday:', e); }
+
+      // 상황에 맞는 한마디
+      const hypes = [
+        '오늘도 입 풀었다! 🎙️',
+        '귀가 조금씩 뚫리는 중 👂',
+        '오늘 치 쉐도잉 끝! 개운하다 😎',
+        '30초든 3분이든, 한 건 한 거다 💪',
+        '작심삼일? 그런 거 모릅니다 🚀',
+      ];
+      const hype = hypes[Math.floor(Date.now() / 86400000) % hypes.length];
+
+      const txt =
+        `${studentName}님 ${hype}\n` +
+        (line2 ? line2 + '\n' : '') +
+        `\nLJ 쉐도잉 챌린지 함께해요 →\n${location.origin}${location.pathname.replace(/[^/]*$/, '')}my-page.html`;
+
+      if (navigator.share) {
+        navigator.share({ title: 'LJ 쉐도잉 챌린지', text: txt }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(txt)
+          .then(() => {
+            const t = btn.textContent;
+            btn.textContent = '✅ 복사됐어요! 카톡에 붙여넣기';
+            setTimeout(() => { btn.textContent = t; }, 2500);
+          })
+          .catch(() => alert(txt));
       }
     }
 
