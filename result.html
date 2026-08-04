@@ -184,6 +184,46 @@
         <!-- 계속 참여 확정 -->
         <div id="continueYes" class="hidden space-y-2 pt-1">
           <p class="text-green-600 font-semibold">🎉 <span id="nextMonthLabel"></span>월에도 함께해요!</p>
+
+          <!-- 이월 정산 안내 -->
+          <div class="text-left bg-blue-50 border border-blue-200 rounded-xl p-3.5 space-y-3">
+            <p class="text-sm font-bold text-blue-900">💰 다음 달 입금 안내</p>
+
+            <div>
+              <p class="text-xs font-semibold text-gray-600 mb-1.5">리스닝 클래스도 수강 중이신가요?</p>
+              <div class="grid grid-cols-2 gap-1.5">
+                <button type="button" onclick="setListening(true)" id="lisYes"
+                  class="py-2 rounded-lg border text-xs font-semibold transition-colors">네, 수강 중</button>
+                <button type="button" onclick="setListening(false)" id="lisNo"
+                  class="py-2 rounded-lg border text-xs font-semibold transition-colors">아니요</button>
+              </div>
+            </div>
+
+            <div id="settleBox" class="hidden space-y-2">
+              <div class="bg-white rounded-lg p-3 text-xs text-gray-600 space-y-1.5" id="settleRows"></div>
+
+              <div class="bg-blue-600 text-white rounded-lg p-3 text-center">
+                <p class="text-xs opacity-90">입금하실 금액</p>
+                <p class="text-2xl font-extrabold" id="settleTotal">-</p>
+              </div>
+
+              <div class="bg-white rounded-lg p-3">
+                <p class="text-xs text-gray-500 mb-1">입금 계좌</p>
+                <p class="text-sm font-bold text-gray-800">카카오뱅크 3333-19-4033339</p>
+                <p class="text-xs text-gray-500 mt-0.5">예금주: 이진</p>
+                <button type="button" onclick="copyAcct(this)"
+                  class="mt-2 w-full bg-gray-100 text-gray-700 text-xs font-bold py-2 rounded-lg hover:bg-gray-200 transition-colors">
+                  계좌번호 복사
+                </button>
+              </div>
+
+              <p class="text-[11px] text-gray-500 leading-relaxed">
+                ※ 입금자명이 신청자명과 다르면 꼭 알려주세요.<br>
+                ※ 다음 달 보증금은 <b>40,000원</b>이며, 이번 달 환급 예정액을 그대로 이월합니다.
+              </p>
+            </div>
+          </div>
+
           <a href="my-page.html"
              class="block bg-blue-600 text-white font-bold text-sm py-3 rounded-xl hover:bg-blue-700 transition-colors">
             내 페이지로 돌아가기
@@ -252,6 +292,52 @@
       document.getElementById('studentGreeting').textContent = `${name}님, 수고하셨어요!`;
     }
 
+    // ── 이월 정산 안내 ──
+    const DEPOSIT    = 40000;   // 다음 달 보증금
+    const JOIN_FEE   = 80000;   // 참여비 (리스닝 클래스 수강생은 면제)
+    let   MY_REFUND  = 0;       // 이번 달 환급 예정액 (= 이월되는 보증금)
+    let   IS_LISTENING = null;
+
+    function setListening(v) {
+      IS_LISTENING = v;
+      const on  = 'py-2 rounded-lg border text-xs font-semibold transition-colors bg-blue-600 text-white border-blue-600';
+      const off = 'py-2 rounded-lg border text-xs font-semibold transition-colors bg-white text-gray-500 border-gray-200 hover:border-blue-300';
+      document.getElementById('lisYes').className = v ? on : off;
+      document.getElementById('lisNo').className  = v ? off : on;
+      renderSettlement();
+    }
+
+    function renderSettlement() {
+      const carry  = Math.min(MY_REFUND, DEPOSIT);   // 이월되는 보증금
+      const addDep = Math.max(DEPOSIT - carry, 0);   // 추가로 채울 보증금
+      const fee    = IS_LISTENING ? 0 : JOIN_FEE;
+      const total  = addDep + fee;
+      const won    = n => n.toLocaleString() + '원';
+
+      const rows = [
+        ['이번 달 환급 예정액 (이월)', won(carry)],
+        ['다음 달 보증금',             won(DEPOSIT)],
+        ['추가로 채울 보증금',         won(addDep)],
+        ['참여비', IS_LISTENING ? '면제 (리스닝 클래스 수강생)' : won(JOIN_FEE)],
+      ];
+
+      document.getElementById('settleRows').innerHTML = rows.map(([k, v], i) =>
+        `<div class="flex justify-between ${i === rows.length - 1 ? 'pt-1.5 border-t border-gray-100' : ''}">
+           <span>${k}</span><span class="font-semibold text-gray-800">${v}</span>
+         </div>`).join('');
+
+      document.getElementById('settleTotal').textContent = won(total);
+      document.getElementById('settleBox').classList.remove('hidden');
+    }
+
+    function copyAcct(btn) {
+      navigator.clipboard.writeText('3333194033339').then(() => {
+        const t = btn.textContent;
+        btn.textContent = '✅ 복사됐어요';
+        setTimeout(() => { btn.textContent = t; }, 1500);
+      }).catch(() => alert('계좌번호: 3333-19-4033339 (카카오뱅크 이진)'));
+    }
+
     function calcStreak(subs) {
       const dates = [...new Set(subs.map(s => tsToDateKey(s.submittedAt)).filter(Boolean))].sort();
       if (dates.length === 0) return 0;
@@ -276,6 +362,7 @@
       const weeks = [1,2,3,4].map(w => subs.filter(s => s.week === w).length >= 5);
       const successCount = weeks.filter(Boolean).length;
       const refund = successCount * 10000;
+      MY_REFUND = refund;                 // 이월 정산 안내에서 사용
       const streak = calcStreak(subs);
       const achieveRate = Math.round((subs.length / 20) * 100);
 
