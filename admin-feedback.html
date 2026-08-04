@@ -539,12 +539,16 @@
   </script>
   <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
   <script>
+    // 이 사이트가 놓인 하위 경로를 자동 계산 (예: /shadowing-challenge/)
+    // OneSignal 은 serviceWorkerPath 를 '사이트 최상위 기준'으로 해석하므로 필요
+    const SW_BASE = location.pathname.replace(/\/(trial\/)?[^/]*$/, '/');
     window.OneSignalDeferred = window.OneSignalDeferred || [];
     OneSignalDeferred.push(async function(OneSignal) {
+
       await OneSignal.init({
         appId: "c7ec5930-ba5f-4eec-9613-d2dc1a499751",
-        serviceWorkerParam: { scope: "./" },
-        serviceWorkerPath: "sw.js",
+        serviceWorkerParam: { scope: SW_BASE },
+        serviceWorkerPath: SW_BASE.replace(/^\//, "") + "sw.js",
         notifyButton: { enable: false },
       });
     });
