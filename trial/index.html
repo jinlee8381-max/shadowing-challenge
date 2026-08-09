@@ -374,6 +374,9 @@
         return showGate('이 이메일로 신청한 기록이 없어요.<br>아래에서 먼저 체험을 신청해주세요!');
       }
 
+      // 🔒 2주 지났으면 여기서 끝 — 아무것도 불러오지 않고 잠금 화면만
+      if (showTrialLockIfExpired(trialDayInfo(ME.startDate))) return;
+
       const [subs, curriculum] = await Promise.all([
         loadTrialSubmissions(email),
         loadTrialCurriculum()

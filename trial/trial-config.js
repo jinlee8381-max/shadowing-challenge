@@ -27,6 +27,12 @@ const storage = firebase.storage();
 
 const TRIAL_DAYS = 5;                    // 체험 기간 (일) — 과제 개수와 반드시 같아야 함
 
+// 🔒 완전 차단까지의 기간 (일)
+//   Day 1 ~ 5   : 정상 체험 (인증 제출 가능)
+//   Day 6 ~ 14  : 체험 종료 — 제출은 막히지만 지난 과제 열람은 가능
+//   Day 15 부터 : 완전 차단 — 페이지 자체를 못 봄 (잠금 화면만 표시)
+const TRIAL_ACCESS_DAYS = 14;
+
 // 체험판 주소 — 이메일에 넣을 링크를 만들 때 사용
 const TRIAL_BASE_URL = 'https://jinlee8381-max.github.io/shadowing-challenge/trial/';
 
@@ -144,11 +150,62 @@ function trialDayInfo(startDate) {
   const diff = Math.floor((t - s) / 86400000);
   const day  = diff + 1;
   return {
+    startDate,
     day:      Math.min(Math.max(day, 1), TRIAL_DAYS),
     rawDay:   day,
-    ended:    day > TRIAL_DAYS,
-    lastDate: dateAfter(startDate, TRIAL_DAYS - 1)
+    ended:    day > TRIAL_DAYS,                       // 5일 지남 → 제출 차단
+    locked:   day > TRIAL_ACCESS_DAYS,                // 2주 지남 → 완전 차단
+    lastDate: dateAfter(startDate, TRIAL_DAYS - 1),
+    lockDate: dateAfter(startDate, TRIAL_ACCESS_DAYS) // 이 날짜부터 못 봄
   };
+}
+
+// ===================================================
+// 🔒 완전 차단 화면
+// ===================================================
+// 체험 시작 후 TRIAL_ACCESS_DAYS 가 지나면 페이지 내용을 통째로 가리고
+// 이 화면만 보여줍니다. 각 페이지 init() 맨 앞에서 호출하세요.
+//
+//   if (showTrialLockIfExpired(trialDayInfo(ME.startDate))) return;
+//
+// 잠긴 상태면 true 를 반환하므로, 반환값이 true 일 때 렌더링을 중단하면 됩니다.
+function showTrialLockIfExpired(info) {
+  if (!info || !info.locked) return false;
+
+  document.body.innerHTML = `
+    <div class="min-h-screen flex flex-col items-center justify-center px-5 py-10 bg-gray-50">
+      <div class="w-full max-w-xs text-center space-y-5">
+        <div>
+          <span class="text-5xl">🔒</span>
+          <h1 class="text-xl font-bold text-gray-900 mt-3">체험 기간이 종료되었어요</h1>
+          <p class="text-sm text-gray-400 mt-2 leading-relaxed">
+            ${TRIAL_DAYS}일 체험과 복습 기간(${TRIAL_ACCESS_DAYS}일)이<br>모두 끝나 더 이상 열람할 수 없어요.
+          </p>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm p-4 text-left space-y-2">
+          <div class="flex justify-between text-xs">
+            <span class="text-gray-400">체험 시작</span>
+            <span class="font-medium text-gray-700">${prettyDate(info.startDate || '')}</span>
+          </div>
+          <div class="flex justify-between text-xs">
+            <span class="text-gray-400">열람 종료</span>
+            <span class="font-medium text-gray-700">${prettyDate(info.lockDate)}</span>
+          </div>
+        </div>
+
+        <p class="text-sm text-gray-500 leading-relaxed">
+          이어서 계속하고 싶으시다면<br>본 챌린지에서 만나요! 🎙️
+        </p>
+
+        <a href="${FULL_APPLY_URL}"
+          class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3.5 rounded-xl text-sm transition-colors">
+          본 챌린지 신청하러 가기 →
+        </a>
+      </div>
+    </div>`;
+  document.body.className = 'bg-gray-50 min-h-screen';
+  return true;
 }
 
 // ===================================================
@@ -201,7 +258,9 @@ async function createTrialUser({ name, email, source, struggle }) {
 
 // 'YYYY-MM-DD' → '8월 1일 (금)' 처럼 읽기 쉬운 형태로
 function prettyDate(dateStr) {
+  if (!dateStr) return '-';
   const d = new Date(dateStr + 'T00:00:00');
+  if (isNaN(d)) return '-';
   const dow = ['일','월','화','수','목','금','토'][d.getDay()];
   return `${d.getMonth() + 1}월 ${d.getDate()}일 (${dow})`;
 }

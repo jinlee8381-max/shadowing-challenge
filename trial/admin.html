@@ -167,7 +167,9 @@
       tbody.innerHTML = '';
       list.forEach(r => {
         const u = r.user;
-        const dayBadge = r.info.ended
+        const dayBadge = r.info.locked
+          ? `<span class="bg-red-50 text-red-500 text-xs px-2 py-0.5 rounded-full font-medium">🔒 차단</span>`
+          : r.info.ended
           ? `<span class="bg-gray-100 text-gray-500 text-xs px-2 py-0.5 rounded-full font-medium">종료</span>`
           : `<span class="bg-blue-100 text-blue-700 text-xs px-2 py-0.5 rounded-full font-semibold">Day ${r.info.day}</span>`;
         const rate  = Math.round((r.done / TRIAL_DAYS) * 100);
@@ -266,7 +268,7 @@
         r.user.name || '',
         r.user.email || '',
         r.user.startDate || '',
-        r.info.ended ? '종료' : `Day ${r.info.day}`,
+        r.info.locked ? '차단' : r.info.ended ? '종료' : `Day ${r.info.day}`,
         r.done,
         r.lastDate,
         r.weak.join(' / '),

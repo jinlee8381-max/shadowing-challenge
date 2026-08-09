@@ -174,8 +174,11 @@
       const ME = await loadTrialUser(email);
       if (!ME) return location.replace('index.html');
 
-      const SUBS  = await loadTrialSubmissions(email);
       const INFO  = trialDayInfo(ME.startDate);
+      // 🔒 2주 지났으면 리포트도 못 봄
+      if (showTrialLockIfExpired(INFO)) return;
+
+      const SUBS  = await loadTrialSubmissions(email);
       const dates = trialDates(ME.startDate);
       const doneDates = [...new Set(SUBS.map(s => s.dateKey || tsToDateKey(s.submittedAt)))];
       const doneCount = doneDates.length;

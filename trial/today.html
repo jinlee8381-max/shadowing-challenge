@@ -518,6 +518,9 @@
       if (!ME) return location.replace('index.html');
 
       INFO = trialDayInfo(ME.startDate);
+      // 🔒 2주 지났으면 과제 내용 자체를 불러오지 않음
+      if (showTrialLockIfExpired(INFO)) return;
+
       const [subs, curriculum] = await Promise.all([
         loadTrialSubmissions(email),
         loadTrialCurriculum()
