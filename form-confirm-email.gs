@@ -21,7 +21,7 @@
 // ────────── 매달 바뀌는 값 (여기만 고치면 됩니다) ──────────
 const CONFIG = {
   startDateText : '매달 첫째 주 월요일',                            // 챌린지 시작 시점
-  openChatUrl   : 'https://invite.kakao.com/tc/KBq0gup2ta',        // 팀 오픈채팅방
+  openChatUrl   : 'https://invite.kakao.com/tc/Fr39PoDNuc',        // 팀 오픈채팅방
   bankName      : '카카오뱅크',
   bankAccount   : '3333-19-4033339',
   bankHolder    : '이진',
