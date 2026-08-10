@@ -6,6 +6,24 @@
   <meta name="theme-color" content="#3b82f6">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="5일 체험">
+  <link rel="icon" href="../icons/icon-192.png">
+  <!-- ⚠️ manifest 는 안드로이드에서만 연결합니다. iOS 에 연결하면 안 됩니다.
+       iOS 는 manifest 가 있으면 홈 화면 추가 시 start_url(index.html)로 열려
+       개인 링크의 ?e=이메일 이 날아가고, 홈 화면 웹앱 저장소가 Safari 와 분리돼
+       localStorage 폴백까지 안 먹습니다 → 아이콘 눌렀는데 이메일 입력창이 뜸.
+       iOS 는 위 apple-touch-icon 만으로 아이콘이 정상 표시됩니다. -->
+  <script>
+    (function () {
+      var ua = navigator.userAgent;
+      var isIOS = /iPad|iPhone|iPod/.test(ua) ||
+                  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      if (isIOS) return;
+      var m = document.createElement('link');
+      m.rel = 'manifest';
+      m.href = 'manifest.json';
+      document.head.appendChild(m);
+    })();
+  </script>
   <link rel="apple-touch-icon" href="../icons/icon-192.png">
   <title>내 5일 리포트 · 쉐도잉 체험</title>
   <script src="https://cdn.tailwindcss.com"></script>

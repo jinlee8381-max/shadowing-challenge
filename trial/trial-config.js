@@ -55,6 +55,40 @@ const EMAILJS = {
 };
 
 // ===================================================
+// 📊 구글 시트 미러링 (매일 리마인드 메일용)
+// ===================================================
+// Firestore 에 저장하는 것과 별개로, 같은 내용을 구글 시트에도 한 줄씩 쌓습니다.
+// Apps Script 가 이 시트를 읽어서 매일 정해진 시각에 리마인드 메일을 보냅니다.
+//   · 신청  → 시트「체험신청」
+//   · 인증  → 시트「체험인증」
+//
+// ⚠️ 설치 순서
+//   1) trial/_apps-script-체험메일.gs 내용을 Apps Script 에 붙여넣고
+//   2) 배포 → 새 배포 → 웹 앱 (액세스: 모든 사용자) → 배포
+//   3) 나오는 /exec 주소를 아래 SHEET_MIRROR_URL 에 붙여넣기
+//
+// 주소가 비어 있으면 미러링은 조용히 건너뜁니다 (앱 동작에는 아무 영향 없음).
+// 연결 확인 2026-08-10 — 브라우저로 열면 "연결 성공!" 이 뜹니다.
+// ⚠️ Apps Script 를 고친 뒤 「배포 → 배포 관리 → 수정(연필) → 버전: 새 버전」 으로
+//    재배포해야 반영됩니다. '새 배포'로 만들면 주소가 바뀌니 그때는 아래 주소도 교체할 것.
+const SHEET_MIRROR_URL = 'https://script.google.com/macros/s/AKfycbxd-LlJF60PHc0AAHIfAVSLacgGTY_3fz_xAl26v--b3AN9hPfCUnWRgxocVRMguXSbgg/exec';
+
+// 시트로 한 줄 쏘기 — 실패해도 앱은 절대 멈추지 않습니다 (fire & forget)
+function mirrorToSheet(type, data) {
+  if (!SHEET_MIRROR_URL) return;
+  try {
+    const params = new URLSearchParams({ type, ...data });
+    fetch(`${SHEET_MIRROR_URL}?${params.toString()}`, {
+      method: 'GET',
+      mode: 'no-cors',      // 응답을 읽을 필요가 없어서 CORS 를 신경쓰지 않음
+      keepalive: true       // 페이지를 바로 떠나도 요청은 끝까지 감
+    }).catch(() => {});
+  } catch (e) {
+    console.warn('시트 미러링 실패 (무시됨):', e);
+  }
+}
+
+// ===================================================
 // 📚 체험 5일 커리큘럼 (기본값)
 // ===================================================
 // 자료 = 지난 챌린지 W1 「슈퍼볼 광고 · 알렉사 편」(스칼렛 요한슨 & 콜린 조스트)

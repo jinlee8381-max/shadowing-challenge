@@ -915,6 +915,17 @@
       // 2) 이 기기에 로그인 상태 저장 → 링크 없이도 바로 입장 가능
       saveMyTrialEmail(email);
 
+      // 2-1) 구글 시트에도 한 줄 남기기 (Apps Script 가 매일 리마인드 메일 보낼 때 씀)
+      //      이미 신청했던 사람은 시작일이 안 바뀌므로 다시 쌓지 않습니다.
+      if (!user.alreadyExisted) {
+        mirrorToSheet('signup', {
+          name:      user.name || name,
+          email:     normEmail(email),
+          startDate: user.startDate,
+          struggle:  struggle || ''
+        });
+      }
+
       // 이미 열람 기간(2주)까지 끝난 사람 — 체험 링크를 다시 보내지 않음
       const userInfo = trialDayInfo(user.startDate);
 
