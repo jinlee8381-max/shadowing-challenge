@@ -437,6 +437,14 @@
     }
     .save-input:focus { border-color: var(--wine-light); box-shadow: 0 0 0 3px rgba(154, 96, 112, .1); }
 
+    .mail-agree {
+      display: flex; align-items: flex-start; gap: 9px;
+      font-size: .82rem; color: var(--text-mid);
+      line-height: 1.65; cursor: pointer; word-break: keep-all;
+      padding: 2px 2px 4px;
+    }
+    .mail-agree input { flex-shrink: 0; margin-top: 3px; accent-color: var(--wine); }
+
     .save-status { font-size: .85rem; color: var(--wine); min-height: 20px; line-height: 1.6; word-break: keep-all; }
 
     @media (min-width: 640px) {
@@ -554,9 +562,40 @@ const LINKS = {
   intonation:   BASE + 'practice/intonation-stress.html'
 };
 
-// 이메일 수집을 안 하므로 Firebase 는 안 씁니다.
-// 나중에 자동 회신을 붙일 때 <head> 에 firebase-app/firestore compat 스크립트와
-// 아래 초기화를 다시 넣으면 됩니다 (프로젝트: listeningclassapp).
+/* ───────────────────────────────────────
+   구글 시트 미러링 + 결과 메일 (북클럽 리딩 진단과 같은 방식)
+
+   ⚠️ 설치 순서
+     1) 새 구글 스프레드시트를 만들고 (예: 「쉐도잉 진단 결과」)
+        확장 프로그램 → Apps Script 에 _apps-script-진단.gs 내용을 붙여넣기
+     2) 배포 → 새 배포 → 웹 앱 · 액세스 「모든 사용자」 → 배포
+     3) 나오는 /exec 주소를 아래 SHEET_MIRROR_URL 에 붙여넣기
+
+   ⚠️ 체험 리마인드 메일이 쓰는 시트와 별개로 만드세요.
+      Apps Script 는 프로젝트당 doGet 이 하나뿐이라 같이 두면 충돌합니다.
+
+   ⚠️ .gs 를 고친 뒤에는 「배포 → 배포 관리 → 수정(연필) → 버전: 새 버전」으로
+      재배포해야 반영됩니다. '새 배포'로 만들면 주소가 바뀌니 그때는 아래도 교체.
+
+   주소가 비어 있으면 미러링을 조용히 건너뛰고, 결과 화면의 이메일 칸도 안 뜹니다.
+─────────────────────────────────────── */
+const SHEET_MIRROR_URL = 'https://script.google.com/macros/s/AKfycbwbHGCS3gQ8PC5PxUnFX_jtzo_oxJSIE0SB0S8faWgjmxdUMQZ_j2Rhf9pfEj5rvkJN/exec';
+
+const MAIL_READY = !!SHEET_MIRROR_URL;
+
+/* 시트로 한 줄 쏘기 — 실패해도 진단은 절대 멈추지 않습니다 (fire & forget) */
+function mirrorToSheet(data) {
+  if (!SHEET_MIRROR_URL) return;
+  try {
+    fetch(`${SHEET_MIRROR_URL}?${new URLSearchParams(data).toString()}`, {
+      method: 'GET',
+      mode: 'no-cors',   // 응답을 읽을 필요가 없어서 CORS 를 신경쓰지 않음
+      keepalive: true    // 페이지를 바로 떠나도 요청은 끝까지 감
+    }).catch(() => {});
+  } catch (e) {
+    console.warn('시트 미러링 실패 (무시됨):', e);
+  }
+}
 
 // 체험판과 같은 origin일 때만 읽힘 — 이미 체험한 사람에겐 체험 권유를 숨깁니다
 const TRIAL_EMAIL_KEY = 'trial_my_email';
@@ -962,6 +1001,17 @@ function buildResult() {
   // 유입 경로에 따라 primary / secondary 를 바꿉니다
   const mode = ctaMode();
 
+  // 이메일을 안 남기는 사람도 통계에는 잡히도록, 결과가 나온 시점에 익명 한 줄
+  mirrorToSheet({
+    submittedAt: new Date().toLocaleString('ko-KR'),
+    type,
+    typeLabel:  r.badge,
+    answers:    picks.join(','),
+    ctaMode:    mode,
+    source:     new URLSearchParams(location.search).get('from') || 'direct',
+    triedTrial: hasTriedTrial() ? 1 : 0
+  });
+
   const ctaTrial     = c => `<a href="${LINKS.trial}" class="btn ${c}">5일 무료로 먼저 해보기</a>`;
   const ctaChallenge = c => `<a href="${LINKS.applyForm}" target="_blank" rel="noopener" class="btn ${c}">쉐도잉 챌린지 신청하기</a>`;
 
@@ -1012,6 +1062,34 @@ function buildResult() {
     <div class="res-actions" style="margin-top:18px">${actionsHTML}</div>
     ${ctaNote ? `<p class="cta-note">${ctaNote}</p>` : ''}
 
+    ${MAIL_READY ? `
+    <div class="save-box" id="mailBox">
+      <div id="mailForm">
+        <div class="r-card-lbl">결과 이메일로 받기</div>
+        <p class="save-desc">
+          진단 결과와 <b>4주 루틴</b>을 정리해서 <b>바로</b> 보내드려요.
+          나중에 다시 열어볼 수 있게요.
+        </p>
+        <div class="save-fields">
+          <input id="mailName"  class="save-input" type="text"  placeholder="이름" autocomplete="name">
+          <input id="mailInput" class="save-input" type="email" placeholder="이메일" autocomplete="email" inputmode="email">
+          <label class="mail-agree">
+            <input type="checkbox" id="mailAgree">
+            <span>진단 결과와 학습 안내를 받기 위해 이메일을 쓰는 데 동의합니다.</span>
+          </label>
+          <button class="btn btn-ghost" onclick="submitMail('${type}')" id="mailBtn">결과 보내주세요</button>
+          <p class="save-status" id="mailStatus"></p>
+        </div>
+      </div>
+      <div id="mailDone" style="display:none;text-align:center;padding:8px 0">
+        <p style="font-size:1.6rem;margin-bottom:10px">📬</p>
+        <p class="save-desc" style="margin:0">
+          <b id="mailDoneAddr"></b> 로 보냈어요.<br>
+          안 보이면 <b>스팸함</b>도 확인해주세요.
+        </p>
+      </div>
+    </div>` : ''}
+
     <p class="res-links">
       <a href="${LINKS.kakao}" target="_blank" rel="noopener">궁금한 게 있으면 카톡으로 물어보세요</a>
     </p>
@@ -1020,10 +1098,51 @@ function buildResult() {
   show('result');
 }
 
-/* 진단 결과를 이메일로 수집하는 블록은 뺐습니다.
-   자동 발송이 붙기 전까지는 "보내드려요" 라고 쓸 수 없어서,
-   약속을 지킬 수 없는 문구 대신 아예 받지 않는 쪽을 택했습니다.
-   나중에 자동 회신을 붙이면 save-box CSS 는 그대로 있으니 화면만 되살리면 됩니다. */
+/* ═══════════════════════════════════════
+   결과 메일 신청
+
+   Apps Script 웹앱은 POST 본문이 리디렉트에서 유실되는 경우가 있어
+   확실히 동작하는 GET 쿼리스트링을 씁니다.
+   메일 본문은 Apps Script 쪽에서 유형(type)만 보고 만들기 때문에
+   여기서는 주소가 짧게 유지됩니다 (전체를 넘기면 2,600자까지 늘어남).
+═══════════════════════════════════════ */
+function submitMail(type) {
+  const nameEl = document.getElementById('mailName');
+  const input  = document.getElementById('mailInput');
+  const agree  = document.getElementById('mailAgree');
+  const status = document.getElementById('mailStatus');
+  const btn    = document.getElementById('mailBtn');
+
+  const name  = (nameEl.value || '').trim();
+  const email = (input.value || '').trim().toLowerCase();
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    status.textContent = '이메일 주소를 다시 확인해 주세요.';
+    input.focus(); return;
+  }
+  if (!agree.checked) {
+    status.textContent = '이메일 사용에 동의해 주셔야 보내드릴 수 있어요.';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '보내는 중…';
+  status.textContent = '';
+
+  mirrorToSheet({
+    action: 'sendmail',
+    email, name, type,
+    typeLabel: RESULTS[type].badge,
+    source:    new URLSearchParams(location.search).get('from') || 'direct'
+  });
+
+  // no-cors 라 응답을 읽을 수 없어서, 보낸 뒤 완료 화면으로 넘어갑니다
+  setTimeout(() => {
+    document.getElementById('mailForm').style.display = 'none';
+    document.getElementById('mailDone').style.display = 'block';
+    document.getElementById('mailDoneAddr').textContent = email;
+  }, 700);
+}
 </script>
 </body>
 </html>
