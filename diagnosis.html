@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>내 영어가 안 들리는 진짜 이유 진단 | LJ CLASS</title>
+  <meta name="description" content="3분 진단으로 내 리스닝이 막히는 지점을 소리 규칙으로 찾아드려요. 단어 부족이 아니라 소리 규칙의 문제입니다.">
+
+  <style>
+    :root {
+      --bg: #FAF8F5;
+      --card: #FFFFFF;
+      --card-blush: #FDF6F8;
+      --text: #3A2A24;
+      --text-mid: #7A6054;
+      --text-mute: #B09A90;
+      --wine: #9A6070;
+      --wine-dark: #7A4A5A;
+      --wine-light: #C49AAA;
+      --wine-pale: #F2E4E9;
+      --border: #E8D4DA;
+      --shadow: 0 4px 24px rgba(154, 96, 112, 0.09);
+      --shadow-lg: 0 10px 48px rgba(154, 96, 112, 0.14);
+      --r: 20px;
+      --r-sm: 13px;
+      --ease: all 0.26s ease;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+    #hero.active { display: flex; flex-direction: column; min-height: 100dvh; }
+
+    .wrap { max-width: 600px; margin: 0 auto; padding: 0 20px; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ════════ HERO ════════ */
+    #hero {
+      background:
+        radial-gradient(ellipse 70% 40% at 80% 10%, rgba(194, 154, 170, 0.18) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 35% at 10% 80%, rgba(194, 154, 170, 0.12) 0%, transparent 55%),
+        var(--bg);
+    }
+
+    .hero-body { flex: 1; padding: 52px 0 32px; display: flex; flex-direction: column; }
+
+    .brand-pill {
+      display: inline-block;
+      font-size: 11px; font-weight: 700;
+      letter-spacing: .14em; text-transform: uppercase;
+      color: var(--wine); background: var(--wine-pale);
+      padding: 5px 15px; border-radius: 100px;
+      margin-bottom: 26px; width: fit-content;
+    }
+
+    .hero-h1 {
+      font-size: clamp(1.45rem, 5vw, 1.9rem);
+      font-weight: 800; line-height: 1.35;
+      letter-spacing: -.03em; color: var(--text);
+      margin-bottom: 18px; word-break: keep-all;
+    }
+    .hero-h1 em { font-style: normal; color: var(--wine); }
+
+    /* 헤드라인에 딸린 두 번째 메인 문장 — 본문보다 크고 h1 보다 작게 */
+    .hero-lead {
+      font-size: clamp(1.02rem, 3.6vw, 1.18rem);
+      font-weight: 700; color: var(--text);
+      line-height: 1.65; letter-spacing: -.02em;
+      margin-bottom: 30px; word-break: keep-all;
+    }
+    .hero-lead em { font-style: normal; color: var(--wine); }
+
+    .hero-sub {
+      font-size: 0.94rem; color: var(--text-mid);
+      line-height: 1.85; margin-bottom: 30px; word-break: keep-all;
+    }
+
+    .hero-note { text-align: center; font-size: .78rem; color: var(--text-mute); margin-top: 13px; }
+
+    /* 히어로 미끼 카드 — "이게 이렇게 들린다고?" */
+    .hook-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 20px 18px;
+      box-shadow: var(--shadow);
+      margin-bottom: 30px;
+    }
+
+    .hook-lbl {
+      font-size: .7rem; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase;
+      color: var(--wine-light); margin-bottom: 12px;
+    }
+
+    .hook-row { padding: 11px 0; }
+    .hook-row + .hook-row { border-top: 1px dashed var(--border); }
+
+    .hook-en {
+      font-size: .95rem; font-weight: 700; color: var(--text);
+      letter-spacing: -.01em; margin-bottom: 5px;
+    }
+    .hook-ko {
+      font-size: 1rem; font-weight: 800; color: var(--wine);
+      letter-spacing: -.01em;
+    }
+    .hook-arrow { color: var(--wine-light); font-weight: 600; margin-right: 3px; }
+
+    .hook-foot {
+      font-size: .82rem; color: var(--text-mid);
+      line-height: 1.7; margin-top: 13px; padding-top: 13px;
+      border-top: 1px solid var(--border); word-break: keep-all;
+    }
+
+    /* 히어로 · 결과에서 "누가 봐주는지" 를 드러내는 카드 */
+    .teacher-card {
+      display: flex; align-items: flex-start; gap: 13px;
+      background: var(--wine-pale);
+      border-radius: var(--r);
+      padding: 16px 18px;
+      margin-bottom: 24px;
+    }
+
+    .teacher-avatar {
+      flex-shrink: 0;
+      width: 40px; height: 40px; border-radius: 50%;
+      background: var(--card);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.15rem;
+      box-shadow: 0 2px 8px rgba(154, 96, 112, .14);
+    }
+
+    .teacher-name {
+      font-size: .93rem; font-weight: 800; color: var(--wine-dark);
+      letter-spacing: -.02em; margin-bottom: 4px; word-break: keep-all;
+    }
+
+    .teacher-desc {
+      font-size: .83rem; color: var(--text-mid);
+      line-height: 1.7; word-break: keep-all;
+    }
+
+    /* ════════ BUTTONS ════════ */
+    .btn {
+      display: block; width: 100%;
+      padding: 15px 20px; border: none;
+      border-radius: var(--r-sm);
+      font-size: .97rem; font-weight: 600;
+      cursor: pointer; text-align: center; text-decoration: none;
+      font-family: inherit; letter-spacing: -.01em;
+      transition: var(--ease);
+    }
+
+    .btn-wine { background: var(--wine); color: #fff; box-shadow: 0 4px 18px rgba(154, 96, 112, .28); }
+    .btn-wine:hover { background: var(--wine-dark); transform: translateY(-1px); box-shadow: 0 7px 22px rgba(154, 96, 112, .34); }
+    .btn-wine:active { transform: translateY(0); }
+
+    .btn-outline { background: transparent; color: var(--wine); border: 1.5px solid var(--wine-light); }
+    .btn-outline:hover { background: var(--wine-pale); }
+
+    .btn-ghost { background: var(--wine-pale); color: var(--wine-dark); }
+    .btn-ghost:hover { background: var(--border); }
+
+    /* ════════ QUIZ ════════ */
+    #quiz { padding: 30px 0 64px; }
+
+    .quiz-topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+
+    .back-btn {
+      background: none; border: none; color: var(--text-mid);
+      font-size: .87rem; cursor: pointer; padding: 5px 0; font-family: inherit;
+    }
+    .back-btn:hover { color: var(--wine); }
+
+    .q-count { font-size: .82rem; font-weight: 600; color: var(--text-mute); }
+
+    .prog-track { height: 3px; background: var(--border); border-radius: 2px; margin-bottom: 28px; overflow: hidden; }
+    .prog-fill {
+      height: 100%; background: linear-gradient(90deg, var(--wine-light), var(--wine));
+      border-radius: 2px; transition: width .5s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .q-card {
+      background: var(--card); border-radius: var(--r);
+      padding: 26px 22px 24px; box-shadow: var(--shadow);
+      margin-bottom: 14px; animation: fadeUp .32s ease both;
+    }
+
+    .q-label {
+      font-size: .72rem; font-weight: 700;
+      letter-spacing: .1em; text-transform: uppercase;
+      color: var(--wine-light); margin-bottom: 10px;
+    }
+
+    .q-text { font-size: 1.08rem; font-weight: 700; line-height: 1.5; word-break: keep-all; }
+
+    /* 문항에 붙는 예시 (연음 샘플 등) */
+    .q-example {
+      margin-top: 14px; padding: 12px 14px;
+      background: var(--card-blush); border-radius: 10px;
+      font-size: .88rem; color: var(--text-mid); line-height: 1.7; word-break: keep-all;
+    }
+    .q-example b { color: var(--wine-dark); }
+
+    .opts { display: flex; flex-direction: column; gap: 9px; animation: fadeUp .32s ease both; }
+
+    .opt {
+      width: 100%; text-align: left;
+      background: var(--card); border: 1.5px solid var(--border);
+      border-radius: var(--r-sm); padding: 13px 16px;
+      font-size: .91rem; color: var(--text); cursor: pointer;
+      font-family: inherit; line-height: 1.55;
+      display: flex; align-items: flex-start; gap: 10px;
+      transition: var(--ease);
+    }
+
+    .opt-letter { font-weight: 700; color: var(--wine-light); flex-shrink: 0; min-width: 17px; margin-top: 1px; }
+
+    .opt:hover { border-color: var(--wine-light); background: var(--wine-pale); transform: translateY(-1px); box-shadow: 0 3px 12px rgba(154, 96, 112, .1); }
+    .opt.sel { border-color: var(--wine); background: var(--wine-pale); box-shadow: 0 0 0 3px rgba(154, 96, 112, .12); }
+    .opt.sel .opt-letter { color: var(--wine); }
+
+    /* ════════ RESULT ════════ */
+    #result { padding: 44px 0 84px; }
+
+    .res-top { text-align: center; margin-bottom: 26px; animation: fadeUp .4s ease both; }
+
+    .res-badge {
+      display: inline-block; font-size: .72rem; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase;
+      color: var(--wine); background: var(--wine-pale);
+      padding: 5px 16px; border-radius: 100px; margin-bottom: 14px;
+    }
+
+    .res-title {
+      font-size: clamp(1.15rem, 4.4vw, 1.45rem);
+      font-weight: 800; line-height: 1.45;
+      letter-spacing: -.025em; word-break: keep-all;
+    }
+    .res-title em { font-style: normal; color: var(--wine); }
+
+    .r-card {
+      background: var(--card); border-radius: var(--r);
+      padding: 22px 20px; box-shadow: var(--shadow);
+      margin-bottom: 12px; animation: fadeUp .38s ease both;
+    }
+
+    .r-card-lbl {
+      font-size: .7rem; font-weight: 700;
+      letter-spacing: .12em; text-transform: uppercase;
+      color: var(--wine); margin-bottom: 14px;
+    }
+
+    .r-desc { font-size: .91rem; color: var(--text-mid); line-height: 1.85; word-break: keep-all; }
+    .r-desc b { color: var(--text); font-weight: 700; }
+
+    /* 설명을 소제목 + 본문 덩어리로 쪼개서 눈이 쉬어가게 */
+    .r-block + .r-block {
+      margin-top: 18px; padding-top: 18px;
+      border-top: 1px dashed var(--border);
+    }
+
+    .r-h {
+      font-size: .93rem; font-weight: 800; color: var(--wine-dark);
+      letter-spacing: -.02em; line-height: 1.5;
+      margin-bottom: 7px; word-break: keep-all;
+    }
+
+    .rt-foot {
+      margin-top: 14px; padding-top: 13px;
+      border-top: 1px solid var(--border);
+      font-size: .87rem; color: var(--text-mid);
+      line-height: 1.7; text-align: center; word-break: keep-all;
+    }
+    .rt-foot b { color: var(--wine-dark); font-weight: 700; }
+
+    .r-personal {
+      font-size: .89rem; font-weight: 600; color: var(--wine-dark);
+      background: var(--wine-pale); border-left: 3px solid var(--wine-light);
+      border-radius: 0 9px 9px 0; padding: 11px 14px;
+      margin-bottom: 16px; line-height: 1.7; word-break: keep-all;
+    }
+
+    /* 무료 자료 카드 — 진단을 '귀로 확인'시키는 자리 */
+    .proof-card {
+      background: linear-gradient(165deg, #FDF4F7 0%, var(--card) 60%);
+      border: 1.5px solid var(--wine-light);
+      border-radius: var(--r); padding: 22px 20px;
+      box-shadow: var(--shadow); margin-bottom: 12px;
+      animation: fadeUp .4s ease both;
+    }
+
+    .proof-lbl {
+      font-size: .7rem; font-weight: 800;
+      letter-spacing: .12em; text-transform: uppercase;
+      color: var(--wine); margin-bottom: 9px;
+    }
+
+    .proof-title {
+      font-size: 1.05rem; font-weight: 800; color: var(--text);
+      line-height: 1.45; letter-spacing: -.02em;
+      margin-bottom: 9px; word-break: keep-all;
+    }
+
+    .proof-desc {
+      font-size: .87rem; color: var(--text-mid);
+      line-height: 1.75; margin-bottom: 15px; word-break: keep-all;
+    }
+    .proof-desc b { color: var(--wine-dark); font-weight: 700; }
+
+    .road-list { list-style: none; display: flex; flex-direction: column; gap: 11px; }
+    .road-item { display: flex; align-items: flex-start; gap: 11px; }
+
+    .road-num {
+      background: var(--wine); color: #fff;
+      width: 21px; height: 21px; border-radius: 50%;
+      font-size: .72rem; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; margin-top: 2px;
+    }
+
+    .road-text { font-size: .9rem; color: var(--text); line-height: 1.65; word-break: keep-all; }
+    .road-text b { color: var(--wine-dark); }
+
+    .rt-grid { display: flex; flex-direction: column; gap: 7px; }
+
+    .rt-row { display: flex; gap: 12px; background: var(--card-blush); border-radius: 10px; padding: 11px 14px; }
+    .rt-week { font-size: .79rem; font-weight: 700; color: var(--wine); flex-shrink: 0; min-width: 52px; padding-top: 1px; }
+    .rt-content { font-size: .87rem; color: var(--text-mid); line-height: 1.55; word-break: keep-all; }
+
+    /* VOD 업셀 카드 */
+    .vod-card {
+      background: var(--card); border: 1.5px solid var(--border);
+      border-radius: var(--r); padding: 20px 18px;
+      margin-bottom: 12px; animation: fadeUp .42s ease both;
+    }
+    .vod-card.strong { border-color: var(--wine); box-shadow: 0 6px 28px rgba(154, 96, 112, .15); }
+
+    .vod-lbl {
+      font-size: .7rem; font-weight: 800;
+      letter-spacing: .12em; text-transform: uppercase;
+      color: var(--wine-light); margin-bottom: 8px;
+    }
+
+    .vod-title {
+      font-size: 1rem; font-weight: 800; color: var(--text);
+      line-height: 1.45; margin-bottom: 8px; word-break: keep-all;
+    }
+
+    .vod-desc { font-size: .86rem; color: var(--text-mid); line-height: 1.75; word-break: keep-all; }
+    .vod-desc b { color: var(--wine-dark); font-weight: 700; }
+
+    .vod-price {
+      display: inline-block; margin-top: 12px;
+      background: var(--wine-pale); color: var(--wine-dark);
+      font-size: .84rem; font-weight: 800;
+      padding: 6px 14px; border-radius: 100px;
+    }
+
+    /* 체험 안내 (체험 미경험자에게만) */
+    .trial-card {
+      background: var(--card-blush); border: 1px dashed var(--wine-light);
+      border-radius: var(--r); padding: 18px;
+      margin-bottom: 12px; text-align: center;
+      animation: fadeUp .44s ease both;
+    }
+    .trial-card p { font-size: .87rem; color: var(--text-mid); line-height: 1.75; margin-bottom: 13px; word-break: keep-all; }
+    .trial-card b { color: var(--wine-dark); }
+
+    .res-actions { display: flex; flex-direction: column; gap: 9px; animation: fadeUp .46s ease both; }
+
+    .cta-note {
+      text-align: center; font-size: .8rem; color: var(--text-mute);
+      line-height: 1.7; margin-top: 11px; word-break: keep-all;
+      animation: fadeUp .48s ease both;
+    }
+
+    .res-links {
+      text-align: center; margin-top: 22px;
+      font-size: .84rem; color: var(--text-mute);
+      animation: fadeUp .5s ease both;
+    }
+    .res-links a { color: var(--text-mid); text-decoration: underline; text-underline-offset: 3px; }
+    .res-links a:hover { color: var(--wine); }
+    .res-links span { margin: 0 8px; color: var(--wine-light); }
+
+    /* ════════ FOOTER ════════ */
+    .site-footer {
+      border-top: 1px solid var(--border);
+      padding: 26px 0 34px;
+      text-align: center;
+    }
+
+    .footer-mark {
+      display: inline-flex; align-items: center; gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .footer-mark img { width: 24px; height: 24px; border-radius: 6px; display: block; }
+
+    .footer-name {
+      font-size: .82rem; font-weight: 800;
+      letter-spacing: .14em; color: var(--wine-dark);
+    }
+
+    .footer-desc { font-size: .76rem; color: var(--text-mute); line-height: 1.7; }
+
+    /* 결과 저장 — 현재 미사용 (자동 회신 붙이면 되살릴 수 있게 남겨둠) */
+    .save-box {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 20px 18px;
+      margin: 16px 0 12px; animation: fadeUp .48s ease both;
+    }
+    .save-desc { font-size: .86rem; color: var(--text-mid); line-height: 1.75; margin: 9px 0 14px; word-break: keep-all; }
+    .save-fields { display: flex; flex-direction: column; gap: 9px; }
+
+    .save-input {
+      width: 100%; padding: 12px 14px;
+      border: 1.5px solid var(--border); border-radius: var(--r-sm);
+      font-size: .93rem; font-family: inherit; color: var(--text);
+      background: var(--bg); outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .save-input:focus { border-color: var(--wine-light); box-shadow: 0 0 0 3px rgba(154, 96, 112, .1); }
+
+    .save-status { font-size: .85rem; color: var(--wine); min-height: 20px; line-height: 1.6; word-break: keep-all; }
+
+    @media (min-width: 640px) {
+      .hero-h1 { font-size: 2rem; }
+      .q-text { font-size: 1.15rem; }
+      .res-title { font-size: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════ HERO ══════════════════ -->
+<section id="hero" class="screen active">
+  <div class="wrap">
+    <div class="hero-body">
+      <span class="brand-pill">LJ CLASS</span>
+
+      <h1 class="hero-h1">
+        10년을 공부해도<br>
+        왜 아는 영어가 안 들릴까요?
+      </h1>
+
+      <p class="hero-lead">
+        문제는 단어가 아니라<br>
+        <em>‘소리를 듣는 방식’</em>에 있습니다.
+      </p>
+
+      <p class="hero-sub">
+        원어민은 단어를 하나씩 또박또박 말하지 않아요.<br><br>
+        소리는 <b>붙고, 줄고, 약해지면서</b><br>
+        내가 알고 있던 영어와 전혀 다르게 들립니다.
+      </p>
+
+      <div class="hook-card">
+        <p class="hook-lbl">아는 표현인데, 실제로 들으면?</p>
+
+        <div class="hook-row">
+          <p class="hook-en">I should have told you.</p>
+          <p class="hook-ko"><span class="hook-arrow">→</span> 아 슈더 톨쥬</p>
+        </div>
+        <div class="hook-row">
+          <p class="hook-en">I shouldn't have eaten them.</p>
+          <p class="hook-ko"><span class="hook-arrow">→</span> 아슈드너 이른듬</p>
+        </div>
+
+        <p class="hook-foot">
+          안 들리는 데는 이유가 있습니다.<br>
+          중요한 건 <b>내가 어디에서 놓치고 있는지</b> 아는 것.
+        </p>
+      </div>
+
+      <div class="teacher-card">
+        <div class="teacher-avatar">🎧</div>
+        <div>
+          <p class="teacher-name">LJ쌤의 꼼꼼한 진단을 받아보세요</p>
+          <p class="teacher-desc">
+            음성학 전문 성인 회화 강사 LJ쌤이,
+            수강생들이 실제로 막혔던 지점을 모아 만들었어요.
+          </p>
+        </div>
+      </div>
+
+      <button class="btn btn-wine" onclick="startQuiz()">내 리스닝이 막히는 지점 찾기</button>
+      <p class="hero-note" id="heroNote">3분이면 바로 확인 · 무료</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ QUIZ ══════════════════ -->
+<section id="quiz" class="screen">
+  <div class="wrap">
+    <div class="quiz-topbar">
+      <button class="back-btn" onclick="goBack()">← 이전</button>
+      <span class="q-count" id="counter">1 / 5</span>
+    </div>
+    <div class="prog-track">
+      <div class="prog-fill" id="progFill" style="width: 0%"></div>
+    </div>
+    <div id="qArea"></div>
+  </div>
+</section>
+
+<!-- ══════════════════ RESULT ══════════════════ -->
+<section id="result" class="screen">
+  <div class="wrap" id="resContent"></div>
+</section>
+
+<!-- ══════════════════ FOOTER (모든 화면 공통) ══════════════════ -->
+<footer class="site-footer">
+  <div class="wrap">
+    <span class="footer-mark">
+      <img src="https://jinlee8381-max.github.io/shadowing-challenge/icons/icon-192.png" alt="" loading="lazy">
+      <span class="footer-name">LJ ENGLISH</span>
+    </span>
+    <p class="footer-desc">© LJ ENGLISH · 음성학 전문 성인 회화</p>
+  </div>
+</footer>
+
+<script>
+/* ═══════════════════════════════════════
+   설정 — 링크
+   ※ lj-class-routine-quiz/diagnosis-cold.html 은 이 파일의 사본입니다.
+      지금은 두 파일이 완전히 동일하니 고칠 때 그대로 복사하면 됩니다.
+═══════════════════════════════════════ */
+const BASE = 'https://jinlee8381-max.github.io/shadowing-challenge/';
+
+const LINKS = {
+  applyForm:  'https://docs.google.com/forms/d/e/1FAIpQLSdSAz2ruWVqU3JwM5eZ1rooTL5BIVFf_zMdVlcgCYQ-63-Irg/viewform?usp=header',
+  applyPage:  BASE + 'apply.html#apply',
+  trial:      BASE + 'trial/apply.html',
+  kakao:      'https://open.kakao.com/o/skMgtU2f',
+  // 무료 소리법칙 자료 — 같은 도메인이라 보고 나서 되돌아오기 쉬움
+  contractions: BASE + 'practice/contractions.html',
+  reduced:      BASE + 'practice/reduced-syllables.html',
+  intonation:   BASE + 'practice/intonation-stress.html'
+};
+
+// 이메일 수집을 안 하므로 Firebase 는 안 씁니다.
+// 나중에 자동 회신을 붙일 때 <head> 에 firebase-app/firestore compat 스크립트와
+// 아래 초기화를 다시 넣으면 됩니다 (프로젝트: listeningclassapp).
+
+// 체험판과 같은 origin일 때만 읽힘 — 이미 체험한 사람에겐 체험 권유를 숨깁니다
+const TRIAL_EMAIL_KEY = 'trial_my_email';
+function hasTriedTrial() {
+  try { return !!localStorage.getItem(TRIAL_EMAIL_KEY); } catch (e) { return false; }
+}
+
+/* ───────────────────────────────────────
+   유입 경로에 따라 결과 화면의 CTA 순서를 바꿉니다.
+
+     'trial'     (기본) — 인스타·블로그로 들어온 cold. 5일 무료 체험이 먼저.
+                          이메일이 남는 유일한 경로라 여기서 리드가 생깁니다.
+     'challenge'        — 이미 챌린지를 보러 온 사람. 바로 신청이 먼저.
+                          ① 신청서에서 넘어옴(?from=apply)  ② 체험을 이미 해본 사람
+
+   신청서 상단에 넣을 때는 링크를 diagnosis.html?from=apply 로 걸어주세요.
+─────────────────────────────────────── */
+function ctaMode() {
+  if (hasTriedTrial()) return 'challenge';
+  const from = new URLSearchParams(location.search).get('from');
+  return from === 'apply' ? 'challenge' : 'trial';
+}
+
+/* ═══════════════════════════════════════
+   DATA — 질문 & 선택지
+
+   섹션 3개 / 전부 단일 선택
+     ① 증상     (3) — 어디가 막히는지 자기보고
+     ② 소리 인지 (1) — 강세에 따라 뜻이 달라진다는 걸 아는지
+     ③ 학습 이력 (3) — 지금까지 어떻게 해왔는지
+
+   tags: sound(축약·연음) / reduce(강세 없는 음절의 축약) / rhythm(억양·강세) / routine(습관)
+   가중치(태그를 두 번 적는 것)는 분포를 보고 조정합니다. 한 유형이 과반을 가져가면
+   진단이 아니라 그냥 같은 답을 주는 페이지가 되므로, 문항을 고친 뒤에는 반드시
+   전수 조합으로 분포와 '일관 응답' 4종을 다시 확인할 것.
+═══════════════════════════════════════ */
+const QUESTIONS = [
+
+  /* ───────── ① 증상 ───────── */
+  {
+    section: "증상",
+    text: "영어를 들을 때 가장 자주 겪는 상황은 무엇인가요?",
+    options: [
+      { text: "아는 단어인데도 소리로는 전혀 안 들려요.",              tags: ["sound", "sound"] },
+      { text: "단어는 하나씩 들리는데 문장이 되면 놓쳐요.",             tags: ["reduce", "reduce"] },
+      { text: "알아듣긴 하는데 똑같이 따라 말하면 어색해요.",           tags: ["rhythm", "rhythm"] },
+      { text: "자막이 없으면 아예 시작을 못 하겠어요.",                 tags: ["sound"] },
+      { text: "공부를 시작해도 며칠 만에 그만두게 돼요.",               tags: ["routine", "routine"] }
+    ]
+  },
+  {
+    section: "증상",
+    text: "영어를 따라 말해보면 어떤가요?",
+    options: [
+      { text: "소리가 너무 빨라서 입이 아예 안 따라가요.",              tags: ["sound", "sound"] },
+      { text: "단어는 따라 하는데 뭉치는 부분에서 막혀요.",             tags: ["reduce", "reduce"] },
+      { text: "다 따라 하는데 원어민처럼은 안 들려요.",                 tags: ["rhythm", "rhythm"] },
+      { text: "따라 말해본 적이 거의 없어요.",                          tags: ["rhythm"] },
+      { text: "해보다가 금방 지쳐서 그만둬요.",                         tags: ["routine", "routine"] }
+    ]
+  },
+  {
+    section: "증상",
+    text: "영어 공부하면서 가장 답답했던 순간은 언제였나요?",
+    options: [
+      { text: "분명 아는 단어인데 안 들렸을 때",                        tags: ["sound", "sound"] },
+      { text: "다 들은 것 같은데 무슨 말인지 모르겠을 때",              tags: ["reduce", "reduce"] },
+      { text: "내 발음이 상대에게 안 통했을 때",                        tags: ["rhythm", "rhythm"] },
+      { text: "열심히 했는데 실력이 그대로일 때",                       tags: ["reduce"] },
+      { text: "또 중간에 그만뒀을 때",                                  tags: ["routine", "routine"] }
+    ]
+  },
+
+  /* ───────── ② 소리 인지 ───────── */
+  {
+    section: "소리 인지",
+    text: "같은 문장도 어디에 힘을 주느냐에 따라 뜻이 완전히 달라집니다. 이런 강세 차이를 의식해보신 적 있나요?",
+    example: "<b>I</b> didn't say that. → 그 말을 한 건 <b>내가</b> 아니다<br>I didn't say <b>that</b>. → 내가 말한 건 <b>그게</b> 아니다",
+    options: [
+      { text: "이런 게 있는 줄 처음 알았어요.",                         tags: ["rhythm", "rhythm"] },
+      { text: "들어본 적은 있는데 신경 써본 적은 없어요.",              tags: ["rhythm"] },
+      { text: "알고는 있는데 내가 말할 땐 안 돼요.",                    tags: ["rhythm"] },
+      { text: "의식하면서 듣고 말하는 편이에요.",                       tags: [] }
+    ]
+  },
+
+  /* ───────── ③ 학습 이력 ───────── */
+  {
+    section: "학습 이력",
+    text: "영어를 소리 내서 따라 말해본 경험은 어느 정도인가요?",
+    options: [
+      { text: "거의 없어요. 눈으로만 공부했어요.",                      tags: ["rhythm"] },
+      { text: "해봤지만 며칠 못 갔어요.",                               tags: ["routine", "routine"] },
+      { text: "가끔 하는데 내 발음이 맞는지 모르겠어요.",               tags: ["rhythm"] },
+      // 규칙을 모른 채 반복만 하고 있는 상태 → 소리 규칙 축
+      { text: "꾸준히 하는데 느는 느낌이 없어요.",                      tags: ["sound"] },
+      { text: "시간이 없어서 엄두를 못 냈어요.",                        tags: ["routine"] }
+    ]
+  },
+  {
+    section: "학습 이력",
+    text: "지금까지 리스닝 공부를 주로 어떻게 해오셨나요?",
+    options: [
+      { text: "단어와 문법 위주로 눈으로 공부했어요.",                  tags: ["sound", "sound"] },
+      { text: "많이 듣기는 했는데 그냥 흘려들었어요.",                  tags: ["reduce", "reduce"] },
+      { text: "쉐도잉을 해봤지만 혼자 했어요.",                         tags: ["rhythm"] },
+      { text: "이것저것 시작했다 그만두기를 반복했어요.",               tags: ["routine"] },
+      { text: "사실 거의 손을 못 댔어요.",                              tags: ["routine"] }
+    ]
+  },
+  {
+    section: "학습 이력",
+    text: "지금 가장 필요한 건 무엇인가요?",
+    options: [
+      { text: "왜 안 들리는지 원리부터 제대로 알고 싶어요.",            tags: ["sound", "sound"] },
+      { text: "문장이 어떻게 이어지는지 감을 잡고 싶어요.",             tags: ["reduce", "reduce"] },
+      { text: "내 발음이 맞는지 봐줄 사람이 필요해요.",                 tags: ["rhythm"] },
+      { text: "매일 뭘 할지 정해주면 좋겠어요.",                        tags: ["routine"] },
+      { text: "혼자 하면 자꾸 그만둬서 같이 할 사람이 필요해요.",       tags: ["routine"] }
+    ]
+  }
+];
+
+/* 동점 시 우선순위 (낮을수록 우선)
+   rhythm·routine 은 거의 모든 문항에 등장해서 그냥 두면 과반을 가져갑니다.
+   이 순서일 때 4개 유형이 28 / 22 / 28 / 23% 로 고르게 나옵니다 (전수 62,500조합 기준). */
+const TIE_PRIORITY = { sound: 1, reduce: 2, routine: 3, rhythm: 4 };
+
+/* ═══════════════════════════════════════
+   RESULTS — 처방은 전부 쉐도잉 챌린지로 수렴하고,
+   유형은 '원인 명명'과 '소리법칙을 얼마나 세게 권하는지'를 바꿉니다.
+═══════════════════════════════════════ */
+const RESULTS = {
+  sound: {
+    badge: "축약 · 연음형",
+    title: "안 들리는 게 아니라,<br><em>소리가 붙어서 다른 단어가 된 것</em>입니다",
+    desc: [
+      { h: "단어량이 아니라 규칙의 문제예요",
+        p: "글자로 배운 영어와 실제로 나오는 소리 사이에는 규칙이 하나 더 있어요. 소리가 서로 붙고, 바뀌고, 사라지는 규칙입니다. 그런데 학교에서는 이걸 가르치지 않아요." },
+      { h: "그래서 이렇게 들립니다",
+        p: "<b>read your mind</b> 가 [뤼죨 마인드]로, <b>check this out</b> 이 [첵디사웃]으로 들립니다. 단어를 다 아는데도 못 알아듣는 게 당연한 거예요." },
+      { h: "다행히 규칙은 몇 개 안 됩니다",
+        p: "재능이 아니라 규칙이라서, 한 번 정리하면 <b>같은 영상이 다르게 들리는 경험</b>을 생각보다 빨리 하게 됩니다." }
+    ],
+    proof: {
+      title: "지금 바로 귀로 확인해보세요",
+      desc: "LJ쌤이 정리한 <b>축약 · 연음 자료</b>예요. 음원이 붙어 있어서, 방금 읽은 게 진짜인지 5분이면 확인됩니다.",
+      link: "contractions",
+      cta: "🎧 축약 · 연음 자료 무료로 듣기 →"
+    },
+    vodStrong: true,
+    vodTitle: "학습자님은 소리법칙을 먼저 잡는 게 가장 빠릅니다",
+    vodDesc: "매일 쉐도잉을 해도 <b>왜 그렇게 들리는지</b>를 모르면 흉내만 내다 끝나요. 소리 규칙을 한 번 정리해두면 같은 시간을 써도 체감 속도가 달라집니다.",
+    roadmap: [
+      "소리가 <b>왜 붙고 사라지는지</b> 규칙부터 이해하기",
+      "그 규칙이 들어간 실제 문장으로 옮겨가기",
+      "내가 뭉갠 소리를 <b>1:1로 교정</b>받기",
+      "끝까지 안 되는 소리는 <b>발음 클리닉</b>으로 따로 잡기"
+    ],
+    routine: [
+      ["1주차", "하루 10분 · 문장 2개, 붙는 소리에 표시하고 5번씩"],
+      ["2주차", "하루 10분 · 문장 3개, 원어민 소리와 번갈아 듣기"],
+      ["3주차", "하루 10분 · 같은 문장을 원래 속도로 5번"],
+      ["4주차", "하루 10분 · 대본 없이 듣고 빈칸 채워보기"]
+    ]
+  },
+
+  reduce: {
+    badge: "음절 축약형",
+    title: "들리는 단어만 들리고,<br><em>약해진 단어가 통째로 사라지고</em> 있습니다",
+    desc: [
+      { h: "범인은 기능어예요",
+        p: "and, of, to, for, can, have 처럼 짧은 단어들은 원어민이 거의 소리 내지 않고 흘려버립니다. 강세가 안 들어가는 음절이 통째로 줄어드는 거예요." },
+      { h: "문장을 이어주던 접착제가 사라진 겁니다",
+        p: "하필 이 단어들이 <b>문장을 이어주는 접착제</b>예요. 접착제가 안 들리니 단어들이 조각조각 떨어져서, 다 들었는데도 뜻이 안 잡힙니다." },
+      { h: "더 열심히 듣는다고 해결되지 않아요",
+        p: "<b>줄어든 소리가 어떻게 들리는지</b>를 미리 알아둬야, 그 자리에 뭐가 있었는지 복원이 됩니다. 집중력의 문제가 아니에요." }
+    ],
+    proof: {
+      title: "사라지는 소리, 직접 들어보세요",
+      desc: "LJ쌤의 <b>강세 없는 음절의 축약</b> 자료예요. 힘이 안 들어가는 음절이 어떻게 줄어드는지 음원으로 확인하면, 왜 문장이 끊겼는지 바로 알게 됩니다.",
+      link: "reduced",
+      cta: "🎧 음절 축약 자료 무료로 듣기 →"
+    },
+    vodStrong: true,
+    vodTitle: "규칙을 먼저 알고 훈련하면 훨씬 빠릅니다",
+    vodDesc: "줄어드는 소리는 <b>패턴이 정해져 있어요</b>. 축약·연음·억양을 한 번 훑고 쉐도잉을 시작하면, 안 들리던 구간이 어디였는지 스스로 짚을 수 있게 됩니다.",
+    roadmap: [
+      "어떤 단어가 <b>약해지는지</b> 패턴부터 익히기",
+      "사라진 소리를 <b>복원해서 듣는</b> 연습으로 넘어가기",
+      "놓친 구간을 <b>1:1로 확인</b>받기",
+      "문장을 끊지 않고 <b>흐름째로</b> 듣기"
+    ],
+    routine: [
+      ["1주차", "하루 10분 · 문장 2개, 안 들린 단어에 동그라미"],
+      ["2주차", "하루 10분 · 그 단어만 3번 듣고 소리 내어 말하기"],
+      ["3주차", "하루 10분 · 문장을 끊지 않고 3번 이어 듣기"],
+      ["4주차", "하루 10분 · 대본 없이 듣고 받아쓰기"]
+    ]
+  },
+
+  rhythm: {
+    badge: "억양 · 강세형",
+    title: "듣는 귀는 열렸는데,<br><em>입이 리듬을 모르고</em> 있습니다",
+    desc: [
+      { h: "귀는 이미 반쯤 열렸어요",
+        p: "어느 정도 알아듣는다는 건 소리 규칙이 이미 반쯤 잡혀 있다는 뜻이에요. 지금 막힌 건 <b>강세와 리듬</b>입니다." },
+      { h: "영어는 강약의 파도예요",
+        p: "모든 단어를 똑같은 힘으로 말하지 않아요. 중요한 단어만 길고 세게, 나머지는 짧고 약하게 흘립니다. 이 파도를 모르면 단어를 다 맞게 발음해도 어색하게 들려요." },
+      { h: "억양은 눈으로 배울 수 없습니다",
+        p: "소리 내서 따라 하고, <b>어디가 어긋났는지 짚어줄 사람</b>이 있어야 고쳐져요. 혼자 녹음해서 들어봐도 뭐가 틀렸는지 스스로는 잘 모릅니다." }
+    ],
+    proof: {
+      title: "내 리듬이 어디서 어긋나는지 확인해보세요",
+      desc: "LJ쌤의 <b>억양에 따른 의미 차이</b> 자료예요. 같은 문장을 강세만 바꿔 들어보면, 내가 왜 어색했는지 바로 보입니다.",
+      link: "intonation",
+      cta: "🎧 억양 · 강세 자료 무료로 듣기 →"
+    },
+    vodStrong: false,
+    vodTitle: "소리법칙까지 같이 잡으면 더 빨라져요",
+    vodDesc: "강세·리듬은 매일 훈련과 피드백으로 잡히지만, <b>왜 그 소리가 약해지는지</b>를 알면 훨씬 빨리 자리 잡습니다.",
+    roadmap: [
+      "문장에서 <b>힘이 들어가는 자리</b>를 눈에 익히기",
+      "들리는 대로가 아니라 <b>강약을 살려</b> 말해보기",
+      "어긋난 강세를 <b>1:1로 교정</b>받기",
+      "반복해서 지적되는 소리는 <b>발음 클리닉</b>으로"
+    ],
+    routine: [
+      ["1주차", "하루 10분 · 문장 2개, 힘 주는 단어에 표시하고 5번씩"],
+      ["2주차", "하루 10분 · 한 문장 녹음해서 원어민 소리와 비교"],
+      ["3주차", "하루 10분 · 감정 넣어 3번 말하고 다시 녹음"],
+      ["4주차", "하루 10분 · 대본 없이 리듬만으로 따라 말하기"]
+    ]
+  },
+
+  routine: {
+    badge: "루틴형",
+    title: "방법이 문제가 아니라,<br><em>혼자 버티는 구조</em>가 문제입니다",
+    desc: [
+      { h: "의지가 부족한 게 아니에요",
+        p: "쉐도잉이 좋다는 것도, 매일 조금씩 해야 한다는 것도 이미 알고 계실 거예요. 그런데 3일을 못 넘깁니다. 이건 성격 문제가 아닙니다." },
+      { h: "정하는 것부터가 일이거든요",
+        p: "혼자 할 때는 <b>오늘 뭘 할지 정하는 것부터가 일</b>이에요. 자료를 고르고, 구간을 정하고, 몇 번 반복할지 결정하는 데 에너지를 다 쓰고 나면 공부할 힘이 안 남습니다. 게다가 빼먹어도 아무도 모르죠." },
+      { h: "필요한 건 공부법이 아니라 구조예요",
+        p: "오늘 것만 딱 떠 있고, 한 번 하면 기록이 남고, 빼먹으면 티가 나고, <b>누군가 매일 봐주는 구조</b>. 그러면 의지를 쓰지 않아도 됩니다." }
+    ],
+    proof: {
+      title: "그래도 '되는' 느낌은 한번 받아보셔야죠",
+      desc: "LJ쌤의 <b>축약 · 연음 자료</b>를 5분만 들어보세요. 안 들리던 게 들리는 경험을 한 번 하면, 매일 할 이유가 생깁니다.",
+      link: "contractions",
+      cta: "🎧 소리법칙 자료 무료로 듣기 →"
+    },
+    vodStrong: false,
+    vodTitle: "루틴이 잡히면, 소리법칙이 속도를 붙여줍니다",
+    vodDesc: "먼저 매일 하는 습관부터 만드는 게 맞아요. 다만 <b>왜 안 들리는지</b>를 모른 채 반복만 하면 지치기 쉽습니다. 소리 규칙을 같이 잡으면 <b>느는 게 눈에 보여서</b> 오히려 덜 그만둡니다.",
+    roadmap: [
+      "고민할 것 없이 <b>오늘 할 것 하나만</b> 받기",
+      "한 번 하면 <b>기록이 남는</b> 구조에 올라타기",
+      "혼자가 아니라 <b>같이 하는 사람들</b>과 함께",
+      "매일 봐주는 <b>선생님</b>이 있다는 것"
+    ],
+    routine: [
+      ["1주차", "하루 10분 · 문장 1개만, 빠지지 않는 게 목표"],
+      ["2주차", "하루 10분 · 문장 2개, 연속 기록 이어가기"],
+      ["3주차", "하루 10분 · 문장 3개로 늘리기"],
+      ["4주차", "하루 10분 · 한 주 분량 통째로 복습"]
+    ]
+  }
+};
+
+/* ═══════════════════════════════════════
+   STATE & NAVIGATION
+═══════════════════════════════════════ */
+let curQ  = 0;
+let picks = [];
+
+// 문항을 늘려도 히어로 안내 문구가 따라오도록
+document.getElementById('heroNote').textContent =
+  `${QUESTIONS.length}문항 · 3분이면 바로 확인 · 무료`;
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function startQuiz() {
+  curQ = 0;
+  picks = [];
+  show('quiz');
+  renderQuestion();
+}
+
+function goBack() {
+  if (curQ === 0) { show('hero'); return; }
+  curQ--;
+  picks.pop();
+  renderQuestion();
+}
+
+/* ═══════════════════════════════════════
+   QUIZ RENDER
+═══════════════════════════════════════ */
+const LETTERS = ['A', 'B', 'C', 'D', 'E'];
+
+function renderQuestion() {
+  const q     = QUESTIONS[curQ];
+  const total = QUESTIONS.length;
+
+  document.getElementById('counter').textContent  = `${curQ + 1} / ${total}`;
+  document.getElementById('progFill').style.width = `${(curQ / total) * 100}%`;
+
+  const optsHTML = q.options.map((o, i) => `
+    <button class="opt" id="opt${i}" onclick="pick(${i})">
+      <span class="opt-letter">${LETTERS[i]}.</span>
+      <span>${o.text}</span>
+    </button>
+  `).join('');
+
+  document.getElementById('qArea').innerHTML = `
+    <div class="q-card">
+      <div class="q-label">${q.section}</div>
+      <div class="q-text">${q.text}</div>
+      ${q.example ? `<div class="q-example">${q.example}</div>` : ''}
+    </div>
+    <div class="opts">${optsHTML}</div>
+  `;
+}
+
+function pick(i) {
+  document.querySelectorAll('.opt').forEach(b => b.classList.remove('sel'));
+  document.getElementById('opt' + i).classList.add('sel');
+
+  setTimeout(() => {
+    picks.push(i);
+    curQ++;
+    if (curQ >= QUESTIONS.length) buildResult();
+    else renderQuestion();
+  }, 270);
+}
+
+/* ═══════════════════════════════════════
+   SCORING — 태그를 세어 가장 많은 유형으로
+═══════════════════════════════════════ */
+function calcType() {
+  const cnt = {};
+
+  picks.forEach((optIdx, qIdx) => {
+    QUESTIONS[qIdx].options[optIdx].tags.forEach(tag => {
+      cnt[tag] = (cnt[tag] || 0) + 1;
+    });
+  });
+
+  const max  = Math.max(0, ...Object.values(cnt));
+  const tied = Object.keys(cnt)
+    .filter(t => cnt[t] === max)
+    .sort((a, b) => TIE_PRIORITY[a] - TIE_PRIORITY[b]);
+
+  return tied[0] || 'sound';
+}
+
+/* Q1 답변으로 결과 첫 줄을 개인화 */
+function personalLine() {
+  const q1 = [
+    "아는 단어인데도 소리로 안 들린다고",
+    "단어는 들려도 문장이 되면 놓친다고",
+    "알아듣긴 하는데 따라 말하면 어색하다고",
+    "자막 없이는 시작을 못 하겠다고",
+    "시작해도 며칠 만에 그만두게 된다고"
+  ][picks[0]];
+
+  return `${q1} 느낀 이유를 알려드릴게요.`;
+}
+
+/* ═══════════════════════════════════════
+   RESULT RENDER
+═══════════════════════════════════════ */
+function buildResult() {
+  const type = calcType();
+  const r    = RESULTS[type];
+
+  const descHTML = r.desc.map(d => `
+    <div class="r-block">
+      <p class="r-h">${d.h}</p>
+      <p class="r-desc">${d.p}</p>
+    </div>
+  `).join('');
+
+  const roadHTML = r.roadmap.map((t, i) => `
+    <li class="road-item">
+      <span class="road-num">${i + 1}</span>
+      <span class="road-text">${t}</span>
+    </li>
+  `).join('');
+
+  const rtHTML = r.routine.map(([w, c]) => `
+    <div class="rt-row">
+      <span class="rt-week">${w}</span>
+      <span class="rt-content">${c}</span>
+    </div>
+  `).join('');
+
+  // 유입 경로에 따라 primary / secondary 를 바꿉니다
+  const mode = ctaMode();
+
+  const ctaTrial     = c => `<a href="${LINKS.trial}" class="btn ${c}">5일 무료로 먼저 해보기</a>`;
+  const ctaChallenge = c => `<a href="${LINKS.applyForm}" target="_blank" rel="noopener" class="btn ${c}">쉐도잉 챌린지 신청하기</a>`;
+
+  const actionsHTML = mode === 'trial'
+    ? ctaTrial('btn-wine')
+    : ctaChallenge('btn-wine') + (hasTriedTrial() ? '' : ctaTrial('btn-outline'));
+
+  const ctaNote = mode === 'trial'
+    ? '결제 정보 없이 바로 시작할 수 있어요.'
+    : '';
+
+  document.getElementById('resContent').innerHTML = `
+    <div class="res-top">
+      <span class="res-badge">${r.badge}</span>
+      <h2 class="res-title">${r.title}</h2>
+    </div>
+
+    <div class="r-card">
+      <div class="r-card-lbl">LJ쌤의 진단</div>
+      <p class="r-personal">${personalLine()}</p>
+      ${descHTML}
+    </div>
+
+    <div class="proof-card">
+      <p class="proof-lbl">먼저 확인해보세요 · 무료</p>
+      <p class="proof-title">${r.proof.title}</p>
+      <p class="proof-desc">${r.proof.desc}</p>
+      <a href="${LINKS[r.proof.link]}" target="_blank" rel="noopener" class="btn btn-outline">${r.proof.cta}</a>
+    </div>
+
+    <div class="r-card">
+      <div class="r-card-lbl">LJ쌤의 추천 학습 순서</div>
+      <ul class="road-list">${roadHTML}</ul>
+    </div>
+
+    <div class="r-card">
+      <div class="r-card-lbl">4주 루틴</div>
+      <div class="rt-grid">${rtHTML}</div>
+      <p class="rt-foot">이 4주를 <b>LJ쌤과 함께 체계적으로</b> 연습할 수 있어요.</p>
+    </div>
+
+    <div class="vod-card${r.vodStrong ? ' strong' : ''}">
+      <p class="vod-lbl">${r.vodStrong ? '가장 빠른 길' : '함께하면 좋아요'}</p>
+      <p class="vod-title">${r.vodTitle}</p>
+      <p class="vod-desc">${r.vodDesc}</p>
+    </div>
+
+    <div class="res-actions" style="margin-top:18px">${actionsHTML}</div>
+    ${ctaNote ? `<p class="cta-note">${ctaNote}</p>` : ''}
+
+    <p class="res-links">
+      <a href="${LINKS.kakao}" target="_blank" rel="noopener">궁금한 게 있으면 카톡으로 물어보세요</a>
+    </p>
+  `;
+
+  show('result');
+}
+
+/* 진단 결과를 이메일로 수집하는 블록은 뺐습니다.
+   자동 발송이 붙기 전까지는 "보내드려요" 라고 쓸 수 없어서,
+   약속을 지킬 수 없는 문구 대신 아예 받지 않는 쪽을 택했습니다.
+   나중에 자동 회신을 붙이면 save-box CSS 는 그대로 있으니 화면만 되살리면 됩니다. */
+</script>
+</body>
+</html>

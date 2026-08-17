@@ -39,6 +39,11 @@ const TRIAL_BASE_URL = 'https://jinlee8381-max.github.io/shadowing-challenge/tri
 // 본 챌린지 신청서 주소 (모든 페이지 하단 CTA 버튼이 여기로 감)
 const FULL_APPLY_URL = 'https://jinlee8381-max.github.io/shadowing-challenge/apply.html#apply';
 
+// 리스닝 레벨테스트 (Friends 받아쓰기 20문항)
+//   · 체험 신청 완료 화면  → Day 1 시작 다음 순위로 안내
+//   · 5일 완주 리포트      → "지금 얼마나 들리는지" 확인시키고 본 챌린지로 연결
+const LEVEL_TEST_URL = 'https://classroutinequiz.netlify.app/listening-test';
+
 // ===================================================
 // ✉️ EmailJS 설정
 // ===================================================
