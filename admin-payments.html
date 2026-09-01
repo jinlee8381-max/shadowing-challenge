@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="manifest-admin.json">
+  <meta name="theme-color" content="#3b82f6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="쉐도잉 관리자">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <title>이월·환급 관리 - 쉐도잉 챌린지</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <style>
+    body { font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; }
+    .pill { display:inline-flex; align-items:center; gap:4px; padding:6px 12px; border-radius:9999px; font-size:12px; font-weight:700; border:1px solid transparent; cursor:pointer; transition:.15s; }
+    .pill-off  { background:#f3f4f6; color:#9ca3af; border-color:#e5e7eb; }
+    .pill-off:hover { background:#e5e7eb; color:#6b7280; }
+    .pill-paid { background:#dcfce7; color:#16a34a; border-color:#bbf7d0; }
+    .pill-paid:hover { background:#bbf7d0; }
+    .seg { display:inline-flex; border:1px solid #e5e7eb; border-radius:9999px; overflow:hidden; }
+    .seg button { padding:5px 10px; font-size:11px; font-weight:600; color:#9ca3af; background:#fff; }
+    .seg button.on { background:#3b82f6; color:#fff; }
+  </style>
+  <script src="admin-guard.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen pb-10">
+
+  <header class="bg-white border-b px-4 py-3 sticky top-0 z-20 shadow-sm">
+    <div class="max-w-3xl mx-auto flex items-center justify-between">
+      <a href="admin.html" class="text-sm text-gray-400 hover:text-gray-600">← 대시보드</a>
+      <div class="text-center">
+        <h1 class="text-base font-bold text-gray-900">이월·환급 관리</h1>
+        <p class="text-xs text-gray-400" id="monthLabel">로딩 중...</p>
+      </div>
+      <a href="admin-students.html"
+         class="text-xs bg-gray-100 text-gray-700 px-3 py-1.5 rounded-full font-medium hover:bg-gray-200 transition-colors">
+        👥 학생 관리
+      </a>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto px-3 py-5 space-y-5">
+
+    <div class="bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 flex items-center justify-between">
+      <div>
+        <p class="text-sm font-semibold text-blue-800">이 달 챌린지 결과 제출자 기준</p>
+        <p class="text-xs text-blue-600 mt-0.5">학생이 result.html에서 이월/종료를 선택하면 여기 자동으로 뜹니다.</p>
+      </div>
+      <span class="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded-full font-bold" id="totalBadge">-명</span>
+    </div>
+
+    <!-- 통계 -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div class="bg-white rounded-2xl p-4 shadow-sm text-center">
+        <p class="text-xs text-gray-400 mb-1">이월 신청</p>
+        <p class="text-2xl font-bold text-gray-800" id="stat-carryTotal">-</p>
+        <p class="text-xs text-gray-400 mt-0.5">명</p>
+      </div>
+      <div class="bg-white rounded-2xl p-4 shadow-sm text-center">
+        <p class="text-xs text-gray-400 mb-1">이월비 미입금</p>
+        <p class="text-2xl font-bold text-red-500" id="stat-carryUnpaid">-</p>
+        <p class="text-xs text-gray-400 mt-0.5">명</p>
+      </div>
+      <div class="bg-white rounded-2xl p-4 shadow-sm text-center">
+        <p class="text-xs text-gray-400 mb-1">환급 신청</p>
+        <p class="text-2xl font-bold text-gray-800" id="stat-refundTotal">-</p>
+        <p class="text-xs text-gray-400 mt-0.5">명</p>
+      </div>
+      <div class="bg-white rounded-2xl p-4 shadow-sm text-center">
+        <p class="text-xs text-gray-400 mb-1">환급 미지급</p>
+        <p class="text-2xl font-bold text-orange-500" id="stat-refundUnpaid">-</p>
+        <p class="text-xs text-gray-400 mt-0.5">명</p>
+      </div>
+    </div>
+
+    <!-- 이월 신청자 -->
+    <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div class="px-5 py-3.5 border-b flex items-center justify-between">
+        <h2 class="font-bold text-gray-800 text-sm">🔄 이월 신청자</h2>
+        <span class="text-xs text-gray-400" id="carryCountLabel">-명</span>
+      </div>
+      <div id="carryList" class="divide-y divide-gray-50">
+        <div class="px-5 py-8 text-center text-gray-400 text-sm">로딩 중...</div>
+      </div>
+    </div>
+
+    <!-- 환급 신청자 -->
+    <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div class="px-5 py-3.5 border-b flex items-center justify-between">
+        <h2 class="font-bold text-gray-800 text-sm">💰 환급 신청자</h2>
+        <span class="text-xs text-gray-400" id="refundCountLabel">-명</span>
+      </div>
+      <div id="refundList" class="divide-y divide-gray-50">
+        <div class="px-5 py-8 text-center text-gray-400 text-sm">로딩 중...</div>
+      </div>
+    </div>
+
+    <!-- 미응답 -->
+    <div id="pendingBlock" class="hidden bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div class="px-5 py-3.5 border-b flex items-center justify-between">
+        <h2 class="font-bold text-gray-800 text-sm">⏳ 아직 선택 안 함</h2>
+        <span class="text-xs text-gray-400" id="pendingCountLabel">-명</span>
+      </div>
+      <div id="pendingList" class="px-5 py-3 flex flex-wrap gap-2"></div>
+    </div>
+
+    <p class="text-xs text-center text-gray-400 leading-relaxed">
+      ※ 입금/지급 여부는 입금 내역을 직접 확인 후 수동으로 체크하는 항목이에요. 자동으로 확인되지 않아요.<br>
+      ※ 리스닝 클래스 수강 여부에 따라 참여비(8만원) 면제 여부가 달라져요 — 몰라도 나중에 체크해도 됩니다.
+    </p>
+
+  </main>
+
+  <!-- 토스트 -->
+  <div id="toast" class="hidden fixed top-5 left-1/2 -translate-x-1/2 z-50 bg-gray-800 text-white text-sm font-medium px-5 py-3 rounded-full shadow-lg"></div>
+
+  <script>
+    const DEPOSIT  = 40000;  // 다음 달 보증금
+    const JOIN_FEE = 80000;  // 참여비 (리스닝 클래스 수강생 면제)
+
+    let students   = [];
+    let resultsMap = {};   // studentName -> results 문서
+    let subsMap    = {};   // studentName -> submissions[]
+    let payMap     = {};   // studentName -> payments 문서
+
+    function won(n) { return n.toLocaleString() + '원'; }
+
+    function refundOf(name) {
+      const subs = subsMap[name] || [];
+      const successCount = [1,2,3,4].filter(w => subs.filter(s => s.week === w).length >= 5).length;
+      return successCount * 10000;
+    }
+
+    // 이월자가 다음 달에 입금해야 할 금액 (result.html 계산과 동일)
+    function carryDepositOf(name) {
+      const refund   = refundOf(name);
+      const carry    = Math.min(refund, DEPOSIT);
+      const addDep   = Math.max(DEPOSIT - carry, 0);
+      const p        = payMap[name] || {};
+      const fee      = p.isListeningStudent ? 0 : JOIN_FEE;
+      return { refund, addDep, fee, total: addDep + fee };
+    }
+
+    async function toggleListening(name, val) {
+      payMap[name] = { ...(payMap[name] || {}), isListeningStudent: val };
+      await savePayment(name, { isListeningStudent: val });
+      renderCarryList();
+    }
+
+    async function toggleCarryPaid(name) {
+      const cur = !!payMap[name]?.carryoverPaid;
+      const next = !cur;
+      payMap[name] = { ...(payMap[name] || {}), carryoverPaid: next };
+      await savePayment(name, {
+        carryoverPaid: next,
+        carryoverPaidAt: next ? firebase.firestore.FieldValue.serverTimestamp() : null
+      });
+      renderCarryList();
+      updateStats();
+      showToast(next ? `✓ ${name}님 이월비 입금 확인` : `${name}님 이월비 미입금으로 변경`);
+    }
+
+    async function toggleRefundPaid(name) {
+      const cur = !!payMap[name]?.refundPaid;
+      const next = !cur;
+      payMap[name] = { ...(payMap[name] || {}), refundPaid: next };
+      await savePayment(name, {
+        refundPaid: next,
+        refundPaidAt: next ? firebase.firestore.FieldValue.serverTimestamp() : null
+      });
+      renderRefundList();
+      updateStats();
+      showToast(next ? `✓ ${name}님 환급 지급 완료` : `${name}님 환급 미지급으로 변경`);
+    }
+
+    function carryStudents() {
+      return students.filter(n => resultsMap[n]?.continueNextMonth === true);
+    }
+    function refundStudents() {
+      return students.filter(n => resultsMap[n]?.continueNextMonth === false);
+    }
+    function pendingStudents() {
+      return students.filter(n => resultsMap[n]?.continueNextMonth === undefined);
+    }
+
+    function renderCarryList() {
+      const list = carryStudents();
+      document.getElementById('carryCountLabel').textContent = `${list.length}명`;
+      const el = document.getElementById('carryList');
+      if (list.length === 0) {
+        el.innerHTML = `<div class="px-5 py-8 text-center text-gray-400 text-sm">아직 이월을 신청한 학생이 없어요</div>`;
+        return;
+      }
+      el.innerHTML = '';
+      list.forEach(name => {
+        const p = payMap[name] || {};
+        const { addDep, fee, total } = carryDepositOf(name);
+        const listeningKnown = p.isListeningStudent !== undefined;
+        const row = document.createElement('div');
+        row.className = 'px-5 py-3.5 space-y-2';
+        row.innerHTML = `
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <p class="text-sm font-semibold text-gray-800">${name}</p>
+            <button onclick="toggleCarryPaid('${name}')"
+              class="pill ${p.carryoverPaid ? 'pill-paid' : 'pill-off'}">
+              ${p.carryoverPaid ? '✓ 입금 완료' : '○ 미입금'}
+            </button>
+          </div>
+          <div class="flex items-center justify-between flex-wrap gap-2 text-xs">
+            <div class="flex items-center gap-1.5">
+              <span class="text-gray-400">리스닝 수강생?</span>
+              <div class="seg">
+                <button onclick="toggleListening('${name}', true)" class="${p.isListeningStudent === true ? 'on' : ''}">예</button>
+                <button onclick="toggleListening('${name}', false)" class="${p.isListeningStudent === false ? 'on' : ''}">아니오</button>
+              </div>
+            </div>
+            <p class="text-gray-500">
+              보증금 <span class="font-semibold text-gray-700">${won(addDep)}</span>
+              + 참여비 <span class="font-semibold text-gray-700">${listeningKnown ? won(fee) : '미확인'}</span>
+              = <span class="font-bold text-blue-600">${listeningKnown ? won(total) : won(addDep) + '~' + won(addDep + JOIN_FEE)}</span>
+            </p>
+          </div>
+        `;
+        el.appendChild(row);
+      });
+    }
+
+    function renderRefundList() {
+      const list = refundStudents();
+      document.getElementById('refundCountLabel').textContent = `${list.length}명`;
+      const el = document.getElementById('refundList');
+      if (list.length === 0) {
+        el.innerHTML = `<div class="px-5 py-8 text-center text-gray-400 text-sm">환급 신청한 학생이 없어요</div>`;
+        return;
+      }
+      el.innerHTML = '';
+      list.forEach(name => {
+        const r = resultsMap[name] || {};
+        const p = payMap[name] || {};
+        const amount = refundOf(name);
+        const row = document.createElement('div');
+        row.className = 'px-5 py-3.5 space-y-1.5';
+        row.innerHTML = `
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <p class="text-sm font-semibold text-gray-800">${name}</p>
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-bold text-orange-600">${won(amount)}</span>
+              <button onclick="toggleRefundPaid('${name}')"
+                class="pill ${p.refundPaid ? 'pill-paid' : 'pill-off'}">
+                ${p.refundPaid ? '✓ 지급 완료' : '○ 미지급'}
+              </button>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 flex-wrap text-xs">
+            <span class="text-gray-500">${r.refundBank || '은행 미입력'}</span>
+            <span class="font-mono text-gray-700">${r.refundAccountNum || '-'}</span>
+            <span class="text-gray-400">${r.refundHolder ? '(' + r.refundHolder + ')' : ''}</span>
+          </div>
+        `;
+        el.appendChild(row);
+      });
+    }
+
+    function renderPending() {
+      const list = pendingStudents();
+      const block = document.getElementById('pendingBlock');
+      document.getElementById('pendingCountLabel').textContent = `${list.length}명`;
+      if (list.length === 0) { block.classList.add('hidden'); return; }
+      block.classList.remove('hidden');
+      document.getElementById('pendingList').innerHTML = list.map(name => `
+        <a href="student.html?name=${encodeURIComponent(name)}"
+           class="text-xs bg-gray-50 text-gray-500 border border-gray-200 px-3 py-1.5 rounded-full font-medium hover:bg-gray-100 transition-colors">
+          ${name}
+        </a>`).join('');
+    }
+
+    function updateStats() {
+      const carry  = carryStudents();
+      const refund = refundStudents();
+      document.getElementById('totalBadge').textContent = `${students.length}명`;
+      document.getElementById('stat-carryTotal').textContent  = carry.length;
+      document.getElementById('stat-carryUnpaid').textContent = carry.filter(n => !payMap[n]?.carryoverPaid).length;
+      document.getElementById('stat-refundTotal').textContent  = refund.length;
+      document.getElementById('stat-refundUnpaid').textContent = refund.filter(n => !payMap[n]?.refundPaid).length;
+    }
+
+    function showToast(msg) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.remove('hidden');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => el.classList.add('hidden'), 2500);
+    }
+
+    function monthLabel(ym) {
+      const [y, m] = ym.split('-');
+      return `${y}년 ${parseInt(m)}월`;
+    }
+
+    async function init() {
+      document.getElementById('monthLabel').textContent = `${monthLabel(CHALLENGE_MONTH)} 챌린지 기준`;
+
+      const [names, resultsSnap, allSubs, payments] = await Promise.all([
+        loadStudentList(),
+        db.collection('results').where('challengeMonth', '==', CHALLENGE_MONTH).get()
+          .catch(() => ({ docs: [] })),
+        loadAllSubmissions(),
+        loadPayments(),
+      ]);
+
+      students = names;
+      resultsSnap.docs.forEach(d => { resultsMap[d.data().studentName] = d.data(); });
+      allSubs.forEach(s => {
+        if (!subsMap[s.studentName]) subsMap[s.studentName] = [];
+        subsMap[s.studentName].push(s);
+      });
+      payMap = payments;
+
+      updateStats();
+      renderCarryList();
+      renderRefundList();
+      renderPending();
+    }
+
+    init();
+  </script>
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  <script>
+    // 이 사이트가 놓인 하위 경로 (예: /shadowing-challenge/)
+    const SW_BASE = location.pathname.replace(/\/(trial\/)?[^/]*$/, '/');
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function(OneSignal) {
+
+      await OneSignal.init({
+        appId: "c7ec5930-ba5f-4eec-9613-d2dc1a499751",
+        // 이 사이트는 하위경로(/shadowing-challenge/)에 있음 — Custom Code 설정에서만 적용됨
+        serviceWorkerParam: { scope: SW_BASE },
+        serviceWorkerPath: SW_BASE.replace(/^\//, "") + "sw.js",
+        notifyButton: { enable: false },
+      });
+    });
+  </script>
+</body>
+</html>

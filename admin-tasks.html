@@ -128,39 +128,39 @@
     // 아래 defaultCurriculum(제목/링크)이 적용되는 챌린지 월.
     // 이 월에서만 자동 시드/동기화가 실행되어 다른 달 데이터를 덮어쓰지 않음.
     // ※ 매달 firebase-config.js의 CHALLENGE_MONTH와 함께 이 값도 갱신하세요.
-    const DEFAULT_CURRICULUM_MONTH = '2026-08';
+    const DEFAULT_CURRICULUM_MONTH = '2026-09';
 
     let viewMonth = CHALLENGE_MONTH;                  // 현재 화면에 표시 중인 월 ('YYYY-MM')
     let isCurrentView = (viewMonth === CHALLENGE_MONTH); // 진행 중인 챌린지 월인지 (오늘/진행중 강조용)
 
     const WEEK_THEMES = {
-      1: { label:'1주차', theme:'소리법칙(7)',                  color:'purple' },
-      2: { label:'2주차', theme:'브이로그 - 가족 방문',          color:'green'  },
-      3: { label:'3주차', theme:'인터뷰 - 두바이 백만장자',      color:'blue'   },
-      4: { label:'4주차', theme:'인터뷰 · 브이로그 복습',        color:'orange' },
+      1: { label:'1주차', theme:'소리법칙(8)',                  color:'purple' },
+      2: { label:'2주차', theme:'비즈니스 조언',                color:'green'  },
+      3: { label:'3주차', theme:'브이로그 - 성수동 여행',        color:'blue'   },
+      4: { label:'4주차', theme:'브이로그 · 비즈니스 복습',      color:'orange' },
     };
 
     const defaultCurriculum = [
-      { week:1, day:1, title:'W1/ D1 미션 소리법칙(7)', notionUrl:'https://app.notion.com/p/W1-D1-7-3ab6a9fdb6dd80308198f7dc6e17ac2f?source=copy_link' },
-      { week:1, day:2, title:'W1/ D2 미션 소리법칙(7)', notionUrl:'https://app.notion.com/p/W1-D2-7-3ab6a9fdb6dd807fb48edbb6e7befbd3?source=copy_link' },
-      { week:1, day:3, title:'W1/ D3 미션 소리법칙(7)', notionUrl:'https://app.notion.com/p/W1-D3-7-3ab6a9fdb6dd802eb033d5f6c08b0eb6?source=copy_link' },
-      { week:1, day:4, title:'W1/ D4 미션 소리법칙(7)(전체 복습)', notionUrl:'https://app.notion.com/p/W1-D4-7-3ae6a9fdb6dd8047b695c343622a2128?source=copy_link' },
-      { week:1, day:5, title:'W1/ D5 미션 소리법칙(7) (전체 복습)', notionUrl:'https://app.notion.com/p/W1-D5-7-3ae6a9fdb6dd80afaadcf1a05a6ccdde?source=copy_link' },
-      { week:2, day:1, title:'W2/ D1 미션 브이로그-가족 방문', notionUrl:'https://app.notion.com/p/W2-D1-3ae6a9fdb6dd80489672c6efe1171fec?source=copy_link' },
-      { week:2, day:2, title:'W2/ D2 미션 브이로그-가족 방문', notionUrl:'https://app.notion.com/p/W2-D2-3ae6a9fdb6dd80b6b974e9491652bcfe?source=copy_link' },
-      { week:2, day:3, title:'W2/ D3 미션 브이로그-가족 방문', notionUrl:'https://app.notion.com/p/W2-D3-3ae6a9fdb6dd80e1b194eccb80e1717d?source=copy_link' },
-      { week:2, day:4, title:'W2/ D4 미션 브이로그-가족 방문(복습)', notionUrl:'https://app.notion.com/p/W2-D4-3ae6a9fdb6dd80f18c06dd69a589c551?source=copy_link' },
-      { week:2, day:5, title:'W2/ D5 미션 브이로그-가족 방문(복습)', notionUrl:'https://app.notion.com/p/W2-D5-3ae6a9fdb6dd80bfacffd7c8eeff77a3?source=copy_link' },
-      { week:3, day:1, title:'W3/ D1 미션 인터뷰-두바이 백만장자', notionUrl:'https://app.notion.com/p/W3-D1-3ae6a9fdb6dd801d9377f4763aa32e0d?source=copy_link' },
-      { week:3, day:2, title:'W3/ D2 미션 인터뷰-두바이 백만장자', notionUrl:'https://app.notion.com/p/W3-D2-3ae6a9fdb6dd80ada497f209f25d76bb?source=copy_link' },
-      { week:3, day:3, title:'W3/ D3 미션 인터뷰-두바이 백만장자', notionUrl:'https://app.notion.com/p/W3-D3-3ae6a9fdb6dd80878fa2d2fec46ed3ed?source=copy_link' },
-      { week:3, day:4, title:'W3/ D4 미션 인터뷰-두바이 백만장자', notionUrl:'https://app.notion.com/p/W3-D4-3ae6a9fdb6dd80f9b539e65e0e08396a?source=copy_link' },
-      { week:3, day:5, title:'W3/ D5 미션 인터뷰-두바이 백만장자', notionUrl:'https://app.notion.com/p/W3-D5-3ae6a9fdb6dd806cacacf2f190764fb8?source=copy_link' },
-      { week:4, day:1, title:'W4/ D1 미션 인터뷰-두바이 백만장자(복습)', notionUrl:'https://app.notion.com/p/W4-D1-3ae6a9fdb6dd8038b54cca76b7300dbe?source=copy_link' },
-      { week:4, day:2, title:'W4/ D2 미션 인터뷰-두바이 백만장자(복습)', notionUrl:'https://app.notion.com/p/W4-D2-3ae6a9fdb6dd80ba9a17d8936e1d2e40?source=copy_link' },
-      { week:4, day:3, title:'W4/ D3 미션 인터뷰-두바이 백만장자(복습)', notionUrl:'https://app.notion.com/p/W4-D3-3ae6a9fdb6dd80ed8b23c1c47ddfd582?source=copy_link' },
-      { week:4, day:4, title:'W4/ D4 미션 인터뷰-두바이 백만장자(전체복습)', notionUrl:'https://app.notion.com/p/W4-D4-3ae6a9fdb6dd804fbcbce821a4807c2e?source=copy_link' },
-      { week:4, day:5, title:'W4/ D5 미션 브이로그-가족 방문(전체 복습)', notionUrl:'https://app.notion.com/p/W4-D5-3ae6a9fdb6dd8047b98fefb3fb4adb73?source=copy_link' },
+      { week:1, day:1, title:'W1/ D1 미션 소리법칙(8)', notionUrl:'https://app.notion.com/p/W1-D1-8-3bd6a9fdb6dd8008be37dc64c66be28e?source=copy_link' },
+      { week:1, day:2, title:'W1/ D2 미션 소리법칙(8)', notionUrl:'https://app.notion.com/p/W1-D2-8-3bd6a9fdb6dd803a8ee3f6ed32b8f89a?source=copy_link' },
+      { week:1, day:3, title:'W1/ D3 미션 소리법칙(8)', notionUrl:'https://app.notion.com/p/W1-D3-8-3bd6a9fdb6dd8091be37d8bd80bdbfa9?source=copy_link' },
+      { week:1, day:4, title:'W1/ D4 미션 소리법칙(8)', notionUrl:'https://app.notion.com/p/W1-D4-8-3bd6a9fdb6dd80269c13fc1ce74d0275?source=copy_link' },
+      { week:1, day:5, title:'W1/ D5 미션 소리법칙(8) 복습', notionUrl:'https://app.notion.com/p/W1-D5-8-3bd6a9fdb6dd803bbb9edab7c1079e2c?source=copy_link' },
+      { week:2, day:1, title:'W2/ D1 미션 비즈니스 조언', notionUrl:'https://app.notion.com/p/W2-D1-3bd6a9fdb6dd80ec8a76cca3b908aeae?source=copy_link' },
+      { week:2, day:2, title:'W2/ D2 미션 비즈니스 조언', notionUrl:'https://app.notion.com/p/W2-D2-3bd6a9fdb6dd8080adbdce07d8caf7d8?source=copy_link' },
+      { week:2, day:3, title:'W2/ D3 미션 비즈니스 조언 (복습)', notionUrl:'https://app.notion.com/p/W2-D3-3bd6a9fdb6dd806f809cc1db05d5f983?source=copy_link' },
+      { week:2, day:4, title:'W2/ D4 미션 비즈니스 조언 (복습)', notionUrl:'https://app.notion.com/p/W2-D4-3be6a9fdb6dd80c0a434da9039180cf6?source=copy_link' },
+      { week:2, day:5, title:'W2/ D5 미션 비즈니스 조언 (복습)', notionUrl:'https://app.notion.com/p/W2-D5-3bd6a9fdb6dd80238be1dbe85f68e308?source=copy_link' },
+      { week:3, day:1, title:'W3/ D1 미션 브이로그_성수동 여행', notionUrl:'https://app.notion.com/p/W3-D1-_-3bd6a9fdb6dd807d947dcd9fadcdac5f?source=copy_link' },
+      { week:3, day:2, title:'W3/ D2 미션 브이로그_성수동 여행', notionUrl:'https://app.notion.com/p/W3-D2-_-3bd6a9fdb6dd8083b049f73faca3903a?source=copy_link' },
+      { week:3, day:3, title:'W3/ D3 미션 브이로그_성수동 여행', notionUrl:'https://app.notion.com/p/W3-D3-_-3bd6a9fdb6dd8009b6fcdad717d2622b?source=copy_link' },
+      { week:3, day:4, title:'W3/ D4 미션 브이로그_성수동 여행', notionUrl:'https://app.notion.com/p/W3-D4-_-3bd6a9fdb6dd80018633d05a1e8e86e7?source=copy_link' },
+      { week:3, day:5, title:'W3/ D5 미션 브이로그_성수동 여행(복습)', notionUrl:'https://app.notion.com/p/W3-D5-_-3bd6a9fdb6dd805d8636da4d568aad4c?source=copy_link' },
+      { week:4, day:1, title:'W4/ D1 미션 브이로그_성수동 여행(복습)', notionUrl:'https://app.notion.com/p/W4-D1-_-3bd6a9fdb6dd80ae8e06ec6f75d24426?source=copy_link' },
+      { week:4, day:2, title:'W4/ D2 미션 브이로그_성수동 여행(복습)', notionUrl:'https://app.notion.com/p/W4-D2-_-3be6a9fdb6dd8057b730d92e72f26935?source=copy_link' },
+      { week:4, day:3, title:'W4/ D3 미션 브이로그_성수동 여행(전체복습)', notionUrl:'https://app.notion.com/p/W4-D3-_-3be6a9fdb6dd8096a17fcf88e9ce59cc?source=copy_link' },
+      { week:4, day:4, title:'W4/ D4 미션 브이로그_비즈니스 조언 (전체 복습)', notionUrl:'https://app.notion.com/p/W4-D4-_-3be6a9fdb6dd8016a1bbfd33a3da05e5?source=copy_link' },
+      { week:4, day:5, title:'W4/ D5 미션 소리법칙(8) 전체 복습', notionUrl:'https://app.notion.com/p/W4-D5-8-3be6a9fdb6dd803faf41fa1a07881ebc?source=copy_link' },
     ];
 
     const colorMap = {

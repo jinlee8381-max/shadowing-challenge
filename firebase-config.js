@@ -31,8 +31,8 @@ const storage = firebase.storage();
 // ===================================================
 // ⚙️ 챌린지 설정 (매달 이 두 줄만 바꾸면 됩니다)
 // ===================================================
-let CHALLENGE_MONTH = '2026-08';     // 현재 챌린지 월
-let CHALLENGE_START = '2026-08-03'; // 챌린지 첫 번째 월요일 날짜
+let CHALLENGE_MONTH = '2026-09';     // 현재 챌린지 월
+let CHALLENGE_START = '2026-09-07'; // 챌린지 첫 번째 월요일 날짜
 
 // ===================================================
 // 날짜 / 주차 계산 유틸리티
@@ -204,6 +204,25 @@ async function uploadFiles(files, studentName) {
     urls.push(await ref.getDownloadURL());
   }
   return urls;
+}
+
+// 이월비 입금 / 환급 지급 여부 (관리자가 입금 내역 보고 수동 체크, admin-payments.html 전용)
+async function loadPayments() {
+  try {
+    const snap = await db.collection('payments')
+      .where('challengeMonth', '==', CHALLENGE_MONTH).get();
+    const map = {};
+    snap.docs.forEach(d => { map[d.data().studentName] = { id: d.id, ...d.data() }; });
+    return map;
+  } catch(e) { console.error('loadPayments:', e); return {}; }
+}
+
+async function savePayment(studentName, patch) {
+  await db.collection('payments').doc(`${CHALLENGE_MONTH}_${studentName}`).set({
+    studentName, challengeMonth: CHALLENGE_MONTH,
+    ...patch,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true });
 }
 
 // 서비스 워커 등록 (PWA)
