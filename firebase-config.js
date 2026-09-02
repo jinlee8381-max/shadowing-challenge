@@ -90,9 +90,9 @@ function tsToDateKey(ts) {
 // ===================================================
 
 // 학생 목록 불러오기
-async function loadStudentList() {
+async function loadStudentList(month = CHALLENGE_MONTH) {
   try {
-    const doc = await db.collection('challenges').doc(CHALLENGE_MONTH).get();
+    const doc = await db.collection('challenges').doc(month).get();
     return doc.exists ? (doc.data().students || []) : [];
   } catch(e) { console.error('loadStudentList:', e); return []; }
 }
@@ -164,10 +164,10 @@ function getWeekDatesFrom(startDate, weekNum) {
 }
 
 // 전체 학생 인증 기록 불러오기 (관리자 대시보드용)
-async function loadAllSubmissions() {
+async function loadAllSubmissions(month = CHALLENGE_MONTH) {
   try {
     const snap = await db.collection('submissions')
-      .where('challengeMonth', '==', CHALLENGE_MONTH).get();
+      .where('challengeMonth', '==', month).get();
     return snap.docs.map(d => ({ id: d.id, ...d.data() }));
   } catch(e) { console.error('loadAllSubmissions:', e); return []; }
 }
@@ -207,19 +207,19 @@ async function uploadFiles(files, studentName) {
 }
 
 // 이월비 입금 / 환급 지급 여부 (관리자가 입금 내역 보고 수동 체크, admin-payments.html 전용)
-async function loadPayments() {
+async function loadPayments(month = CHALLENGE_MONTH) {
   try {
     const snap = await db.collection('payments')
-      .where('challengeMonth', '==', CHALLENGE_MONTH).get();
+      .where('challengeMonth', '==', month).get();
     const map = {};
     snap.docs.forEach(d => { map[d.data().studentName] = { id: d.id, ...d.data() }; });
     return map;
   } catch(e) { console.error('loadPayments:', e); return {}; }
 }
 
-async function savePayment(studentName, patch) {
-  await db.collection('payments').doc(`${CHALLENGE_MONTH}_${studentName}`).set({
-    studentName, challengeMonth: CHALLENGE_MONTH,
+async function savePayment(studentName, patch, month = CHALLENGE_MONTH) {
+  await db.collection('payments').doc(`${month}_${studentName}`).set({
+    studentName, challengeMonth: month,
     ...patch,
     updatedAt: firebase.firestore.FieldValue.serverTimestamp()
   }, { merge: true });
