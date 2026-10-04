@@ -14,7 +14,7 @@
 // ════════════════════════════════════════════════════
 
 (function () {
-  var PASS_HASH = 'd7cb0ada676113e6dcc3bc08aa2f1923e6cb4c4cc03c607511b770ef54c41fcc';
+  var PASS_HASH = '3abde42290c8597dc71fe655488bc926a4e2baccacd84f7eef5fc1e390316347';
   var KEY       = 'lj_admin_unlocked';
 
   // 이미 이 기기에서 잠금을 푼 적이 있으면 통과

@@ -14,8 +14,8 @@
 // ════════════════════════════════════════════════════
 
 (function () {
-  var MONTH_KEY  = '2026-09';
-  var PASS_HASH  = 'd7cb0ada676113e6dcc3bc08aa2f1923e6cb4c4cc03c607511b770ef54c41fcc';
+  var MONTH_KEY  = '2026-10';
+  var PASS_HASH  = '3abde42290c8597dc71fe655488bc926a4e2baccacd84f7eef5fc1e390316347';
   var KEY        = 'lj_student_unlocked_' + MONTH_KEY;
 
   // 이미 이 기기에서 이번 달 잠금을 푼 적이 있으면 통과
