@@ -54,7 +54,7 @@
     gate.innerHTML =
       '<div class="b">' +
         '<div class="i">🎙️</div>' +
-        '<h1>9월 챌린지 입장 코드</h1>' +
+        '<h1>' + Number(MONTH_KEY.slice(5)) + '월 챌린지 입장 코드</h1>' +
         '<p>안내받은 비밀번호를 입력해 주세요</p>' +
         '<input id="lj-pw" type="password" inputmode="numeric" autocomplete="off" placeholder="••••••">' +
         '<button id="lj-go" type="button">입장하기</button>' +
