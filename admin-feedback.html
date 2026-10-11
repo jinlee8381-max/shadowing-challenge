@@ -418,6 +418,34 @@
       }).join('');
     }
 
+    /* 🤖 AI 초안 — 녹음 분석으로 만든 피드백 초안 (submissions.aiDraft)
+       학생 화면에는 안 보이는 칸. '초안 넣기'로 피드백 칸에 옮긴 뒤 고쳐서 저장. */
+    function escHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function renderAiDraft(sub) {
+      if (!sub.aiDraft || !sub.aiDraft.trim()) return '';
+      return `<div class="px-4 pb-3">
+        <div class="bg-gray-50 border border-dashed border-gray-300 rounded-xl px-3 py-2.5">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-xs font-semibold text-gray-500">🤖 AI 초안 <span class="font-normal">(학생에겐 안 보여요 · (?)는 직접 들어보고 판단)</span></span>
+            <button onclick="useAiDraft('${sub.id}')"
+              class="text-xs font-semibold text-blue-600 bg-white border border-blue-200 rounded-lg px-2 py-1 hover:bg-blue-50 shrink-0">초안 넣기</button>
+          </div>
+          <p class="text-sm text-gray-500 whitespace-pre-line leading-relaxed">${escHtml(sub.aiDraft.trim())}</p>
+        </div>
+      </div>`;
+    }
+    function useAiDraft(subId) {
+      const sub = submissions.find(s => s.id === subId);
+      const ta = document.getElementById(`fb-${subId}`);
+      if (!sub || !ta) return;
+      const cur = ta.value.trim();
+      ta.value = cur ? `${cur}\n${sub.aiDraft.trim()}` : sub.aiDraft.trim();
+      ta.rows = Math.max(3, ta.value.split('\n').length);
+      ta.focus();
+    }
+
     function renderList() {
       const list = document.getElementById('feedbackList');
       list.innerHTML = '';
@@ -450,6 +478,8 @@
           <div class="px-4 py-3 space-y-3">
             ${renderFiles(sub.fileUrls)}
           </div>
+
+          ${renderAiDraft(sub)}
 
           <div class="px-4 pb-4 space-y-2">
             <label class="text-xs font-semibold text-gray-600">선생님 피드백</label>
