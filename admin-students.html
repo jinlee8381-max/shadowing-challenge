@@ -209,13 +209,13 @@
     // ── 환급 계좌: 관리자 구글 로그인 후에만 refundAccounts 에서 읽어 합칩니다 ──
     let ADMIN_USER = null;
     async function mergeAccounts(month) {
-      if (!ADMIN_USER) return;
+      // 규칙을 잠그기 전까지는 로그인 없이도 읽힘. 잠근 뒤엔 로그인해야 읽힘(실패하면 조용히 넘어감)
       try {
         const acc = await AdminAuth.loadAccounts(db, 'challengeMonth', month, a => a.studentName);
         Object.entries(acc).forEach(([n, a]) => {
           resultsMap[n] = { ...(resultsMap[n] || {}), refundBank: a.bank, refundAccountNum: a.accountNum, refundHolder: a.holder, accountCount: a._count };
         });
-      } catch (e) { console.error('계좌 읽기 실패', e); }
+      } catch (e) { if (ADMIN_USER) console.error('계좌 읽기 실패', e); }
     }
     const accountLabel = r => r.refundBank ? r.refundBank : (r.accountSaved ? '🔒 계좌 입력됨 · 로그인하면 보여요' : '은행 미입력');
 

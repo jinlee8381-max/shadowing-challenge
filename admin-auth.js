@@ -33,7 +33,7 @@
       if (user) {
         el.innerHTML = '<span>🔓 환급 계좌 보기 · ' + user.email + '</span> <button type="button" data-admin-signout style="text-decoration:underline">로그아웃</button>';
       } else {
-        el.innerHTML = '<span>🔒 환급 계좌는 관리자 구글 로그인 후 보여요' + (rawUser ? ' (' + rawUser.email + ' 은 관리자 계정이 아니에요)' : '') + '</span> <button type="button" data-admin-signin style="font-weight:700;text-decoration:underline">구글로 로그인</button>';
+        el.innerHTML = '<span>🔒 관리자 구글 로그인 · 보안 규칙을 잠근 뒤에는 로그인해야 계좌가 보여요' + (rawUser ? ' (' + rawUser.email + ' 은 관리자 계정이 아니에요)' : '') + '</span> <button type="button" data-admin-signin style="font-weight:700;text-decoration:underline">구글로 로그인</button>';
       }
       el.onclick = e => {
         if (e.target.closest('[data-admin-signin]')) AdminAuth.signIn().catch(err => alert('로그인하지 못했어요: ' + (err && err.message || err)));
