@@ -214,9 +214,20 @@
         refundPaid: next,
         refundPaidAt: next ? firebase.firestore.FieldValue.serverTimestamp() : null
       }, viewMonth);
+      // 지급 완료 → 이 학생의 이번 달 계좌는 더 필요 없으니 바로 삭제
+      let note = '';
+      if (next) {
+        if (ADMIN_USER) {
+          try {
+            const n = await AdminAuth.deleteAccounts(db, [['challengeMonth', viewMonth], ['studentName', name]]);
+            if (resultsMap[name]) { delete resultsMap[name].refundBank; delete resultsMap[name].refundAccountNum; delete resultsMap[name].refundHolder; resultsMap[name].accountSaved = false; }
+            note = n ? ' · 계좌 삭제됨' : '';
+          } catch (e) { note = ' · 계좌 삭제 실패(다시 눌러주세요)'; console.error(e); }
+        } else note = ' · 로그인하면 계좌도 자동 삭제돼요';
+      }
       renderRefundList();
       updateStats();
-      showToast(next ? `✓ ${name}님 환급 지급 완료` : `${name}님 환급 미지급으로 변경`);
+      showToast(next ? `✓ ${name}님 환급 지급 완료${note}` : `${name}님 환급 미지급으로 변경`);
     }
 
     function carryStudents() {

@@ -19,6 +19,14 @@
       });
       return map;
     },
+    // 환급이 끝난 계좌 삭제: pairs = [[필드, 값], ...]. 지운 개수를 돌려줍니다
+    async deleteAccounts(db, pairs){
+      let q = db.collection('refundAccounts');
+      pairs.forEach(([f, v]) => { q = q.where(f, '==', v); });
+      const snap = await q.get();
+      await Promise.all(snap.docs.map(d => d.ref.delete()));
+      return snap.size;
+    },
     // 로그인 안내줄: <div id="..."> 에 그려 넣습니다
     bar(el, user, rawUser){
       if (!el) return;
