@@ -432,11 +432,11 @@
       if (resultData.continueNextMonth !== undefined) {
         document.getElementById('continueChoice').classList.add('hidden');
         document.getElementById(resultData.continueNextMonth ? 'continueYes' : 'continueNo').classList.remove('hidden');
-        if (!resultData.continueNextMonth && resultData.refundBank) {
-          document.getElementById('refundBank').value = resultData.refundBank;
-          document.getElementById('refundAccountNum').value = resultData.refundAccountNum || '';
-          document.getElementById('refundHolder').value = resultData.refundHolder || '';
-          document.getElementById('accountSaved').classList.remove('hidden');
+        if (!resultData.continueNextMonth && (resultData.accountSaved || resultData.refundBank)) {
+          // 계좌 번호는 보안상 다시 보여주지 않아요 (관리자만 볼 수 있음)
+          const saved = document.getElementById('accountSaved');
+          saved.textContent = '✅ 환급 계좌를 이미 입력하셨어요. 바꾸려면 다시 입력해서 저장하세요.';
+          saved.classList.remove('hidden');
         }
       }
     }
@@ -524,13 +524,20 @@
       const holder  = document.getElementById('refundHolder').value.trim();
       if (!bank || !acctNum || !holder) { alert('모든 항목을 입력해주세요.'); return; }
       try {
+        // 계좌는 관리자만 읽을 수 있는 refundAccounts 에 새로 추가 (덮어쓰기 불가 → 다시 입력하면 새 기록)
+        await db.collection('refundAccounts').add({
+          source: 'shadowing', challengeMonth: CHALLENGE_MONTH, studentName: name,
+          bank, accountNum: acctNum, holder,
+          savedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
         await db.collection('results').doc(`${CHALLENGE_MONTH}_${name}`).set({
-          refundBank: bank,
-          refundAccountNum: acctNum,
-          refundHolder: holder,
+          accountSaved: true,
           accountSavedAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
-        document.getElementById('accountSaved').classList.remove('hidden');
+        const saved = document.getElementById('accountSaved');
+        saved.textContent = '✅ 저장되었습니다!';
+        saved.classList.remove('hidden');
+        ['refundAccountNum','refundHolder'].forEach(id => document.getElementById(id).value = '');
       } catch(e) {
         alert('저장에 실패했어요. 다시 시도해주세요.');
       }

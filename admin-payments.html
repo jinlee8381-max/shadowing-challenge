@@ -27,6 +27,8 @@
     .seg button.on { background:#3b82f6; color:#fff; }
   </style>
   <script src="admin-guard.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="admin-auth.js"></script>
 </head>
 <body class="bg-gray-50 min-h-screen pb-10">
 
@@ -111,6 +113,7 @@
         <h2 class="font-bold text-gray-800 text-sm">💰 환급 신청자</h2>
         <span class="text-xs text-gray-400" id="refundCountLabel">-명</span>
       </div>
+      <div id="adminAuthBar" class="px-5 py-2 text-xs bg-amber-50 text-amber-800 border-b"></div>
       <div id="refundList" class="divide-y divide-gray-50">
         <div class="px-5 py-8 text-center text-gray-400 text-sm">로딩 중...</div>
       </div>
@@ -142,6 +145,19 @@
     let viewMonth  = CHALLENGE_MONTH;  // 현재 화면에 표시 중인 월 ('YYYY-MM')
     let students   = [];
     let resultsMap = {};   // studentName -> results 문서
+    // ── 환급 계좌: 관리자 구글 로그인 후에만 refundAccounts 에서 읽어 합칩니다 ──
+    let ADMIN_USER = null;
+    async function mergeAccounts(month) {
+      if (!ADMIN_USER) return;
+      try {
+        const acc = await AdminAuth.loadAccounts(db, 'challengeMonth', month, a => a.studentName);
+        Object.entries(acc).forEach(([n, a]) => {
+          resultsMap[n] = { ...(resultsMap[n] || {}), refundBank: a.bank, refundAccountNum: a.accountNum, refundHolder: a.holder, accountCount: a._count };
+        });
+      } catch (e) { console.error('계좌 읽기 실패', e); }
+    }
+    const accountLabel = r => r.refundBank ? r.refundBank : (r.accountSaved ? '🔒 계좌 입력됨 · 로그인하면 보여요' : '은행 미입력');
+
     let subsMap    = {};   // studentName -> submissions[]
     let payMap     = {};   // studentName -> payments 문서
 
@@ -282,7 +298,7 @@
             </div>
           </div>
           <div class="flex items-center gap-2 flex-wrap text-xs">
-            <span class="text-gray-500">${r.refundBank || '은행 미입력'}</span>
+            <span class="text-gray-500">${accountLabel(r)}</span>
             <span class="font-mono text-gray-700">${r.refundAccountNum || '-'}</span>
             <span class="text-gray-400">${r.refundHolder ? '(' + r.refundHolder + ')' : ''}</span>
           </div>
@@ -348,6 +364,7 @@
 
       students = names;
       resultsSnap.docs.forEach(d => { resultsMap[d.data().studentName] = d.data(); });
+      await mergeAccounts(month);
       allSubs.forEach(s => {
         if (!subsMap[s.studentName]) subsMap[s.studentName] = [];
         subsMap[s.studentName].push(s);
@@ -367,6 +384,11 @@
     }
 
     loadMonth(CHALLENGE_MONTH);
+    AdminAuth.onChange((user, raw) => {
+      const was = ADMIN_USER; ADMIN_USER = user;
+      AdminAuth.bar(document.getElementById('adminAuthBar'), user, raw);
+      if (user && !was) loadMonth(viewMonth);
+    });
   </script>
   <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
   <script>
