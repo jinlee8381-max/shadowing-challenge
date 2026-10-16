@@ -368,6 +368,12 @@
         mediaRecorder.onstop = () => {
           const ext = (mimeType || '').includes('mp4') ? 'm4a' : 'webm';
           const blob = new Blob(recordedChunks, { type: mimeType || 'audio/mp4' });
+          stream.getTracks().forEach(t => t.stop());
+          // 일부 휴대폰에서 소리가 안 담긴 0바이트 녹음이 생김 (2026-10-16 권승희님) → 제출 전에 막기
+          if (blob.size === 0) {
+            alert('녹음에 소리가 담기지 않았어요 😢\n다시 녹음해 주세요.\n\n계속 안 되면 휴대폰 기본 녹음 앱으로 녹음한 뒤\n아래 "파일 첨부"로 올려 주세요.');
+            return;
+          }
           const file = new File([blob], `녹음_${Date.now()}.${ext}`, { type: blob.type });
           uploadedFiles.push(file);
 
@@ -382,7 +388,6 @@
           document.getElementById('recordPreview').classList.remove('hidden');
 
           renderUploadedFiles();
-          stream.getTracks().forEach(t => t.stop());
         };
 
         mediaRecorder.start();
@@ -420,6 +425,10 @@
     async function submitVerification() {
       if (uploadedFiles.length === 0) {
         alert('음성 파일이나 사진을 먼저 첨부해 주세요!');
+        return;
+      }
+      if (uploadedFiles.some(f => f.size === 0)) {
+        alert('비어 있는 파일이 있어요 (0바이트).\n다시 녹음하거나 다른 파일을 첨부해 주세요.');
         return;
       }
       if (!studentName) {
