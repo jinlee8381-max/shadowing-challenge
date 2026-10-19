@@ -128,39 +128,51 @@
     // 아래 defaultCurriculum(제목/링크)이 적용되는 챌린지 월.
     // 이 월에서만 자동 시드/동기화가 실행되어 다른 달 데이터를 덮어쓰지 않음.
     // ※ 매달 firebase-config.js의 CHALLENGE_MONTH와 함께 이 값도 갱신하세요.
-    const DEFAULT_CURRICULUM_MONTH = '2026-10';
+    const DEFAULT_CURRICULUM_MONTH = '2026-11';
 
     let viewMonth = CHALLENGE_MONTH;                  // 현재 화면에 표시 중인 월 ('YYYY-MM')
     let isCurrentView = (viewMonth === CHALLENGE_MONTH); // 진행 중인 챌린지 월인지 (오늘/진행중 강조용)
 
-    const WEEK_THEMES = {
-      1: { label:'1주차', theme:'TV쇼-영화 소개',   color:'purple' },
-      2: { label:'2주차', theme:'TV쇼-영화 소개 복습', color:'green'  },
-      3: { label:'3주차', theme:'영화 리뷰-오디세이', color:'blue'   },
-      4: { label:'4주차', theme:'오디세이 복습', color:'orange' },
+    // 주차 테마: 달마다 따로 (보고 있는 달의 테마가 보이게)
+    const WEEK_THEMES_BY_MONTH = {
+      '2026-10': {
+        1: { label:'1주차', theme:'TV쇼-영화 소개',   color:'purple' },
+        2: { label:'2주차', theme:'TV쇼-영화 소개 복습', color:'green'  },
+        3: { label:'3주차', theme:'영화 리뷰-오디세이', color:'blue'   },
+        4: { label:'4주차', theme:'오디세이 복습', color:'orange' },
+      },
+      '2026-11': {
+        1: { label:'1주차', theme:'광고-확실한 모기지론', color:'purple' },
+        2: { label:'2주차', theme:'모기지론 복습', color:'green'  },
+        3: { label:'3주차', theme:'인터뷰-백만장자 프로듀서', color:'blue'   },
+        4: { label:'4주차', theme:'프로듀서 마무리·복습', color:'orange' },
+      },
     };
+    const DEFAULT_THEMES = { 1:{label:'1주차',theme:'',color:'purple'}, 2:{label:'2주차',theme:'',color:'green'}, 3:{label:'3주차',theme:'',color:'blue'}, 4:{label:'4주차',theme:'',color:'orange'} };
+    const themesFor = m => WEEK_THEMES_BY_MONTH[m] || DEFAULT_THEMES;
 
+    // 2026-11 (노트 = 노션 '11월 챌린지', 2026-10-19 Claude 초안)
     const defaultCurriculum = [
-      { week:1, day:1, title:'W1/ D1 미션 TV쇼-영화 소개', notionUrl:'https://app.notion.com/p/W1-D1-TV-3da6a9fdb6dd80139239c035279d6035?source=copy_link' },
-      { week:1, day:2, title:'W1/ D2 미션 TV쇼-영화 소개', notionUrl:'https://app.notion.com/p/W1-D2-TV-3da6a9fdb6dd8013a8a2ebb27996430d?source=copy_link' },
-      { week:1, day:3, title:'W1/ D3 미션 TV쇼-영화 소개', notionUrl:'https://app.notion.com/p/W1-D3-TV-3da6a9fdb6dd8090a97cec6aabaa2519?source=copy_link' },
-      { week:1, day:4, title:'W1/ D4 미션 TV쇼-영화 소개', notionUrl:'https://app.notion.com/p/W1-D4-TV-3da6a9fdb6dd80edb50bf3c9abb788c6?source=copy_link' },
-      { week:1, day:5, title:'W1/ D5 미션 TV쇼-영화 소개 (복습)', notionUrl:'https://app.notion.com/p/W1-D5-TV-3da6a9fdb6dd8063be21fd25a32ebeb6?source=copy_link' },
-      { week:2, day:1, title:'W2/ D1 미션 TV쇼-영화 소개 (복습)', notionUrl:'https://app.notion.com/p/W2-D1-TV-3da6a9fdb6dd8031ac9fc3401beae5e3?source=copy_link' },
-      { week:2, day:2, title:'W2/ D2 미션 TV쇼-영화 소개 (복습)', notionUrl:'https://app.notion.com/p/W2-D2-TV-3da6a9fdb6dd804c96c6f5b4d0252ce6?source=copy_link' },
-      { week:2, day:3, title:'W2/ D3 미션 TV쇼-영화 소개 (복습)', notionUrl:'https://app.notion.com/p/W2-D3-TV-3da6a9fdb6dd80e3b1dee145428f6fec?source=copy_link' },
-      { week:2, day:4, title:'W2/ D4 미션 TV쇼-영화 소개 (복습)', notionUrl:'https://app.notion.com/p/W2-D4-TV-3da6a9fdb6dd80db91abce8f90882206?source=copy_link' },
-      { week:2, day:5, title:'W2/ D5 미션 TV쇼-영화 소개 (전체 복습)', notionUrl:'https://app.notion.com/p/W2-D5-TV-3da6a9fdb6dd807da87eee89ca43228d?source=copy_link' },
-      { week:3, day:1, title:'W3/ D1 미션 영화 리뷰-오디세이', notionUrl:'https://app.notion.com/p/W3-D1-3da6a9fdb6dd8036bceee87d0e0645c8?source=copy_link' },
-      { week:3, day:2, title:'W3/ D2 미션 영화 리뷰-오디세이', notionUrl:'https://app.notion.com/p/W3-D2-3da6a9fdb6dd80a28a95c1ea8f8a2762?source=copy_link' },
-      { week:3, day:3, title:'W3/ D3 미션 영화 리뷰-오디세이', notionUrl:'https://app.notion.com/p/W3-D3-3da6a9fdb6dd80728fbfd2ed35537f54?source=copy_link' },
-      { week:3, day:4, title:'W3/ D4 미션 영화 리뷰-오디세이', notionUrl:'https://app.notion.com/p/W3-D4-3da6a9fdb6dd80f6abe5ca0b505e9658?source=copy_link' },
-      { week:3, day:5, title:'W3/ D5 미션 영화 리뷰-오디세이', notionUrl:'https://app.notion.com/p/W3-D5-3da6a9fdb6dd808fb826c8937df728ad?source=copy_link' },
-      { week:4, day:1, title:'W4/ D1 미션 영화 리뷰-오디세이', notionUrl:'https://app.notion.com/p/W4-D1-3da6a9fdb6dd80a79b92cf7425a0a7fd?source=copy_link' },
-      { week:4, day:2, title:'W4/ D2 미션 영화 리뷰-오디세이(복습)', notionUrl:'https://app.notion.com/p/W4-D2-3da6a9fdb6dd80bf9593cc01aedefe34?source=copy_link' },
-      { week:4, day:3, title:'W4/ D3 미션 영화 리뷰-오디세이(복습)', notionUrl:'https://app.notion.com/p/W4-D3-3da6a9fdb6dd80858bdaefd499a7b05a?source=copy_link' },
-      { week:4, day:4, title:'W4/ D4 미션 영화 리뷰-오디세이(복습)', notionUrl:'https://app.notion.com/p/W4-D4-3da6a9fdb6dd801696afce8a49db6c90?source=copy_link' },
-      { week:4, day:5, title:'W4/ D5 미션 영화 리뷰-오디세이(전체복습)', notionUrl:'https://app.notion.com/p/W4-D5-3da6a9fdb6dd809098d7f0132c936340?source=copy_link' },
+      { week:1, day:1, title:'W1/ D1 미션 광고-확실한 모기지론', notionUrl:'https://app.notion.com/p/W1-D1-3fe6a9fdb6dd81fa9f42de4d65f3b3ab?source=copy_link' },
+      { week:1, day:2, title:'W1/ D2 미션 광고-확실한 모기지론', notionUrl:'https://app.notion.com/p/W1-D2-3fe6a9fdb6dd81e1ba97c966f6aa05c0?source=copy_link' },
+      { week:1, day:3, title:'W1/ D3 미션 광고-확실한 모기지론', notionUrl:'https://app.notion.com/p/W1-D3-3fe6a9fdb6dd81679906ceb1c417857c?source=copy_link' },
+      { week:1, day:4, title:'W1/ D4 미션 광고-확실한 모기지론', notionUrl:'https://app.notion.com/p/W1-D4-3fe6a9fdb6dd8143801ee570ffa85cfb?source=copy_link' },
+      { week:1, day:5, title:'W1/ D5 미션 광고-확실한 모기지론', notionUrl:'https://app.notion.com/p/W1-D5-3fe6a9fdb6dd81f392d0e660da65c27d?source=copy_link' },
+      { week:2, day:1, title:'W2/ D1 미션 광고-확실한 모기지론 (복습)', notionUrl:'https://app.notion.com/p/W2-D1-3fe6a9fdb6dd8188bbb2dd3169cd4b7c?source=copy_link' },
+      { week:2, day:2, title:'W2/ D2 미션 광고-확실한 모기지론 (복습)', notionUrl:'https://app.notion.com/p/W2-D2-3fe6a9fdb6dd81798659c211d43ae76f?source=copy_link' },
+      { week:2, day:3, title:'W2/ D3 미션 광고-확실한 모기지론 (복습)', notionUrl:'https://app.notion.com/p/W2-D3-3fe6a9fdb6dd814aa031fdc3f944d43e?source=copy_link' },
+      { week:2, day:4, title:'W2/ D4 미션 광고-확실한 모기지론 (전체 복습)', notionUrl:'https://app.notion.com/p/W2-D4-3fe6a9fdb6dd81c3bb60fdb1a1480ef0?source=copy_link' },
+      { week:2, day:5, title:'W2/ D5 미션 광고-확실한 모기지론 (전체 복습)', notionUrl:'https://app.notion.com/p/W2-D5-3fe6a9fdb6dd81a4bb63ef08a87f461a?source=copy_link' },
+      { week:3, day:1, title:'W3/ D1 미션 인터뷰-백만장자 프로듀서', notionUrl:'https://app.notion.com/p/W3-D1-3fe6a9fdb6dd81e2bc71dc8d145b5fdd?source=copy_link' },
+      { week:3, day:2, title:'W3/ D2 미션 인터뷰-백만장자 프로듀서', notionUrl:'https://app.notion.com/p/W3-D2-3fe6a9fdb6dd81a68e6ff5bf597e28a5?source=copy_link' },
+      { week:3, day:3, title:'W3/ D3 미션 인터뷰-백만장자 프로듀서', notionUrl:'https://app.notion.com/p/W3-D3-3fe6a9fdb6dd81708093cf3752c8e42f?source=copy_link' },
+      { week:3, day:4, title:'W3/ D4 미션 인터뷰-백만장자 프로듀서', notionUrl:'https://app.notion.com/p/W3-D4-3fe6a9fdb6dd81c0930ae16f41fba43e?source=copy_link' },
+      { week:3, day:5, title:'W3/ D5 미션 인터뷰-백만장자 프로듀서', notionUrl:'https://app.notion.com/p/W3-D5-3fe6a9fdb6dd818e9a87c96a44439e0a?source=copy_link' },
+      { week:4, day:1, title:'W4/ D1 미션 인터뷰-백만장자 프로듀서', notionUrl:'https://app.notion.com/p/W4-D1-3fe6a9fdb6dd8114a587eb47caf70b8b?source=copy_link' },
+      { week:4, day:2, title:'W4/ D2 미션 인터뷰-백만장자 프로듀서', notionUrl:'https://app.notion.com/p/W4-D2-3fe6a9fdb6dd81bf8dbcfe43472ba4e0?source=copy_link' },
+      { week:4, day:3, title:'W4/ D3 미션 인터뷰-백만장자 프로듀서 (복습)', notionUrl:'https://app.notion.com/p/W4-D3-3fe6a9fdb6dd8151af52fe0f52bfbebb?source=copy_link' },
+      { week:4, day:4, title:'W4/ D4 미션 인터뷰-백만장자 프로듀서 (복습)', notionUrl:'https://app.notion.com/p/W4-D4-3fe6a9fdb6dd8101ab50ccebc0511581?source=copy_link' },
+      { week:4, day:5, title:'W4/ D5 미션 인터뷰-백만장자 프로듀서 (전체 복습)', notionUrl:'https://app.notion.com/p/W4-D5-3fe6a9fdb6dd81b8943ecd19bb332487?source=copy_link' },
     ];
 
     const colorMap = {
@@ -222,7 +234,7 @@
       const container = document.getElementById('weekContainer');
       container.innerHTML = '';
       for (let w = 1; w <= 4; w++) {
-        const info = WEEK_THEMES[w];
+        const info = themesFor(viewMonth)[w];
         const colors = colorMap[info.color];
         const isCurrentWeek = isCurrentView && (w === TODAY_WEEK);
         // 1~5일 슬롯을 항상 표시 (데이터 없는 달도 입력 가능)
