@@ -1,3 +1,8 @@
 .DS_Store
 .claude/
 trial/_*
+
+# 내부용 (인터넷에 안 올림)
+_ai-feedback/
+_*.md
+_보관/
