@@ -662,6 +662,8 @@
         serviceWorkerPath: SW_BASE.replace(/^\//, "") + "sw.js",
         notifyButton: { enable: false },
       });
+      // 알림 대상 구분: 챌린지 학생 페이지에서는 'challenge' 라벨(+이름) — 저녁 예약 알림은 이 라벨에게만 감
+      try { OneSignal.User.addTags({ role: 'challenge', name: localStorage.getItem('shadowing_my_name') || '' }); } catch (e) {}
       const optedIn = OneSignal.User.PushSubscription.optedIn;
       if (optedIn) {
         document.getElementById('notifBanner').classList.add('hidden');
