@@ -6,3 +6,5 @@ trial/_*
 _ai-feedback/
 _*.md
 _보관/
+_ai-feedback/.venv/
+_notion-notes/
