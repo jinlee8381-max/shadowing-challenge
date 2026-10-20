@@ -801,8 +801,8 @@
       <div class="price-card">
         <div class="price-opt-label">참여비</div>
         <div class="price-name">쉐도잉 챌린지 참여비</div>
-        <div class="price-amount">8만원 <span>/ 월</span></div>
-        <div class="price-desc">리스닝 클래스 참여자 무료</div>
+        <div class="price-amount" id="feeAmt">8만원 <span>/ 월</span></div>
+        <div class="price-desc" id="feeDesc">리스닝 클래스 참여자 무료</div>
       </div>
       <div class="price-card featured">
         <div class="price-badge">100% 환급 가능</div>
@@ -933,6 +933,15 @@
   }, { threshold: 0.05 }).observe(document.getElementById('apply'));
 
   // 신청 접수는 구글폼에서 처리합니다.
+</script>
+<script>
+/* 영어일기 50일 완주 선물 (2026-10-20): ?pass=diary50 으로 오면 참여비 무료 · 보증금 4만원만 */
+(function(){ const q = new URLSearchParams(location.search); if (q.get('pass') !== 'diary50') return;
+  const a = document.getElementById('feeAmt'), d = document.getElementById('feeDesc');
+  if (a) a.innerHTML = '<s style="opacity:.5">8만원</s> 0원'; if (d) d.textContent = '🎁 영어일기 50일 완주 선물 (1달)';
+  const g = document.querySelector('.pricing-grid');
+  if (g) g.insertAdjacentHTML('beforebegin', '<div style="margin-bottom:14px;padding:14px 16px;background:#FFF6E8;border:1.5px solid #F1C98A;border-radius:14px;font-size:.92rem;line-height:1.7;word-break:keep-all">🎁 <b>' + (q.get('n') ? q.get('n') + '님, ' : '') + '영어일기 50일 완주를 축하해요!</b><br>쉐도잉 챌린지 1달 참여비는 무료예요. <b>보증금 4만원만</b> 입금해 주시면 되고, 성실히 인증하시면 전액 돌려드려요. 신청서 메모 칸에 <b>「일기 완주 참여권」</b>이라고 적어 주세요.</div>');
+})();
 </script>
 </body>
 </html>
