@@ -172,6 +172,7 @@
     function won(n) { return n.toLocaleString() + '원'; }
 
     function refundOf(name) {
+      if (payMap[name]?.crekit) return 0;   // 크레킷 결제자 = 보증금 없음 → 환급 없음
       const subs = subsMap[name] || [];
       const successCount = [1,2,3,4].filter(w => subs.filter(s => s.week === w).length >= 5).length;
       return successCount * 10000;
@@ -234,7 +235,7 @@
       return students.filter(n => resultsMap[n]?.continueNextMonth === true);
     }
     function refundStudents() {
-      return students.filter(n => resultsMap[n]?.continueNextMonth === false);
+      return students.filter(n => resultsMap[n]?.continueNextMonth === false && !payMap[n]?.crekit);
     }
     function pendingStudents() {
       return students.filter(n => resultsMap[n]?.continueNextMonth === undefined);
@@ -257,7 +258,7 @@
         row.className = 'px-5 py-3.5 space-y-2';
         row.innerHTML = `
           <div class="flex items-center justify-between flex-wrap gap-2">
-            <p class="text-sm font-semibold text-gray-800">${name}</p>
+            <p class="text-sm font-semibold text-gray-800">${name}${(payMap[name]||{}).crekit ? ' <span class="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-semibold">💳크레킷</span>' : ''}</p>
             <button onclick="toggleCarryPaid('${name}')"
               class="pill ${p.carryoverPaid ? 'pill-paid' : 'pill-off'}">
               ${p.carryoverPaid ? '✓ 입금 완료' : '○ 미입금'}
@@ -299,7 +300,7 @@
         row.className = 'px-5 py-3.5 space-y-1.5';
         row.innerHTML = `
           <div class="flex items-center justify-between flex-wrap gap-2">
-            <p class="text-sm font-semibold text-gray-800">${name}</p>
+            <p class="text-sm font-semibold text-gray-800">${name}${(payMap[name]||{}).crekit ? ' <span class="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-semibold">💳크레킷</span>' : ''}</p>
             <div class="flex items-center gap-2">
               <span class="text-sm font-bold text-orange-600">${won(amount)}</span>
               <button onclick="toggleRefundPaid('${name}')"

@@ -204,6 +204,7 @@
     let students = [];
     let deleteTarget = null;
     let resultsMap = {};
+    let payMap = {};   // 크레킷 결제 표시 (payments.crekit) — 크레킷으로 산 분은 보증금·환급 없음
     let allSubs = {};
 
     // ── 환급 계좌: 관리자 구글 로그인 후에만 refundAccounts 에서 읽어 합칩니다 ──
@@ -289,7 +290,7 @@
     }
 
     function renderRefundSummary() {
-      const refundStudents = students.filter(n => resultsMap[n]?.continueNextMonth === false);
+      const refundStudents = students.filter(n => resultsMap[n]?.continueNextMonth === false && !payMap[n]?.crekit);   // 크레킷 결제자는 환급 없음
       const block = document.getElementById('refundSummaryBlock');
       const list  = document.getElementById('refundSummaryList');
       document.getElementById('refundCountLabel').textContent = `${refundStudents.length}명`;
@@ -362,7 +363,13 @@
           <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xs font-bold flex-shrink-0 mr-3">
             ${realIdx + 1}
           </div>
-          <p class="flex-1 text-sm font-medium text-gray-800 flex items-center gap-1.5">${name} ${badge}</p>
+          <p class="flex-1 text-sm font-medium text-gray-800 flex items-center gap-1.5 flex-wrap">${name} ${badge}
+            ${payMap[name]?.crekit ? `<span class="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded-full font-semibold">💳크레킷 · 환급 없음</span>` : ''}</p>
+          <button onclick="toggleCrekit('${name}')"
+            class="text-xs ${payMap[name]?.crekit ? 'text-purple-600 bg-purple-50' : 'text-gray-400'} px-2 py-1 rounded-lg hover:bg-purple-50 mr-1 transition-colors"
+            title="크레킷으로 결제한 분 (12만원/16만원, 보증금·환급 없음)">
+            ${payMap[name]?.crekit ? '✓ 크레킷' : '크레킷 결제?'}
+          </button>
           <button onclick="openResultModal('${name}')"
             class="text-xs text-purple-500 px-2 py-1 rounded-lg hover:bg-purple-50 mr-1 transition-colors">
             결과 보기
@@ -398,6 +405,17 @@
       await saveStudentList(students);
       renderStudents();
       showToast(`✓ ${prevStudents.length}명을 가져왔어요`);
+    }
+
+    /* 크레킷 결제 표시 켜고 끄기 — payments/{월}_{이름}.crekit */
+    async function toggleCrekit(name) {
+      const next = !payMap[name]?.crekit;
+      try {
+        await savePayment(name, { crekit: next });
+        payMap[name] = { ...(payMap[name] || {}), crekit: next };
+        renderStudents();
+        showToast(next ? `💳 ${name}님 크레킷 결제로 표시 (환급 없음)` : `${name}님 크레킷 표시 해제`);
+      } catch (e) { showToast('저장하지 못했어요 — 다시 눌러주세요'); }
     }
 
     async function addStudent() {
@@ -512,6 +530,7 @@
       await loadResults();
       [students] = await Promise.all([
         loadStudentList(),
+        loadPayments().then(m => { payMap = m || {}; }),
         db.collection('submissions').where('challengeMonth', '==', CHALLENGE_MONTH).get()
           .then(snap => {
             snap.docs.forEach(d => {
