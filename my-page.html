@@ -46,6 +46,15 @@
           <p class="text-xs text-gray-400 text-center py-4">이름 목록을 불러오는 중...</p>
         </div>
       </div>
+      <!-- 결제 후 자동 가입 (2026-10-29): 명단에 이름이 없으면 학생이 직접 등록 → 이번 달 명단에 바로 들어감 -->
+      <div class="bg-white rounded-2xl shadow-sm p-4 space-y-2 text-left">
+        <p class="text-sm font-bold text-gray-800">명단에 내 이름이 없어요</p>
+        <p class="text-xs text-gray-400">이번 달 챌린지를 결제하고 처음 오셨다면 이름을 직접 등록해 주세요. 결제할 때 쓴 이름 그대로 넣어 주세요.</p>
+        <input type="text" id="joinName" placeholder="내 이름" maxlength="20"
+          class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" />
+        <button onclick="joinChallenge()" id="joinBtn" class="w-full bg-blue-600 text-white text-sm font-bold rounded-xl py-2.5">이름 등록하고 시작하기</button>
+        <p id="joinMsg" class="text-xs text-red-500"></p>
+      </div>
     </div>
   </div>
 
@@ -259,6 +268,21 @@
       const enc = encodeURIComponent(name);
       document.getElementById('nav-record').href = `student.html?name=${enc}&mode=student`;
       document.getElementById('nav-result').href = `result.html?name=${enc}`;
+    }
+
+    async function joinChallenge() {
+      const name = document.getElementById('joinName').value.replace(/\s+/g, ' ').trim(), msg = document.getElementById('joinMsg');
+      if (name.length < 2) { msg.textContent = '이름을 넣어 주세요.'; return; }
+      const same = allStudentNames.find(n => n.replace(/\s+/g, '') === name.replace(/\s+/g, ''));
+      if (same) { if (confirm(`"${same}" 님이 이미 명단에 있어요. 본인이세요?`)) selectStudent(same); return; }
+      if (!confirm(`"${name}" 님으로 이번 달 챌린지에 등록할까요?`)) return;
+      const btn = document.getElementById('joinBtn'); btn.disabled = true; msg.textContent = '';
+      try {
+        await db.collection('challenges').doc(CHALLENGE_MONTH).set({ month: CHALLENGE_MONTH, startDate: CHALLENGE_START,
+          students: firebase.firestore.FieldValue.arrayUnion(name), selfJoined: firebase.firestore.FieldValue.arrayUnion(name),
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
+        allStudentNames.push(name); selectStudent(name);
+      } catch (e) { console.error(e); msg.textContent = '등록이 안 됐어요. 잠시 뒤 다시 해 주시거나 카톡으로 말씀해 주세요.'; btn.disabled = false; }
     }
 
     async function selectStudent(name) {
