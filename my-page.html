@@ -183,6 +183,16 @@
         </div>
       </div>
 
+      <!-- 질문하기 (2026-10-29): 질문은 앱에서 → 비서가 AI 답변을 바로 보내고, 아주 디테일한 소리 질문만 LJ쌤이 답해요 -->
+      <div class="bg-white rounded-2xl shadow-sm p-4 space-y-3">
+        <h2 class="font-bold text-gray-800 text-sm">💬 LJ쌤에게 질문하기</h2>
+        <textarea id="qText" maxlength="1000" rows="3" placeholder="예) 'Check this out'은 왜 '체킷디사웃'처럼 들려요?"
+          class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"></textarea>
+        <button onclick="sendQuestion()" id="qBtn" class="w-full bg-blue-600 text-white text-sm font-bold rounded-xl py-2.5">질문 보내기</button>
+        <p id="qMsg" class="text-xs text-gray-400"></p>
+        <div id="myQuestions" class="space-y-2"></div>
+      </div>
+
       <!-- 내 학습 기록 전체 보기 -->
       <a id="fullRecordBtn" href="#"
          class="block text-center bg-gray-100 text-gray-600 rounded-xl py-3 text-sm font-medium hover:bg-gray-200 transition-colors">
@@ -293,6 +303,30 @@
       document.getElementById('myMonthLabel').textContent = `쉐도잉 챌린지 · ${parseInt(ym)}월`;
 
       await renderMainScreen(name);
+      loadMyQuestions(name);
+    }
+
+    // ── 질문하기: Firestore shadowingQuestions 컬렉션 { name, month, text, createdAt, answer, answeredAt, aiDraft } ──
+    const qEsc = t => String(t || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    async function loadMyQuestions(name) {
+      try {
+        const snap = await db.collection('shadowingQuestions').where('name', '==', name).get();
+        const qs = snap.docs.map(d => d.data()).sort((a, b) => b.createdAt - a.createdAt).slice(0, 10);
+        document.getElementById('myQuestions').innerHTML = qs.map(q => `<div class="rounded-xl bg-gray-50 p-3 text-sm space-y-2">
+          <p class="whitespace-pre-wrap text-gray-700">${qEsc(q.text)}</p>
+          ${q.answer ? `<div class="rounded-xl bg-blue-50 p-2.5 whitespace-pre-wrap"><b class="text-blue-700">LJ쌤</b><br>${qEsc(q.answer)}</div>` : `<p class="text-xs text-gray-400">답변을 준비하고 있어요</p>`}</div>`).join('');
+      } catch (e) { console.error('loadMyQuestions', e); }
+    }
+    async function sendQuestion() {
+      const text = document.getElementById('qText').value.trim(), msg = document.getElementById('qMsg'), btn = document.getElementById('qBtn');
+      if (!text || !currentName) { msg.textContent = '질문을 적어 주세요.'; return; }
+      btn.disabled = true;
+      try {
+        await db.collection('shadowingQuestions').add({ name: currentName, month: CHALLENGE_MONTH, text: text.slice(0, 1000), createdAt: Date.now(), answer: '', answeredAt: null, aiDraft: '' });
+        document.getElementById('qText').value = ''; msg.textContent = '질문을 보냈어요 💬 보통 금방 답이 와요. 이 화면에서 확인하실 수 있어요.';
+        loadMyQuestions(currentName);
+      } catch (e) { console.error(e); msg.textContent = '보내지 못했어요. 잠시 뒤 다시 해 주세요.'; }
+      btn.disabled = false;
     }
 
     function logout() {
