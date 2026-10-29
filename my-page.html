@@ -83,6 +83,12 @@
 
     <main class="max-w-lg mx-auto px-3 py-5 pb-24 space-y-4">
 
+      <!-- LJ쌤 메시지 (teacherMessages, 최근 14일) -->
+      <div id="teacherMsgCard" class="hidden bg-pink-50 border border-pink-100 rounded-2xl p-4">
+        <p class="text-xs font-bold text-pink-600 mb-2">💌 LJ쌤 메시지</p>
+        <div id="teacherMsgList" class="space-y-3"></div>
+      </div>
+
       <!-- 오늘 인증 여부 -->
       <div id="todayStatus" class="hidden rounded-2xl px-4 py-3 flex items-center justify-between gap-3">
         <p id="todayStatusText" class="text-sm font-bold"></p>
@@ -299,6 +305,9 @@
       // 함께하는 사람들 (실패해도 나머지 화면에 영향 없음)
       renderCommunity(name);
 
+      // LJ쌤 개인 메시지 (실패해도 나머지 화면에 영향 없음)
+      renderTeacherMessages(name);
+
       // 이번 주 요일 도트
       renderWeekDots(subs);
 
@@ -320,6 +329,33 @@
       const [,, wd7]   = weekDates[6].split('-');
       document.getElementById('weekDetailLabel').textContent =
         `이번 주 (${currentWeek}주차) ${parseInt(wm)}/${parseInt(wd1)}–${parseInt(wd7)} · 7일 중 5일 인증`;
+    }
+
+    async function renderTeacherMessages(name) {
+      try {
+        const snap = await db.collection('teacherMessages').where('studentName', '==', name).get();
+        const since = Date.now() - 14 * 24 * 60 * 60 * 1000;
+        const msgs = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+          .filter(m => m.text && (m.createdAt?.toMillis?.() || 0) >= since)
+          .sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis());
+        if (!msgs.length) return;
+        const list = document.getElementById('teacherMsgList');
+        list.innerHTML = '';
+        msgs.forEach(m => {
+          const box = document.createElement('div');
+          const date = document.createElement('p');
+          date.className = 'text-xs text-gray-400 mb-0.5';
+          const d = m.createdAt.toDate();
+          date.textContent = `${d.getMonth() + 1}/${d.getDate()}` + (m.readAt ? '' : ' · 새 메시지');
+          const text = document.createElement('p');
+          text.className = 'text-sm text-gray-800 whitespace-pre-line leading-relaxed';
+          text.textContent = m.text;
+          box.append(date, text);
+          list.appendChild(box);
+          if (!m.readAt) db.collection('teacherMessages').doc(m.id).update({ readAt: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => {});
+        });
+        document.getElementById('teacherMsgCard').classList.remove('hidden');
+      } catch (e) {}
     }
 
     function renderWeekSummary(subs) {
