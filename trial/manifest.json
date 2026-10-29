@@ -1,7 +1,7 @@
 {
-  "name": "5일 쉐도잉 체험",
-  "short_name": "5일 체험",
-  "description": "LJ ENGLISH CLASS · 5일 쉐도잉 무료 체험",
+  "name": "쉐도잉 체험",
+  "short_name": "쉐도잉 체험",
+  "description": "LJ ENGLISH CLASS · 쉐도잉 2단계 무료 체험",
   "start_url": "index.html",
   "scope": "./",
   "display": "standalone",

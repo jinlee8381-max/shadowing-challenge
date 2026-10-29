@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#3b82f6">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="5일 체험">
+  <meta name="apple-mobile-web-app-title" content="쉐도잉 체험">
   <link rel="icon" href="../icons/icon-192.png">
   <!-- ⚠️ manifest 는 안드로이드에서만 연결합니다. iOS 에 연결하면 안 됩니다.
        iOS 는 manifest 가 있으면 홈 화면 추가 시 start_url(index.html)로 열려
@@ -25,7 +25,7 @@
     })();
   </script>
   <link rel="apple-touch-icon" href="../icons/icon-192.png">
-  <title>내 체험 현황 · 5일 쉐도잉 체험</title>
+  <title>쉐도잉 체험</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -46,7 +46,7 @@
     <div class="w-full max-w-xs space-y-5 text-center">
       <div>
         <span class="text-4xl">🎁</span>
-        <h1 class="text-xl font-bold text-gray-900 mt-2">5일 쉐도잉 체험</h1>
+        <h1 class="text-xl font-bold text-gray-900 mt-2">쉐도잉 2단계 체험</h1>
         <p class="text-sm text-gray-400 mt-1.5 leading-relaxed">
           신청할 때 쓰신 <b>이메일</b>을 입력하면<br>내 체험 현황으로 들어가요
         </p>
@@ -66,7 +66,7 @@
       <div class="pt-1">
         <p class="text-xs text-gray-400">아직 체험 신청을 안 하셨나요?</p>
         <a href="apply.html" class="inline-block mt-2 text-sm font-semibold text-blue-600 hover:underline">
-          5일 무료 체험 신청하기 →
+          무료 체험 신청하기 →
         </a>
       </div>
     </div>
@@ -380,8 +380,10 @@
         return showGate('이 이메일로 신청한 기록이 없어요.<br>아래에서 먼저 체험을 신청해주세요!');
       }
 
-      // 🔒 2주 지났으면 여기서 끝 — 아무것도 불러오지 않고 잠금 화면만
+      // 🔒 7일 지났으면 여기서 끝 — 아무것도 불러오지 않고 잠금 화면만
       if (showTrialLockIfExpired(trialDayInfo(ME.startDate))) return;
+      // 2단계 체험(2026-10-28~): 현황판 없이 바로 녹음 화면으로 — 클릭 한 번이라도 줄이기
+      return location.replace('today.html');
 
       const [subs, curriculum] = await Promise.all([
         loadTrialSubmissions(email),

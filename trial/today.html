@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#3b82f6">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="5일 체험">
+  <meta name="apple-mobile-web-app-title" content="쉐도잉 체험">
   <link rel="icon" href="../icons/icon-192.png">
   <!-- ⚠️ manifest 는 안드로이드에서만 연결합니다. iOS 에 연결하면 안 됩니다.
        iOS 는 manifest 가 있으면 홈 화면 추가 시 start_url(index.html)로 열려
@@ -25,7 +25,7 @@
     })();
   </script>
   <link rel="apple-touch-icon" href="../icons/icon-192.png">
-  <title>오늘의 과제 · 5일 쉐도잉 체험</title>
+  <title>쉐도잉 체험 · 2단계</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -61,15 +61,15 @@
       <div class="max-w-lg mx-auto flex items-center justify-between mt-2 px-1">
         <button id="btnPrev" onclick="goDay(-1)"
           class="text-xs text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full hover:bg-gray-200 transition-colors disabled:opacity-30">
-          ← 이전 Day
+          ← 1단계
         </button>
         <button id="btnToday" onclick="goToday()"
           class="hidden text-xs text-blue-600 bg-blue-50 px-3 py-1.5 rounded-full hover:bg-blue-100 transition-colors font-semibold">
-          오늘 과제로 →
+          지금 단계로 →
         </button>
         <button id="btnNext" onclick="goDay(1)"
           class="text-xs text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full hover:bg-gray-200 transition-colors disabled:opacity-30">
-          다음 Day →
+          2단계 →
         </button>
       </div>
     </header>
@@ -88,7 +88,7 @@
         </div>
         <a id="notionBtn" href="#" target="_blank"
           class="flex items-center justify-center gap-2 bg-white text-blue-600 font-bold text-sm py-3 rounded-xl hover:bg-blue-50 transition-colors mt-4">
-          <span>📄</span> 쉐도잉 노트에서 과제 보기
+          <span>📄</span> 영상 · 대본 보기
         </a>
         <p id="notionWarning" class="hidden text-xs text-blue-200 text-center mt-2">
           ※ 선생님이 아직 링크를 입력하지 않았어요
@@ -101,7 +101,7 @@
         <div class="space-y-2.5">
           <div class="flex items-start gap-3">
             <span class="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
-            <p class="text-sm text-gray-600">위 버튼을 눌러 오늘의 미션 확인</p>
+            <p class="text-sm text-gray-600">위 버튼을 눌러 영상·대본 확인 (짧은 6줄이에요)</p>
           </div>
           <div class="flex items-start gap-3">
             <span class="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
@@ -109,29 +109,49 @@
           </div>
           <div class="flex items-start gap-3">
             <span class="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
-            <p class="text-sm text-gray-600">내 목소리를 녹음하거나 공부 사진을 찍어 아래에 인증</p>
+            <p class="text-sm text-gray-600">아래 빨간 버튼으로 <b>대본 6줄을 녹음</b>해서 제출</p>
           </div>
           <div class="flex items-start gap-3">
             <span class="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">4</span>
-            <p class="text-sm text-gray-600">어려웠던 소리를 체크하면 <b>맞춤 발음 연습 페이지</b>를 열어드려요</p>
+            <p class="text-sm text-gray-600"><b>AI가 원본과 내 녹음을 비교</b>해서 고칠 곳을 짚어 드려요 (메일로도 와요)</p>
           </div>
         </div>
+      </div>
+
+      <!-- 1단계 피드백 + 내 1단계 녹음 (2단계에서 보임) -->
+      <div id="prevFeedbackCard" class="hidden bg-white rounded-2xl shadow-sm p-4 space-y-3 border-2 border-indigo-200">
+        <div>
+          <p class="text-sm font-bold text-indigo-700">🔎 1단계 AI 발음 분석</p>
+          <p class="text-xs text-gray-400 mt-0.5">원본 광고와 내 녹음을 비교한 결과예요. 이 부분만 신경 쓰고 다시 녹음해 보세요</p>
+        </div>
+        <div id="prevFeedbackText" class="bg-indigo-50 rounded-xl p-3 text-sm text-gray-800 leading-relaxed whitespace-pre-line"></div>
+        <div id="prevAudioWrap" class="hidden">
+          <p class="text-xs text-gray-500 mb-1">내 1단계 녹음</p>
+          <audio id="prevAudio" controls playsinline preload="metadata" class="w-full"></audio>
+        </div>
+      </div>
+
+      <!-- 피드백 기다리는 중 -->
+      <div id="waitingCard" class="hidden bg-white rounded-2xl shadow-sm p-5 text-center space-y-2 border-2 border-indigo-100">
+        <p class="text-3xl animate-pulse">🎧</p>
+        <p class="text-sm font-bold text-gray-800">AI가 내 녹음을 원본과 비교하고 있어요</p>
+        <p class="text-xs text-gray-500 leading-relaxed">보통 1시간 안에 끝나요.<br>피드백이 오면 <b>메일로 알려드리고</b> 이 화면에 바로 2단계가 열려요.</p>
       </div>
 
       <!-- 인증 폼 -->
       <div class="bg-white rounded-2xl shadow-sm p-4 space-y-4" id="submitSection">
         <div class="flex items-center justify-between">
-          <h3 class="font-bold text-gray-800 text-sm">오늘 인증하기</h3>
+          <h3 class="font-bold text-gray-800 text-sm">녹음 제출하기</h3>
           <span id="submitStatus" class="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">미완료</span>
         </div>
 
         <div id="alreadyDone" class="hidden bg-green-50 rounded-xl p-4 text-center">
           <p class="text-2xl mb-1">✅</p>
-          <p class="text-sm font-semibold text-green-700" id="doneTitle">오늘 인증 완료!</p>
+          <p class="text-sm font-semibold text-green-700" id="doneTitle">제출 완료!</p>
           <p class="text-xs text-green-600 mt-1" id="doneBody">-</p>
           <a href="result.html" id="doneResultBtn"
             class="hidden mt-3 bg-green-600 text-white text-xs font-bold px-4 py-2.5 rounded-full hover:bg-green-700 transition-colors inline-block">
-            📊 내 체험 리포트 보러 가기 →
+            📊 1단계 · 2단계 비교 리포트 보기 →
           </a>
         </div>
 
@@ -219,6 +239,22 @@
         <div class="flex flex-wrap gap-2" id="recommendList"></div>
       </div>
 
+      <!-- 이번 단계 피드백 -->
+      <div id="myFeedbackCard" class="hidden bg-white rounded-2xl shadow-sm p-4 space-y-2 border-2 border-indigo-200">
+        <p class="text-sm font-bold text-indigo-700" id="myFeedbackTitle">🔎 AI 발음 분석</p>
+        <div id="myFeedbackText" class="bg-indigo-50 rounded-xl p-3 text-sm text-gray-800 leading-relaxed whitespace-pre-line"></div>
+      </div>
+
+      <!-- 완주 선물 -->
+      <div id="giftCard" class="hidden bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl shadow-sm p-5 border-2 border-amber-200 space-y-2">
+        <p class="text-sm font-bold text-amber-800">🎁 완주 선물이 도착했어요</p>
+        <p class="text-base font-bold text-gray-900" id="giftTitle">-</p>
+        <p class="text-xs text-gray-600" id="giftDesc">-</p>
+        <a id="giftLink" href="#" target="_blank"
+          class="block w-full bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm py-3 rounded-xl text-center transition-colors">받으러 가기 →</a>
+        <p class="text-xs text-gray-500 text-center">비밀번호 <b id="giftPw">-</b></p>
+      </div>
+
       <!-- 자동 응원 -->
       <div id="encourageCard" class="hidden bg-white rounded-2xl shadow-sm p-4">
         <div class="flex items-start gap-3">
@@ -233,7 +269,7 @@
       <!-- 체험 진행 상황 -->
       <div class="bg-white rounded-2xl shadow-sm p-4">
         <div class="flex items-center justify-between mb-3">
-          <p class="text-sm font-bold text-gray-800">내 5일 체험</p>
+          <p class="text-sm font-bold text-gray-800">내 2단계 체험</p>
           <p class="text-xs text-gray-400" id="progressCount">-</p>
         </div>
         <div class="flex gap-1.5" id="dayDots"></div>
@@ -244,8 +280,8 @@
         <p class="text-xs font-semibold opacity-80 tracking-wider">LJ CLASS</p>
         <p class="text-lg font-bold mt-1.5 leading-snug">혼자 하면 3일,<br>같이 하면 한 달이 갑니다</p>
         <p class="text-xs opacity-85 mt-2.5 leading-relaxed">
-          1달 챌린지에서는 <b>매일 인증할 때마다 선생님이 직접 듣고 1:1 맞춤 피드백</b>을 드려요.
-          내 발음에서 뭘 고쳐야 하는지 정확히 짚어드립니다.
+          체험 피드백은 AI 분석이에요. 1달 챌린지에서는 <b>매일 인증할 때마다 LJ쌤이 직접 듣고 1:1 피드백</b>을 드려요.
+          AI가 못 잡는 입 모양·습관까지 짚어드립니다.
         </p>
         <a href="https://jinlee8381-max.github.io/shadowing-challenge/apply.html#apply"
           class="mt-4 w-full bg-white text-[#7A4A5A] font-bold text-sm py-3 rounded-xl hover:bg-rose-50 transition-colors block text-center">
@@ -265,7 +301,7 @@
         </a>
         <a href="today.html" class="flex flex-col items-center py-2.5 gap-0.5 text-blue-600">
           <span class="text-xl leading-none">📚</span>
-          <span class="text-xs font-semibold">오늘 과제</span>
+          <span class="text-xs font-semibold">체험</span>
         </a>
         <a href="result.html" class="flex flex-col items-center py-2.5 gap-0.5 text-gray-400 hover:text-gray-600 transition-colors">
           <span class="text-xl leading-none">🏆</span>
@@ -426,8 +462,8 @@
     // ── 제출 ──
     async function submitVerification() {
       if (uploadedFiles.length === 0) return alert('음성 파일이나 사진을 먼저 첨부해 주세요!');
-      if (SUBS.some(s => (s.dateKey || tsToDateKey(s.submittedAt)) === today)) {
-        alert('오늘은 이미 인증했어요! 내일 또 와주세요 😊');
+      if (SUBS.some(s => s.day === INFO.day)) {
+        alert('이 단계는 이미 제출했어요!');
         return markAsDone();
       }
 
@@ -439,7 +475,7 @@
       try {
         const fileUrls = await uploadTrialFiles(uploadedFiles, ME.email);
         const feeling  = document.getElementById('feelingInput').value.trim();
-        await saveTrialSubmission({
+        const ref = await saveTrialSubmission({
           email: ME.email, name: ME.name,
           day: INFO.day, fileUrls, feeling, selfCheck: selfChecked
         });
@@ -453,13 +489,16 @@
           selfCheck: (selfChecked || []).join(',')
         });
 
-        SUBS.push({ email: ME.email, day: INFO.day, dateKey: today, selfCheck: selfChecked });
+        SUBS.push({ id: ref.id, email: ME.email, day: INFO.day, dateKey: today, selfCheck: selfChecked, fileUrls });
+        const doneDay = INFO.day;
         markAsDone();
         renderRecommend(selfChecked);
         renderEncourage();
         renderDayDots();
-        showToast('🎉 오늘 인증이 완료되었어요!');
-        document.getElementById('recommendSection').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        showToast('🎉 제출 완료!');
+        if (doneDay === 1) watchFeedback(ref.id);
+        else showMyFeedback(SUBS.find(s => s.day === 2));
+        document.getElementById('submitSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
       } catch(e) {
         console.error('제출 오류:', e);
         alert('제출 중 오류가 발생했어요. 다시 시도해주세요.\n' + e.message);
@@ -478,18 +517,18 @@
 
       const isLastDay = INFO.day >= TRIAL_DAYS;
       document.getElementById('doneTitle').textContent = isLastDay
-        ? `마지막 Day ${TRIAL_DAYS}까지 해냈어요! 🎉`
-        : '오늘 인증 완료!';
+        ? '2단계까지 해냈어요! 🎉'
+        : '1단계 녹음 제출 완료!';
       document.getElementById('doneBody').textContent = isLastDay
-        ? '5일 완주 리포트에서 내 기록을 확인해보세요.'
-        : `내일 Day ${INFO.day + 1}에서 또 만나요!`;
+        ? '비교 피드백도 곧 메일로 가요. 리포트에서 두 녹음을 나란히 들어보세요.'
+        : 'AI 피드백이 오면 메일로 알려드리고 바로 2단계가 열려요.';
       document.getElementById('doneResultBtn').classList.toggle('hidden', !isLastDay);
+      if (isLastDay) showGift();
     }
 
     function renderEncourage() {
       const doneCount = new Set(SUBS.map(s => s.dateKey || tsToDateKey(s.submittedAt))).size;
-      const { streak } = calcTrialStreak(SUBS);
-      const enc = encourageMessage(INFO.day, doneCount, streak);
+      const enc = encourageMessage(INFO.day, doneCount, INFO.waitingFeedback || (doneCount === 1 && INFO.day === 1));
       document.getElementById('encEmoji').textContent = enc.emoji;
       document.getElementById('encTitle').textContent = enc.title;
       document.getElementById('encBody').textContent  = enc.body;
@@ -498,28 +537,69 @@
 
     function renderDayDots() {
       const el = document.getElementById('dayDots');
-      const dates = trialDates(ME.startDate);
       el.innerHTML = '';
       let done = 0;
-      dates.forEach((dateStr, i) => {
-        const ok = SUBS.some(s => (s.dateKey || tsToDateKey(s.submittedAt)) === dateStr);
+      ['처음 녹음', '다시 녹음'].forEach((label, i) => {
+        const step = i + 1;
+        const ok = SUBS.some(s => s.day === step);
         if (ok) done++;
-        let cls, sym;
-        if (dateStr > today)        { cls = 'bg-gray-100 text-gray-300 border border-dashed border-gray-200'; sym = '·'; }
-        else if (dateStr === today) { cls = ok ? 'bg-green-500 text-white' : 'bg-blue-500 text-white ring-2 ring-blue-300'; sym = ok ? '●' : '▶'; }
-        else                        { cls = ok ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-400'; sym = ok ? '●' : '○'; }
-        const [,dm,dd] = dateStr.split('-');
+        const cur = !ok && step === INFO.day;
+        const cls = ok ? 'bg-green-500 text-white' : cur ? 'bg-blue-500 text-white ring-2 ring-blue-300' : 'bg-gray-100 text-gray-300 border border-dashed border-gray-200';
         el.innerHTML += `
           <div class="flex-1 text-center">
-            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full ${cls} text-xs font-bold">${sym}</span>
-            <p class="text-[10px] text-gray-400 mt-1 leading-tight">D${i+1}<br>${parseInt(dm)}/${parseInt(dd)}</p>
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full ${cls} text-xs font-bold">${ok ? '●' : step}</span>
+            <p class="text-[10px] text-gray-400 mt-1 leading-tight">${step}단계<br>${label}</p>
           </div>`;
       });
-      document.getElementById('progressCount').textContent = `${done}/${TRIAL_DAYS}일 인증`;
+      document.getElementById('progressCount').textContent = `${done}/${TRIAL_DAYS}단계 완료`;
+    }
+
+    // ── AI 피드백 ──
+    function feedbackHtml(text) {
+      const esc = String(text || '').replace(/[&<>]/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[c]));
+      return esc.replace(/\*\*(.+?)\*\*/g, '<b>$1</b>');
+    }
+    function showPrevFeedback() {
+      const s1 = SUBS.find(s => s.day === 1);
+      if (!s1) return;
+      document.getElementById('prevFeedbackText').innerHTML = s1.aiFeedback
+        ? feedbackHtml(s1.aiFeedback)
+        : '분석이 늦어지고 있어요. 원본 소리를 한 번 더 듣고, 강세 단어만 크게·길게 해서 다시 녹음해 보세요.';
+      const url = (s1.fileUrls || [])[0];
+      if (url) { document.getElementById('prevAudio').src = url; document.getElementById('prevAudioWrap').classList.remove('hidden'); }
+      document.getElementById('prevFeedbackCard').classList.remove('hidden');
+    }
+    function showMyFeedback(sub) {
+      if (!sub) return;
+      document.getElementById('myFeedbackTitle').textContent = sub.day === 2 ? '🔎 1단계 → 2단계 비교 분석' : '🔎 AI 발음 분석';
+      document.getElementById('myFeedbackText').innerHTML = sub.aiFeedback
+        ? feedbackHtml(sub.aiFeedback)
+        : 'AI가 1단계와 비교하고 있어요. 끝나면 메일로 보내드려요.';
+      document.getElementById('myFeedbackCard').classList.remove('hidden');
+      if (!sub.aiFeedback && sub.id) {
+        const stop = db.collection('trialSubmissions').doc(sub.id).onSnapshot(d => {
+          const fb = d.data()?.aiFeedback;
+          if (fb) { sub.aiFeedback = fb; document.getElementById('myFeedbackText').innerHTML = feedbackHtml(fb); stop(); }
+        });
+      }
+    }
+    // 1단계 피드백이 도착하면 새로고침해서 2단계 열기
+    function watchFeedback(id) {
+      document.getElementById('waitingCard').classList.remove('hidden');
+      const stop = db.collection('trialSubmissions').doc(id).onSnapshot(d => {
+        if (d.data()?.aiFeedback) { stop(); location.href = 'today.html'; }
+      });
+    }
+    function showGift() {
+      document.getElementById('giftTitle').textContent = TRIAL_GIFT.title;
+      document.getElementById('giftDesc').textContent  = TRIAL_GIFT.desc;
+      document.getElementById('giftLink').href         = TRIAL_GIFT.url;
+      document.getElementById('giftPw').textContent    = TRIAL_GIFT.password;
+      document.getElementById('giftCard').classList.remove('hidden');
     }
 
     // ── Day 이동 ──
-    function maxViewableDay() { return INFO.ended ? TRIAL_DAYS : INFO.day; }
+    function maxViewableDay() { return INFO.day; }
 
     function goDay(dir) {
       const next = VIEW_DAY + dir;
@@ -544,23 +624,23 @@
       ME = await loadTrialUser(email);
       if (!ME) return location.replace('index.html');
 
-      INFO = trialDayInfo(ME.startDate);
-      // 🔒 2주 지났으면 과제 내용 자체를 불러오지 않음
-      if (showTrialLockIfExpired(INFO)) return;
+      // 🔒 7일 지났으면 과제 내용 자체를 불러오지 않음
+      if (showTrialLockIfExpired(trialDayInfo(ME.startDate))) return;
 
       const [subs, curriculum] = await Promise.all([
         loadTrialSubmissions(email),
         loadTrialCurriculum()
       ]);
       SUBS = subs;
+      INFO = trialDayInfo(ME.startDate, SUBS);
 
       // 볼 Day 결정 (미래 Day는 못 봄)
       const wanted = parseInt(params.get('day'));
       VIEW_DAY = (wanted && wanted >= 1 && wanted <= maxViewableDay()) ? wanted : INFO.day;
-      const isPast = VIEW_DAY !== INFO.day || INFO.ended;
+      const isPast = VIEW_DAY !== INFO.day;
 
       const lesson = curriculum.find(l => l.day === VIEW_DAY);
-      document.getElementById('lessonBadge').textContent   = `Day ${VIEW_DAY} / ${TRIAL_DAYS}`;
+      document.getElementById('lessonBadge').textContent   = `${VIEW_DAY}단계 / ${TRIAL_DAYS}`;
       document.getElementById('lessonTitle').textContent   = lesson?.title   || `Day ${VIEW_DAY} 과제`;
       document.getElementById('lessonMission').textContent = lesson?.mission || '오늘의 쉐도잉 미션';
 
@@ -579,11 +659,12 @@
       const [,m,d] = today.split('-');
       const dayName = ['일','월','화','수','목','금','토'][new Date().getDay()];
       document.getElementById('todayLabel').textContent =
-        isPast ? `Day ${VIEW_DAY} 과제 다시 보기` : `Day ${INFO.day} · ${dayName} ${parseInt(m)}/${parseInt(d)}`;
+        isPast ? `${VIEW_DAY}단계 다시 보기` : (VIEW_DAY === 1 ? '1단계 · 처음 녹음' : '2단계 · 피드백 보고 다시 녹음');
+      document.getElementById('pageTitle').textContent = '쉐도잉 체험';
       if (isPast) {
-        document.getElementById('pageTitle').textContent = '지난 과제 보기';
         document.getElementById('submitSection').classList.add('hidden');
-        if (!INFO.ended) document.getElementById('btnToday').classList.remove('hidden');
+        document.getElementById('btnToday').classList.remove('hidden');
+        showMyFeedback(SUBS.find(s => s.day === VIEW_DAY));
       }
 
       document.getElementById('btnPrev').disabled = VIEW_DAY <= 1;
@@ -593,10 +674,17 @@
       renderDayDots();
 
       if (!isPast) {
-        if (SUBS.some(s => (s.dateKey || tsToDateKey(s.submittedAt)) === today)) {
+        if (VIEW_DAY === 2) showPrevFeedback();
+        if (INFO.waitingFeedback) {
+          // 1단계는 냈고 피드백 대기 중 → 2단계 폼 대신 대기 화면
+          document.getElementById('submitSection').classList.add('hidden');
+          document.getElementById('prevFeedbackCard').classList.add('hidden');
+          watchFeedback(SUBS.find(s => s.day === 1).id);
+        } else if (SUBS.some(s => s.day === VIEW_DAY)) {
           markAsDone();
-          const last = SUBS.filter(s => (s.dateKey || tsToDateKey(s.submittedAt)) === today).slice(-1)[0];
+          const last = SUBS.find(s => s.day === VIEW_DAY);
           renderRecommend(last?.selfCheck || []);
+          showMyFeedback(last);
         }
         renderEncourage();
       }

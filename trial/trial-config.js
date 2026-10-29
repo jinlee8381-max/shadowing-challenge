@@ -1,5 +1,5 @@
 // ===================================================
-// 🎁 5일 체험판 설정 파일
+// 🎁 2단계 체험판 설정 파일 (2026-10-28: 5일 → 2단계로 줄임)
 // ===================================================
 // 본 챌린지(../firebase-config.js)와 같은 Firebase 프로젝트를 쓰지만
 // 데이터는 완전히 분리되어 있습니다.
@@ -25,13 +25,25 @@ const storage = firebase.storage();
 // ⚙️ 체험판 기본 설정
 // ===================================================
 
-const TRIAL_DAYS = 5;                    // 체험 기간 (일) — 과제 개수와 반드시 같아야 함
+const TRIAL_DAYS = 2;                    // 체험 단계 수 — 과제 개수와 반드시 같아야 함
+// 날짜가 아니라 '단계'로 진행합니다.
+//   1단계 녹음 제출 → AI 발음 분석 피드백(메일 + 체험 페이지) → 피드백이 오면 바로 2단계 열림
+//   2단계 = 같은 구간을 피드백 보고 다시 녹음 → 1단계와 비교 피드백 + 완주 선물
+// 피드백이 FEEDBACK_WAIT_HOURS 안에 안 오면(맥이 꺼져 있는 등) 2단계를 그냥 열어 줍니다.
+const FEEDBACK_WAIT_HOURS = 12;
 
-// 🔒 완전 차단까지의 기간 (일)
-//   Day 1 ~ 5   : 정상 체험 (인증 제출 가능)
-//   Day 6 ~ 14  : 체험 종료 — 제출은 막히지만 지난 과제 열람은 가능
-//   Day 15 부터 : 완전 차단 — 페이지 자체를 못 봄 (잠금 화면만 표시)
-const TRIAL_ACCESS_DAYS = 14;
+// 🔒 완전 차단까지의 기간 (신청일부터, 일)
+//   ~ 7일   : 체험 · 다시 보기 가능
+//   8일부터 : 완전 차단 — 페이지 자체를 못 봄 (잠금 화면만 표시)
+const TRIAL_ACCESS_DAYS = 7;
+
+// 🎁 2단계 완주 선물 = 리스닝 부스터 2종 (이미 배포된 다운로드 페이지)
+const TRIAL_GIFT = {
+  title: '리스닝 부스터 2종',
+  desc:  '귀 뚫기 체크리스트 + 소리법칙 퀵 트레이닝북',
+  url:   'https://lj-boosters.jinlee8381.workers.dev/free.html',
+  password: 'ljenglish'
+};
 
 // 체험판 주소 — 이메일에 넣을 링크를 만들 때 사용
 const TRIAL_BASE_URL = 'https://jinlee8381-max.github.io/shadowing-challenge/trial/';
@@ -94,37 +106,24 @@ function mirrorToSheet(type, data) {
 }
 
 // ===================================================
-// 📚 체험 5일 커리큘럼 (기본값)
+// 📚 체험 2단계 커리큘럼 (기본값)
 // ===================================================
-// 자료 = 지난 챌린지 W1 「슈퍼볼 광고 · 알렉사 편」(스칼렛 요한슨 & 콜린 조스트)
-//   Day 1~4 = 광고를 네 구간으로 나눠서 / Day 5 = 전체 통으로
-// 관리자 페이지(admin.html)에서 수정하면 Firestore에 저장되고
-// 아래 기본값보다 우선 적용됩니다. 여기 직접 고쳐도 됩니다.
+// 자료 = 지난 챌린지 W1 「슈퍼볼 광고 · 알렉사 편」(스칼렛 요한슨 & 콜린 조스트) 첫 구간
+//   Hey, babe. Check this out. / Alexa, it's game day. / Streaming football on Prime Video.
+//   Closing blinds. Chilling rosé. / Rosé? / Well, it's an afternoon game.
+//   1단계 = 처음 녹음 / 2단계 = 피드백 보고 같은 구간 다시 녹음
+// AI 분석 원본 = _ai-feedback/ref/alexa-mindreader-ZBx2XxbIBe0.webm (0~14초)
+// 관리자 페이지(admin.html)에서 수정하면 Firestore에 저장되고 아래 기본값보다 우선 적용됩니다.
 const DEFAULT_TRIAL_LESSONS = [
   { day: 1,
-    title:   '알렉사, 게임 데이',
-    mission: '',
+    title:   '알렉사, 게임 데이 · 처음 녹음',
+    mission: '대본 6줄을 듣고 그대로 따라 녹음해 보세요. 잘하려고 하지 말고 지금 내 소리 그대로!',
     notionUrl: 'https://app.notion.com/p/W1-D1-_-_-_-3ae6a9fdb6dd8013a531e519178badc7?source=copy_link' },
 
   { day: 2,
-    title:   '알렉사의 엉뚱한 오해',
-    mission: '무심한 대화 톤과 로봇 톤을 번갈아 연기해보세요',
-    notionUrl: 'https://app.notion.com/p/W1-D2-_-_-_-3ae6a9fdb6dd80b2b712c64f3bac64d0?source=copy_link' },
-
-  { day: 3,
-    title:   'Tell Me Lies · 티키타카',
-    mission: '주고받는 대화의 리듬과 감정선을 살리는 날',
-    notionUrl: 'https://app.notion.com/p/W1-D3-_-_-_-3ae6a9fdb6dd8091b1dbd95053f071c6?source=copy_link' },
-
-  { day: 4,
-    title:   'Announcement · AI 톤 대결',
-    mission: '알렉사의 무표정 낭독톤 vs 진짜 사람의 대화 톤',
-    notionUrl: 'https://app.notion.com/p/W1-D4-_-_-_-3ae6a9fdb6dd80b9b2e8e854784e9568?source=copy_link' },
-
-  { day: 5,
-    title:   '마지막 날 · 전체 통으로',
-    mission: '대본 없이 처음부터 끝까지 한 번에! 5일간 쪼갠 대사를 하나로 합쳐보세요',
-    notionUrl: 'https://app.notion.com/p/W1-D5-_-_-_-3ae6a9fdb6dd805d837ae9547df319af?source=copy_link' }
+    title:   '같은 구간 · 다시 녹음',
+    mission: '피드백에서 짚은 부분만 신경 쓰고 같은 구간을 다시 녹음해요. 1단계와 나란히 들어보면 차이가 들려요.',
+    notionUrl: 'https://app.notion.com/p/W1-D1-_-_-_-3ae6a9fdb6dd8013a531e519178badc7?source=copy_link' }
 ];
 
 // ===================================================
@@ -182,20 +181,28 @@ function trialDates(startDate) {
   return Array.from({ length: TRIAL_DAYS }, (_, i) => dateAfter(startDate, i));
 }
 
-// 오늘이 체험 며칠째인지 계산 (Day 1 ~ 7)
-function trialDayInfo(startDate) {
+// 체험 진행 상황 — 날짜가 아니라 '단계'로 계산 (잠금만 날짜 기준)
+//   subs 를 안 넘기면 1단계로 봅니다 (잠금 여부만 필요할 때)
+function trialDayInfo(startDate, subs) {
   const s = new Date(startDate + 'T00:00:00');
   const t = new Date(); t.setHours(0,0,0,0);
-  const diff = Math.floor((t - s) / 86400000);
-  const day  = diff + 1;
+  const rawDay = Math.floor((t - s) / 86400000) + 1;
+  const list   = subs || [];
+  const s1 = list.find(x => x.day === 1);
+  const s2 = list.find(x => x.day === 2);
+  const s1At = s1 ? (s1.submittedAt?.toMillis?.() || Date.now()) : 0;
+  const waitOver = s1 && (Date.now() - s1At) > FEEDBACK_WAIT_HOURS * 3600000;
+  const feedbackReady = !!(s1 && (s1.aiFeedback || waitOver));
+  const day = !s1 ? 1 : 2;
   return {
     startDate,
-    day:      Math.min(Math.max(day, 1), TRIAL_DAYS),
-    rawDay:   day,
-    ended:    day > TRIAL_DAYS,                       // 5일 지남 → 제출 차단
-    locked:   day > TRIAL_ACCESS_DAYS,                // 2주 지남 → 완전 차단
-    lastDate: dateAfter(startDate, TRIAL_DAYS - 1),
-    lockDate: dateAfter(startDate, TRIAL_ACCESS_DAYS) // 이 날짜부터 못 봄
+    day,
+    rawDay,
+    waitingFeedback: !!(s1 && !s2 && !feedbackReady),   // 1단계 냈고 피드백 기다리는 중
+    ended:    !!s2,                                     // 2단계까지 냄 → 완주
+    locked:   rawDay > TRIAL_ACCESS_DAYS,               // 7일 지남 → 완전 차단
+    lastDate: dateAfter(startDate, TRIAL_ACCESS_DAYS - 1),
+    lockDate: dateAfter(startDate, TRIAL_ACCESS_DAYS)   // 이 날짜부터 못 봄
   };
 }
 
@@ -218,7 +225,7 @@ function showTrialLockIfExpired(info) {
           <span class="text-5xl">🔒</span>
           <h1 class="text-xl font-bold text-gray-900 mt-3">체험 기간이 종료되었어요</h1>
           <p class="text-sm text-gray-400 mt-2 leading-relaxed">
-            ${TRIAL_DAYS}일 체험과 복습 기간(${TRIAL_ACCESS_DAYS}일)이<br>모두 끝나 더 이상 열람할 수 없어요.
+            체험 열람 기간(${TRIAL_ACCESS_DAYS}일)이 끝나<br>더 이상 열람할 수 없어요.
           </p>
         </div>
 
@@ -306,10 +313,14 @@ function prettyDate(dateStr) {
 
 // 체험 링크 이메일 발송 (EmailJS)
 // startDate 를 넘기면 메일 템플릿에서 {{start_date}} / {{end_date}} 를 쓸 수 있음
+// ⚠️ 2026-10-28부터 환영 메일은 Apps Script(_apps-script-체험메일.gs recordSignup)가 보냅니다.
+//    EmailJS 템플릿은 5일 문구라 끔 — 다시 쓰려면 WELCOME_BY_EMAILJS = true
+const WELCOME_BY_EMAILJS = false;
 async function sendTrialLinkEmail({ name, email, startDate }) {
   const link  = `${TRIAL_BASE_URL}?e=${encodeURIComponent(normEmail(email))}`;
+  if (!WELCOME_BY_EMAILJS) return link;
   const start = startDate || todayStr();
-  const end   = dateAfter(start, TRIAL_DAYS - 1);
+  const end   = dateAfter(start, TRIAL_ACCESS_DAYS - 1);
 
   const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
     method: 'POST',
@@ -324,7 +335,7 @@ async function sendTrialLinkEmail({ name, email, startDate }) {
         trial_link: link,
         start_date: prettyDate(start),
         end_date:   prettyDate(end),
-        trial_days: String(TRIAL_DAYS)
+        trial_days: String(TRIAL_DAYS)   // 메일 문구는 '2단계'로 씀 (_emailjs-welcome-template.html)
       }
     })
   });
@@ -437,29 +448,21 @@ function calcTrialStreak(subs) {
 // 자동 응원 메시지 (선생님 피드백 대신)
 // ===================================================
 
-function encourageMessage(day, doneCount, streak) {
+function encourageMessage(day, doneCount, waiting) {
   if (doneCount === 0) {
-    return { emoji: '🌱', title: '오늘이 시작하기 딱 좋은 날이에요',
-             body: '완벽하게 하려고 하지 마세요. 30초만 따라 말해도 오늘 인증이에요.' };
+    return { emoji: '🌱', title: '지금 내 소리 그대로 녹음하면 돼요',
+             body: '잘하려고 하지 마세요. 처음 녹음이 있어야 2단계에서 달라진 게 들려요.' };
   }
   if (doneCount >= TRIAL_DAYS) {
-    return { emoji: '🏆', title: `${TRIAL_DAYS}일 전부 완주했어요!`,
-             body: '이건 진짜 대단한 거예요. 대부분 3일을 못 넘겨요. 이 습관, 여기서 끊기면 아까워요.' };
+    return { emoji: '🏆', title: '2단계 완주했어요!',
+             body: '1단계와 2단계 녹음을 나란히 들어보세요. 피드백 한 번에 이만큼 달라졌어요.' };
   }
-  if (streak >= 4) {
-    return { emoji: '🔥', title: `${streak}일 연속! 하루만 더 하면 완주예요`,
-             body: '이 정도 오면 소리가 들리기 시작하는 구간이에요. 끝까지 가봐요!' };
+  if (!waiting) {
+    return { emoji: '✨', title: '피드백 도착! 이제 2단계만 남았어요',
+             body: '위 피드백에서 짚은 부분만 신경 써서 같은 대사를 한 번 더 녹음하면 끝이에요.' };
   }
-  if (streak >= 3) {
-    return { emoji: '💪', title: `${streak}일 연속 중이에요`,
-             body: '대부분 3일째에 그만둬요. 지금 그 고비를 넘고 있는 중이에요!' };
-  }
-  if (day >= 4 && doneCount <= 1) {
-    return { emoji: '🌤️', title: '며칠 빠져도 괜찮아요',
-             body: '체험은 완벽하게 하는 게 목적이 아니에요. 오늘 한 번이면 충분해요.' };
-  }
-  return { emoji: '👏', title: `${doneCount}일 인증했어요`,
-           body: '어제보다 입이 조금 더 편해졌을 거예요. 오늘도 30초만!' };
+  return { emoji: '🎧', title: '1단계 녹음 완료!',
+           body: 'AI가 원본 광고와 내 녹음을 비교하고 있어요. 피드백이 오면 메일로 알려드리고 2단계가 열려요.' };
 }
 
 // ===================================================
