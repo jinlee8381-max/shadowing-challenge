@@ -1065,10 +1065,10 @@ function buildResult() {
     ${MAIL_READY ? `
     <div class="save-box" id="mailBox">
       <div id="mailForm">
-        <div class="r-card-lbl">결과 이메일로 받기</div>
+        <div class="r-card-lbl">맞춤 훈련법 PDF 받기</div>
         <p class="save-desc">
-          진단 결과와 <b>4주 루틴</b>을 정리해서 <b>바로</b> 보내드려요.
-          나중에 다시 열어볼 수 있게요.
+          진단 결과 + <b>내 유형 맞춤 훈련법 PDF</b> + <b>4주 루틴</b>을
+          메일로 <b>바로</b> 보내드려요.
         </p>
         <div class="save-fields">
           <input id="mailName"  class="save-input" type="text"  placeholder="이름" autocomplete="name">
@@ -1077,7 +1077,7 @@ function buildResult() {
             <input type="checkbox" id="mailAgree">
             <span>진단 결과와 학습 안내를 받기 위해 이메일을 쓰는 데 동의합니다.</span>
           </label>
-          <button class="btn btn-ghost" onclick="submitMail('${type}')" id="mailBtn">결과 보내주세요</button>
+          <button class="btn btn-ghost" onclick="submitMail('${type}')" id="mailBtn">PDF랑 결과 보내주세요</button>
           <p class="save-status" id="mailStatus"></p>
         </div>
       </div>
