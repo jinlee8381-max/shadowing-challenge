@@ -551,7 +551,15 @@
       document.getElementById('emptyBlock').classList.add('hidden');
       document.getElementById('feedbackList').innerHTML = '';
 
-      const allSubs = await loadAllSubmissions();
+      // 고른 날짜 하루치를 바로 불러옴 (챌린지 달이 바뀌어도 지난달 날짜 피드백 가능)
+      const from = new Date(dateStr + 'T00:00:00'), to = new Date(from); to.setDate(to.getDate() + 1);
+      let allSubs = [];
+      try {
+        const snap = await db.collection('submissions')
+          .where('submittedAt', '>=', firebase.firestore.Timestamp.fromDate(from))
+          .where('submittedAt', '<', firebase.firestore.Timestamp.fromDate(to)).get();
+        allSubs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      } catch (e) { console.error('loadForDate:', e); allSubs = await loadAllSubmissions(); }
       submissions = allSubs.filter(s => tsToDateKey(s.submittedAt) === dateStr);
 
       document.getElementById('loadingBlock').classList.add('hidden');
