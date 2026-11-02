@@ -14,7 +14,7 @@
 // ════════════════════════════════════════════════════
 
 (function () {
-  var MONTH_KEY  = '2026-10';
+  var MONTH_KEY  = '2026-11';
   var PASS_HASH  = '3abde42290c8597dc71fe655488bc926a4e2baccacd84f7eef5fc1e390316347';
   var KEY        = 'lj_student_unlocked_' + MONTH_KEY;
 
