@@ -435,6 +435,12 @@
         ]);
         const r = rSnap.exists ? rSnap.data() : {}, p = pSnap.exists ? pSnap.data() : {};
         if (r.continueNextMonth === false) return;               // 이번 달로 끝내기로 함 (환급)
+        if (left < 0) {                                            // 새 달이 이미 시작 → 새 달에 인증했으면 이미 이어서 참여 중
+          const [y, m] = month.split('-').map(Number);
+          const nm = m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, '0')}`;
+          const cur = await db.collection('submissions').where('challengeMonth', '==', nm).where('studentName', '==', name).limit(1).get();
+          if (!cur.empty) return;
+        }
         const nextM = Number(month.slice(5)) % 12 + 1;
         const link  = `result.html?name=${encodeURIComponent(name)}&month=${month}#renew`;
         const btn   = (t) => `<a href="${link}" class="block mt-3 text-center bg-blue-600 text-white text-sm font-bold rounded-xl py-2.5 hover:bg-blue-700 transition-colors">${t}</a>`;
