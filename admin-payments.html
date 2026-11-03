@@ -184,7 +184,8 @@
       const carry    = Math.min(refund, DEPOSIT);
       const addDep   = Math.max(DEPOSIT - carry, 0);
       const p        = payMap[name] || {};
-      const fee      = p.isListeningStudent ? 0 : JOIN_FEE;
+      const lis      = p.isListeningStudent !== undefined ? p.isListeningStudent : resultsMap[name]?.isListeningStudent;   // 관리자 표시 우선, 없으면 학생이 결과 화면에서 고른 값
+      const fee      = lis ? 0 : JOIN_FEE;
       return { refund, addDep, fee, total: addDep + fee };
     }
 
@@ -253,7 +254,7 @@
       list.forEach(name => {
         const p = payMap[name] || {};
         const { addDep, fee, total } = carryDepositOf(name);
-        const listeningKnown = p.isListeningStudent !== undefined;
+        const listeningKnown = p.isListeningStudent !== undefined || resultsMap[name]?.isListeningStudent !== undefined;
         const row = document.createElement('div');
         row.className = 'px-5 py-3.5 space-y-2';
         row.innerHTML = `

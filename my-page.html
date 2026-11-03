@@ -92,6 +92,9 @@
 
     <main class="max-w-lg mx-auto px-3 py-5 pb-24 space-y-4">
 
+      <!-- 월말 이월 안내 (종료 7일 전 ~ 7일 뒤, 맨 위) — 고르기 전: 이월 칸으로 / '계속'을 고른 뒤: 입금 안내 -->
+      <div id="renewBanner" class="hidden"></div>
+
       <!-- LJ쌤 메시지 (teacherMessages, 최근 14일) -->
       <div id="teacherMsgCard" class="hidden bg-pink-50 border border-pink-100 rounded-2xl p-4">
         <p class="text-xs font-bold text-pink-600 mb-2">💌 LJ쌤 메시지</p>
@@ -205,6 +208,8 @@
         내 전체 기록 보기 →
       </a>
 
+      <footer class="text-center text-xs font-bold tracking-widest text-blue-600 pt-2">LJ ENGLISH</footer>
+
     </main>
 
     <!-- 하단 탭바 -->
@@ -308,6 +313,7 @@
       const [,ym] = CHALLENGE_START.split('-');
       document.getElementById('myMonthLabel').textContent = `쉐도잉 챌린지 · ${parseInt(ym)}월`;
 
+      renderRenewBanner(name);
       await renderMainScreen(name);
       loadMyQuestions(name);
     }
@@ -387,6 +393,91 @@
       const [,, wd7]   = weekDates[6].split('-');
       document.getElementById('weekDetailLabel').textContent =
         `이번 주 (${currentWeek}주차) ${parseInt(wm)}/${parseInt(wd1)}–${parseInt(wd7)} · 7일 중 5일 인증`;
+    }
+
+    // ── 월말 이월 안내 배너 ──
+    // 종료일 = 4주차 일요일(시작일+27일). 종료 7일 전 ~ 7일 뒤까지 맨 위에 띄움.
+    // 새 달로 넘어간 직후엔 지난 달 기준으로 계속 띄움 (이월 칸 = result.html?month=지난달#renew)
+    const RENEW_NOTICE_DAYS = 7;
+    const RN_DEPOSIT = 40000, RN_JOIN_FEE = 80000;   // result.html 이월 정산과 같은 금액 (리스닝 클래스 수강생은 참여비 면제)
+    function rnShiftMonth(ym, delta) {
+      let [y, m] = ym.split('-').map(Number);
+      m += delta;
+      while (m < 1)  { m += 12; y--; }
+      while (m > 12) { m -= 12; y++; }
+      return `${y}-${String(m).padStart(2,'0')}`;
+    }
+    function rnDaysLeft(start) {
+      const end = new Date(start + 'T00:00:00'); end.setDate(end.getDate() + 27);
+      return Math.round((end - new Date(todayStr() + 'T00:00:00')) / 86400000);
+    }
+    async function renewTerm() {
+      const left = rnDaysLeft(CHALLENGE_START);
+      if (left <= RENEW_NOTICE_DAYS && left >= -7) return { month: CHALLENGE_MONTH, left };
+      if (left > 21) {   // 새 달 시작 직후 → 지난 달이 끝난 지 일주일 안이면 지난 달 기준
+        const pm = rnShiftMonth(CHALLENGE_MONTH, -1);
+        const ps = await loadChallengeStart(pm);
+        const pl = ps ? rnDaysLeft(ps) : -99;
+        if (pl >= -7) return { month: pm, left: pl };
+      }
+      return null;
+    }
+    async function renderRenewBanner(name) {
+      const box = document.getElementById('renewBanner');
+      box.classList.add('hidden'); box.innerHTML = '';
+      try {
+        const term = await renewTerm();
+        if (!term) return;
+        const { month, left } = term;
+        const [rSnap, pSnap] = await Promise.all([
+          db.collection('results').doc(`${month}_${name}`).get(),
+          db.collection('payments').doc(`${month}_${name}`).get()
+        ]);
+        const r = rSnap.exists ? rSnap.data() : {}, p = pSnap.exists ? pSnap.data() : {};
+        if (r.continueNextMonth === false) return;               // 이번 달로 끝내기로 함 (환급)
+        const nextM = Number(month.slice(5)) % 12 + 1;
+        const link  = `result.html?name=${encodeURIComponent(name)}&month=${month}#renew`;
+        const btn   = (t) => `<a href="${link}" class="block mt-3 text-center bg-blue-600 text-white text-sm font-bold rounded-xl py-2.5 hover:bg-blue-700 transition-colors">${t}</a>`;
+        let html;
+        if (r.continueNextMonth === true) {
+          if (p.carryoverPaid) return;                           // 입금 확인 끝 → 내림
+          // 입금액 = result.html renderSettlement 와 같은 계산 (크레킷 결제자는 보증금 이월 없음)
+          const snap = await db.collection('submissions').where('challengeMonth', '==', month).where('studentName', '==', name).get();
+          const subs = snap.docs.map(d => d.data());
+          const ok   = [1,2,3,4].filter(w => subs.filter(s => s.week === w).length >= 5).length;
+          const carry  = p.crekit ? 0 : Math.min(ok * 10000, RN_DEPOSIT);
+          const addDep = RN_DEPOSIT - carry;
+          const lis    = p.isListeningStudent !== undefined ? p.isListeningStudent : r.isListeningStudent;
+          const won    = n => n.toLocaleString() + '원';
+          const amount = lis === undefined
+            ? `<b>${won(addDep + RN_JOIN_FEE)}</b> <span class="text-xs">(리스닝 클래스 수강생은 ${won(addDep)})</span>`
+            : `<b>${won(addDep + (lis ? 0 : RN_JOIN_FEE))}</b>`;
+          html = `<div class="bg-blue-50 border border-blue-200 rounded-2xl p-4 text-sm text-blue-900 leading-relaxed">
+              💳 <b>${nextM}월 이월 신청 완료!</b> 입금만 남았어요.
+              <p class="mt-1.5">입금하실 금액 ${amount}<br>카카오뱅크 3333-19-4033339 (예금주: 이진)</p>
+              <button type="button" onclick="rnCopyAcct(this)" class="block w-full mt-3 bg-blue-600 text-white text-sm font-bold rounded-xl py-2.5 hover:bg-blue-700 transition-colors">계좌번호 복사하기</button>
+              <a href="${link}" class="block mt-2 text-center text-xs text-blue-500 hover:underline">금액 자세히 보기 →</a>
+            </div>`;
+        } else {
+          const what = `${nextM}월 이월(계속 참여) 또는 환급 신청을 해주세요.`;
+          const head = left > 1  ? `⏰ 이번 챌린지 종료 <b>${left}일 전</b>이에요!`
+                     : left === 1 ? `⏰ <b>내일이 챌린지 마지막 날</b>이에요!`
+                     : left === 0 ? `🏁 <b>오늘이 챌린지 마지막 날</b>이에요!`
+                     : `🏁 이번 챌린지가 끝났어요!`;
+          html = `<div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-sm text-amber-900 leading-relaxed">
+              ${head}<br>${what}${btn(`${nextM}월 선택하기 →`)}
+            </div>`;
+        }
+        box.innerHTML = html;
+        box.classList.remove('hidden');
+      } catch (e) { console.error('renderRenewBanner:', e); }   // 실패해도 나머지 화면은 정상
+    }
+    function rnCopyAcct(btn) {
+      navigator.clipboard.writeText('3333194033339').then(() => {
+        const t = btn.textContent;
+        btn.textContent = '✅ 복사됐어요';
+        setTimeout(() => { btn.textContent = t; }, 1500);
+      }).catch(() => alert('계좌번호: 3333-19-4033339 (카카오뱅크 이진)'));
     }
 
     async function renderTeacherMessages(name) {

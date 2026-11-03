@@ -38,7 +38,14 @@
     '#lj-gate button{width:100%;margin-top:10px;padding:14px;font-size:.9rem;font-weight:700;color:#fff;' +
     'background:#2563EB;border:0;border-radius:12px;cursor:pointer}' +
     '#lj-gate button:hover{background:#1D4ED8}' +
-    '#lj-gate .e{margin-top:12px;font-size:.8rem;font-weight:600;color:#DC2626;min-height:1.2em}';
+    '#lj-gate .e{margin-top:12px;font-size:.8rem;font-weight:600;color:#DC2626;min-height:1.2em}' +
+    '#lj-gate .rn{margin-top:18px;text-align:left;background:#FFFBEB;border:1px solid #FDE68A;border-radius:12px;' +
+    'padding:12px 14px;font-size:.8rem;line-height:1.6;color:#78350F}' +
+    '#lj-gate .rn ol{margin:6px 0 0;padding-left:18px}' +
+    '#lj-gate .rn a{display:block;margin-top:10px;padding:11px;text-align:center;font-weight:700;color:#fff;' +
+    'background:#F59E0B;border-radius:10px;text-decoration:none}' +
+    '#lj-gate{overflow-y:auto;align-items:flex-start}#lj-gate .b{margin:auto}' +
+    '#lj-gate .ft{margin-top:18px;font-size:.7rem;font-weight:800;letter-spacing:.2em;color:#2563EB}';
   document.documentElement.classList.add('lj-locked');
   (document.head || document.documentElement).appendChild(style);
 
@@ -46,6 +53,21 @@
     var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
     return Array.from(new Uint8Array(buf))
       .map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+  }
+
+  // 지난 달 이름이 남아 있는 분(= 지난 달 참여자) → 이월 신청을 깜빡했을 때 3단계 안내
+  function renewHowTo() {
+    var name = localStorage.getItem('shadowing_my_name');
+    if (!name) return '';
+    var y = Number(MONTH_KEY.slice(0, 4)), m = Number(MONTH_KEY.slice(5)) - 1;
+    if (m < 1) { m = 12; y--; }
+    var prev = y + '-' + (m < 10 ? '0' : '') + m;
+    var link = 'result.html?name=' + encodeURIComponent(name) + '&month=' + prev + '#renew';
+    return '<div class="rn"><b>이월 신청을 깜빡하셨나요? 지금도 괜찮아요</b>' +
+      '<ol><li>' + m + '월 <b>결과</b> 화면에서 "✅ 계속할게요!" 선택</li>' +
+      '<li>안내된 금액을 계좌로 입금</li>' +
+      '<li>입금 확인 후 받은 <b>입장 코드</b> 입력</li></ol>' +
+      '<a href="' + link + '">이월 신청 · 입금하러 가기 →</a></div>';
   }
 
   function build() {
@@ -59,6 +81,8 @@
         '<input id="lj-pw" type="password" inputmode="numeric" autocomplete="off" placeholder="••••••">' +
         '<button id="lj-go" type="button">입장하기</button>' +
         '<div class="e" id="lj-err"></div>' +
+        renewHowTo() +
+        '<div class="ft">LJ ENGLISH</div>' +
       '</div>';
     document.body.appendChild(gate);
 

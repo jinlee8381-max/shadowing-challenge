@@ -161,8 +161,8 @@
         <p id="reflectionSaved" class="hidden text-center text-xs text-green-500 mt-2">✅ 저장되었습니다!</p>
       </div>
 
-      <!-- 다음 챌린지 & 이월 확인 -->
-      <div class="bg-white rounded-2xl shadow-sm p-4 text-center space-y-3 slide-up" style="animation-delay:.6s">
+      <!-- 다음 챌린지 & 이월 확인 (#renew — 이월 알림·배너를 누르면 여기로) -->
+      <div id="renew" class="bg-white rounded-2xl shadow-sm p-4 text-center space-y-3 slide-up" style="animation-delay:.6s">
         <p class="font-bold text-gray-800" id="nextChallengeTxt">다음 챌린지도 함께해요! 🎙️</p>
         <p class="text-sm text-gray-500">이 습관을 끊지 말고 계속 이어나가요.</p>
 
@@ -269,6 +269,8 @@
     </div><!-- #resultBlock -->
   </main>
 
+  <footer class="text-center text-xs font-bold tracking-widest text-blue-600 mt-8">LJ ENGLISH</footer>
+
   <script>
     const params = new URLSearchParams(location.search);
     const name   = params.get('name') || localStorage.getItem('shadowing_my_name') || '';
@@ -276,16 +278,24 @@
     // 탭바 학습 기록 링크
     document.getElementById('nav-record').href = `student.html?name=${encodeURIComponent(name)}&mode=student`;
 
-    // 챌린지 기간 표시
-    const weekDates1 = getWeekDates(1);
-    const weekDates4 = getWeekDates(4);
-    const [,m1,d1] = weekDates1[0].split('-');
-    const [,m4,d4] = weekDates4[4].split('-'); // 4주차 금요일
-    document.getElementById('challengePeriod').textContent =
-      `${parseInt(m1)}월 ${parseInt(d1)}일 ~ ${parseInt(m4)}월 ${parseInt(d4)}일`;
-    const [,cm] = CHALLENGE_START.split('-');
-    document.getElementById('resultTitle').textContent = `${parseInt(cm)}월 챌린지 결과`;
-    document.getElementById('nextChallengeTxt').textContent = `${parseInt(cm)+1}월 챌린지도 함께해요! 🎙️`;
+    // ?month=2026-11 → 지난 달 결과 보기 (새 달로 넘어간 뒤 이월 신청을 깜빡한 분이 지난 달 이월 칸으로 오는 길)
+    const VIEW_MONTH_PARAM = params.get('month');
+
+    // 챌린지 기간·제목 표시 (보는 달이 정해진 뒤에 호출)
+    function setLabels() {
+      const weekDates1 = getWeekDates(1);
+      const weekDates4 = getWeekDates(4);
+      const [,m1,d1] = weekDates1[0].split('-');
+      const [,m4,d4] = weekDates4[4].split('-'); // 4주차 금요일
+      document.getElementById('challengePeriod').textContent =
+        `${parseInt(m1)}월 ${parseInt(d1)}일 ~ ${parseInt(m4)}월 ${parseInt(d4)}일`;
+      const cm = parseInt(CHALLENGE_MONTH.split('-')[1]);
+      const nextM = cm % 12 + 1;
+      document.getElementById('resultTitle').textContent = `${cm}월 챌린지 결과`;
+      document.getElementById('nextChallengeTxt').textContent = `${nextM}월 챌린지도 함께해요! 🎙️`;
+      document.getElementById('nextMonthQuestion').textContent = `${nextM}월 챌린지도 계속 참여하시겠어요?`;
+      document.getElementById('nextMonthLabel').textContent = nextM;
+    }
 
     // 이름 인사
     if (name) {
@@ -298,13 +308,17 @@
     let   MY_REFUND  = 0;       // 이번 달 환급 예정액 (= 이월되는 보증금)
     let   IS_LISTENING = null;
 
-    function setListening(v) {
+    function setListening(v, save = true) {
       IS_LISTENING = v;
       const on  = 'py-2 rounded-lg border text-xs font-semibold transition-colors bg-blue-600 text-white border-blue-600';
       const off = 'py-2 rounded-lg border text-xs font-semibold transition-colors bg-white text-gray-500 border-gray-200 hover:border-blue-300';
       document.getElementById('lisYes').className = v ? on : off;
       document.getElementById('lisNo').className  = v ? off : on;
       renderSettlement();
+      // 고른 값 저장 → 내 현황 맨 위 입금 안내 배너·관리자 정산 페이지가 같은 금액을 씀
+      if (save && name) db.collection('results').doc(`${CHALLENGE_MONTH}_${name}`).set({
+        isListeningStudent: v, studentName: name, challengeMonth: CHALLENGE_MONTH
+      }, { merge: true }).catch(e => console.error(e));
     }
 
     function renderSettlement() {
@@ -438,7 +452,10 @@
           saved.textContent = '✅ 환급 계좌를 이미 입력하셨어요. 바꾸려면 다시 입력해서 저장하세요.';
           saved.classList.remove('hidden');
         }
+        if (resultData.continueNextMonth && resultData.isListeningStudent !== undefined) setListening(resultData.isListeningStudent, false);
       }
+      // 이월 알림·배너를 눌러 들어온 경우 → 이월 칸으로 바로
+      if (location.hash === '#renew') setTimeout(() => document.getElementById('renew').scrollIntoView({ behavior: 'smooth', block: 'start' }), 700);
     }
 
     function spawnConfetti() {
@@ -460,12 +477,6 @@
       }
       setTimeout(() => box.innerHTML = '', 6000);
     }
-
-    // 다음 달 라벨 동적 설정
-    const [,challM] = CHALLENGE_MONTH.split('-');
-    const nextM = parseInt(challM) + 1;
-    document.getElementById('nextMonthQuestion').textContent = `${nextM}월 챌린지도 계속 참여하시겠어요?`;
-    document.getElementById('nextMonthLabel').textContent = nextM;
 
     async function saveReflection() {
       const text = document.getElementById('reflectionText').value.trim();
@@ -543,7 +554,15 @@
       }
     }
 
-    init();
+    async function boot() {
+      if (VIEW_MONTH_PARAM && /^\d{4}-\d{2}$/.test(VIEW_MONTH_PARAM) && VIEW_MONTH_PARAM !== CHALLENGE_MONTH) {
+        const start = await loadChallengeStart(VIEW_MONTH_PARAM);
+        if (start) { CHALLENGE_MONTH = VIEW_MONTH_PARAM; CHALLENGE_START = start; }
+      }
+      setLabels();
+      init();
+    }
+    boot();
   </script>
   <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
   <script>
