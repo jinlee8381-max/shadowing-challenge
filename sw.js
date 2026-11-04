@@ -1,6 +1,6 @@
 importScripts("https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.sw.js");
 
-const CACHE = 'shadowing-v5';   // v5: student-guard.js(이월 안내) 새로 받게
+const CACHE = 'shadowing-v6';   // v6: admin-guard.js(관리자 비번 변경) 새로 받게
 
 const PRECACHE = [
   '/firebase-config.js',
